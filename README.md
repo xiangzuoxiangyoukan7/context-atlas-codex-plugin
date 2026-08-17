@@ -27,3 +27,15 @@ $context-atlas update
 ```
 
 没有 `init` 或 `update` 固定操作符的自然语言不能触发正式知识写入。
+
+## 项目级卸载
+
+回到安装插件时使用的目标项目目录，使用相同的项目级 `CODEX_HOME`，先卸载插件，再移除 Marketplace：
+
+```powershell
+$env:CODEX_HOME = (Join-Path $PWD ".codex")
+codex plugin remove context-atlas@context-atlas
+codex plugin marketplace remove context-atlas
+```
+
+不要直接删除整个 `.codex/` 目录，其中可能还有该项目的其他配置和插件。

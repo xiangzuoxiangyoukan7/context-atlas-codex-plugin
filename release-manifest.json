@@ -4,7 +4,7 @@
   "files": {
     ".agents/plugins/marketplace.json": "1729d9fb23dc1a69af34ae23c732afcb430204c029d7eb1021dde64c5d7b8d99",
     ".codex-plugin/plugin.json": "1d239809190d59d3cf87eeab3d4bb49c102ddc8eaf8c00f609e6b3dd69843bbc",
-    "README.md": "10c59c0e83ddab3392dbf7e4ed1ca2a5229d8d40984f9dd24e836717e5e186bc",
+    "README.md": "1afd657643b12ca546bbbce9037044f56a3abe816c3a8626753678de03080086",
     "skills/context-atlas/agents/openai.yaml": "7256c49268cc5b34f5681a2b7d3508c693db06edce8396fd22d7af034aa5382e",
     "skills/context-atlas/assets/compatibility.json": "c42a07fa32d3f811a1e008ff615b834edd0c595561599c0a0bf4ae25bcdd534e",
     "skills/context-atlas/assets/manifest.json": "e4f02d2935d971335c531ed640631adca321ced4b3cf778efb197cf0558dc685",
