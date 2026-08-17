@@ -1,0 +1,20 @@
+{
+  "name": "context-atlas",
+  "version": "0.2.0",
+  "description": "通过统一协议初始化、维护和验证项目知识库",
+  "author": {
+    "name": "Context Atlas Maintainers"
+  },
+  "repository": "https://github.com/xiangzuoxiangyoukan7/context-atlas",
+  "keywords": ["knowledge-base", "project-context", "traceability"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "脉络地图",
+    "shortDescription": "初始化、维护和验证项目知识库",
+    "longDescription": "通过统一 Skill、模板、Schema 和确定性检查器维护可追溯的项目知识库。",
+    "developerName": "Context Atlas Maintainers",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Write"],
+    "defaultPrompt": ["检查当前项目知识库并报告缺失内容。"]
+  }
+}

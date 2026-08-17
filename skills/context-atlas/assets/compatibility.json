@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "plugin_version": "0.1.0",
+  "reads_format_versions": [1, 2],
+  "creates_format_version": 2,
+  "conversions": [
+    {
+      "from": 1,
+      "to": 2,
+      "id": "sources-to-supported-by"
+    }
+  ]
+}

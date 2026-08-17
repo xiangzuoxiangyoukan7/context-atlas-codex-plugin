@@ -1,0 +1,11 @@
+{
+  "required": ["id", "type", "title", "source_type", "reference", "last_updated"],
+  "enums": {
+    "type": ["source"],
+    "source_type": ["user_statement", "repository_file", "command_output", "existing_document", "external_document", "ai_inference"]
+  },
+  "patterns": {
+    "id": "SRC-\\d{3}",
+    "last_updated": "\\d{4}-\\d{2}-\\d{2}"
+  }
+}

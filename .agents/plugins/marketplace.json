@@ -1,0 +1,20 @@
+{
+  "name": "context-atlas",
+  "interface": {
+    "displayName": "Context Atlas"
+  },
+  "plugins": [
+    {
+      "name": "context-atlas",
+      "source": {
+        "source": "url",
+        "url": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

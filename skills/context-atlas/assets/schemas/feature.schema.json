@@ -1,0 +1,29 @@
+{
+  "required": [
+    "id",
+    "type",
+    "title",
+    "status",
+    "phase",
+    "priority",
+    "current_slice",
+    "depends_on",
+    "acceptance",
+    "contracts",
+    "adr",
+    "last_updated"
+  ],
+  "enums": {
+    "type": ["feature"],
+    "status": ["candidate", "baselined", "scheduled", "in_progress", "acceptance", "completed", "deferred", "deprecated"],
+    "phase": ["mvp", "phase2", "phase3"],
+    "priority": ["P0", "P1", "P2", "P3"],
+    "current_slice": ["included", "excluded"]
+  },
+  "patterns": {
+    "id": "F\\d{2}",
+    "last_updated": "\\d{4}-\\d{2}-\\d{2}"
+  },
+  "non_empty_lists": ["acceptance"],
+  "unique_lists": ["depends_on", "acceptance", "contracts", "adr"]
+}
