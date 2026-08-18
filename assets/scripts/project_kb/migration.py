@@ -94,7 +94,11 @@ def build_migration_proposal(
     records: Iterable[DocumentRecord],
     policy: CompatibilityPolicy,
 ) -> MigrationProposal:
-    """只读分析旧裸来源编号并生成可确认的一对一转换提案。"""
+    """只读分析旧裸来源编号并生成可确认的一对一转换提案。
+
+    先诊断格式兼容性并建立来源编号索引，再逐份扫描旧记录，把可唯一解析的来源构造成
+    正式关系；歧义项保留为 unresolved，最后根据文件摘要构造稳定提案修订号。
+    """
 
     resolved_root = root.resolve()
     result = policy.diagnose(resolved_root)
@@ -204,7 +208,11 @@ def apply_migration(
     proposal: MigrationProposal,
     confirmed_revision: str,
 ) -> MigrationReport:
-    """在修订一致且无歧义时执行转换，并拒绝提案后的文件变化。"""
+    """在修订一致且无歧义时执行转换，并拒绝提案后的文件变化。
+
+    先校验确认修订、未决项、目标边界和原文件摘要，再准备全部新内容；所有目标均未漂移后
+    才逐项原子替换，并返回实际迁移文件及原格式版本。
+    """
 
     if not confirmed_revision or confirmed_revision != proposal.proposal_revision:
         raise PermissionError("confirmed revision does not match migration proposal")

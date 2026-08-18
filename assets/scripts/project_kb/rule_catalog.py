@@ -266,7 +266,11 @@ def validate_rule_coverage(root: Path) -> list[RuleIssue]:
 
 
 def build_rule_change_impact(root: Path, changed_rule_ids: set[str]) -> list[RuleImpact]:
-    """把变化规则的消费者分类为必须处理或人工复核。"""
+    """把变化规则的消费者分类为必须处理或人工复核。
+
+    先校验变化编号并构造规则消费者反向索引，再根据消费者类型逐项判断必须处理或人工复核，
+    最后返回稳定排序的影响清单。
+    """
 
     catalog = load_rule_catalog(root)
     unknown = changed_rule_ids - set(catalog)

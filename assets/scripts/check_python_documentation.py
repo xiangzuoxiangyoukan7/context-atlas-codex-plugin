@@ -2,17 +2,23 @@
 
 from __future__ import annotations
 
-# context-atlas-rules: [[rules/知识治理规则#RULE-CODE-001|RULE-CODE-001]]
+# context-atlas-rules: [[rules/知识治理规则#RULE-CODE-001|RULE-CODE-001]] [[rules/知识治理规则#RULE-CODE-002|RULE-CODE-002]]
 
 import argparse
 import ast
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Iterable, Sequence
 
 
 EXCLUDED_PARTS = frozenset(
-    {".git", ".worktrees", "build", "__pycache__", ".test-probe", ".test-run", ".test-tmp"}
+    {".git", ".worktrees", "assets", "examples", "build", "__pycache__", ".test-probe", ".test-run", ".test-tmp"}
+)
+CHINESE_RE = re.compile(r"[\u4e00-\u9fff]")
+LOGIC_WORDS = (
+    "流程", "逻辑", "先", "再", "根据", "逐", "依次", "校验", "验证", "构造",
+    "扫描", "解析", "应用", "运行", "检查", "输出", "返回",
 )
 
 
@@ -55,8 +61,23 @@ def _check_function(
     """检查单个函数或方法的说明、参数类型与返回类型。"""
 
     issues: list[PythonDocumentationIssue] = []
-    if ast.get_docstring(node) is None:
+    docstring = ast.get_docstring(node)
+    if docstring is None:
         issues.append(PythonDocumentationIssue("PY_DOC_FUNCTION", path, node.lineno, node.name))
+    elif not CHINESE_RE.search(docstring) or len(docstring.strip()) < 4:
+        issues.append(PythonDocumentationIssue("PY_DOC_FUNCTION_DETAIL", path, node.lineno, node.name))
+    branch_count = sum(
+        isinstance(child, (ast.If, ast.For, ast.While, ast.Try, ast.With, ast.Match))
+        for child in ast.walk(node)
+    )
+    line_count = (node.end_lineno or node.lineno) - node.lineno + 1
+    important_name = node.name == "main" or node.name.startswith(
+        ("execute_", "initialize_", "apply_", "validate_", "build", "sync")
+    )
+    if docstring is not None and important_name and (branch_count >= 2 or line_count >= 20) and not any(
+        word in docstring for word in LOGIC_WORDS
+    ):
+        issues.append(PythonDocumentationIssue("PY_DOC_IMPORTANT_LOGIC", path, node.lineno, node.name))
     for argument in _function_arguments(node):
         if argument.arg not in {"self", "cls"} and argument.annotation is None:
             issues.append(
@@ -76,8 +97,11 @@ def _check_class(path: Path, node: ast.ClassDef) -> list[PythonDocumentationIssu
     """检查类说明以及类级属性的显式类型标注。"""
 
     issues: list[PythonDocumentationIssue] = []
-    if ast.get_docstring(node) is None:
+    docstring = ast.get_docstring(node)
+    if docstring is None:
         issues.append(PythonDocumentationIssue("PY_DOC_CLASS", path, node.lineno, node.name))
+    elif not CHINESE_RE.search(docstring) or len(docstring.strip()) < 4:
+        issues.append(PythonDocumentationIssue("PY_DOC_CLASS_DETAIL", path, node.lineno, node.name))
     for statement in node.body:
         if not isinstance(statement, ast.Assign):
             continue
@@ -103,8 +127,15 @@ def _check_file(path: Path) -> list[PythonDocumentationIssue]:
         return [PythonDocumentationIssue("PY_PARSE", path, 1, str(error))]
 
     issues: list[PythonDocumentationIssue] = []
-    if ast.get_docstring(tree) is None:
+    module_docstring = ast.get_docstring(tree)
+    if module_docstring is None:
         issues.append(PythonDocumentationIssue("PY_DOC_MODULE", path, 1, "模块缺少说明"))
+    elif not CHINESE_RE.search(module_docstring) or len(module_docstring.strip()) < 4:
+        issues.append(
+            PythonDocumentationIssue(
+                "PY_DOC_MODULE_DETAIL", path, 1, "模块说明必须用中文解释用途和适用场景"
+            )
+        )
     for node in ast.walk(tree):
         if isinstance(node, ast.ClassDef):
             issues.extend(_check_class(path, node))

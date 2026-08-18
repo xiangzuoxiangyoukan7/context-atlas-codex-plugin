@@ -1,4 +1,4 @@
-"""Apply explicitly confirmed knowledge-base file updates atomically."""
+"""原子应用已确认的知识库文件更新；用于 update Skill 正式写入场景。"""
 
 from __future__ import annotations
 
@@ -12,9 +12,11 @@ from .validator import ValidationConfig, validate
 
 @dataclass(frozen=True)
 class UpdateChange:
-    """One repository-relative file replacement from a confirmed proposal."""
+    """描述已确认提案中的单个文件替换。"""
 
+    #: 相对于知识库根目录的安全目标路径。
     path: str
+    #: 保存已确认新内容的临时输入文件。
     content_file: Path
 
 
@@ -24,7 +26,11 @@ def execute_update(
     confirmed_revision: str,
     changes: tuple[UpdateChange, ...],
 ) -> OperationReport:
-    """Apply confirmed replacements, validate, and roll back invalid results."""
+    """应用已确认替换并在失败时回滚。
+
+    输入知识库、同一提案修订号和替换集合；先校验确认与路径，再保存旧内容并逐项替换，
+    随后运行结构验证，验证失败时恢复全部旧内容，成功时返回写入清单和验证结果。
+    """
 
     if not proposal_revision or proposal_revision != confirmed_revision:
         raise PermissionError("confirmed revision does not match current proposal")

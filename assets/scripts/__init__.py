@@ -1,1 +1,1 @@
-"""Repository automation scripts."""
+"""提供 Context Atlas 仓库自动化脚本；用于构建、检查和发布场景。"""
