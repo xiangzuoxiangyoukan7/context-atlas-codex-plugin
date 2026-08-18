@@ -17,16 +17,16 @@ codex
 新建会话后初始化知识库：
 
 ```text
-$context-atlas init
+$context-atlas-init
 ```
 
 更新已有知识库：
 
 ```text
-$context-atlas update
+$context-atlas-update
 ```
 
-没有 `init` 或 `update` 固定操作符的自然语言不能触发正式知识写入。
+没有明确调用对应 Skill 的自然语言不能触发正式知识写入。
 
 ## 项目级卸载
 

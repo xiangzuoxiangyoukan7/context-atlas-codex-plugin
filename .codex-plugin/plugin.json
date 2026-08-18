@@ -1,6 +1,6 @@
 {
   "name": "context-atlas",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "通过统一协议初始化、维护和验证项目知识库",
   "author": {
     "name": "Context Atlas Maintainers"
@@ -15,6 +15,6 @@
     "developerName": "Context Atlas Maintainers",
     "category": "Productivity",
     "capabilities": ["Interactive", "Write"],
-    "defaultPrompt": ["检查当前项目知识库并报告缺失内容。"]
+    "defaultPrompt": ["使用 $context-atlas-init 初始化知识库，或使用 $context-atlas-update 更新已有知识库。"]
   }
 }

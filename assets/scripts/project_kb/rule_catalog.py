@@ -181,7 +181,7 @@ def _consumer_files(root: Path) -> list[Path]:
 
     paths: list[Path] = []
     scan_roots = (
-        root / "skills" / "context-atlas",
+        root / "skills",
         root / "schemas",
         root / "templates",
         root / "scripts",

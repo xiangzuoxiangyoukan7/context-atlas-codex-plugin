@@ -44,7 +44,7 @@ def _replace_markers(root: Path, values: dict[str, str]) -> None:
 def initialize_from_assets(
     project_root: Path,
     project_name: str | None = None,
-    assets_root: Path = Path("skills/context-atlas/assets"),
+    assets_root: Path = Path("assets"),
     initialized_at: str | None = None,
 ) -> Path:
     """从 Skill 资产创建自包含且已验证的新知识库。"""
