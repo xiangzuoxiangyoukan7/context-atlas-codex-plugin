@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import sys
 from typing import Any
 
 from .initialization_contract import validate_initialization_proposal
@@ -42,13 +43,45 @@ class ConfirmationReport:
 
 
 @dataclass(frozen=True)
+class RuntimeAttemptReport:
+    """记录一个不泄露环境变量的解释器探测结果。"""
+
+    command: str
+    result: str
+    exit_code: int | None
+    python_major: int | None
+
+
+@dataclass(frozen=True)
+class RuntimeDetectionReport:
+    """记录执行模式选择所依据的最小运行时证据。"""
+
+    performed_by: str
+    platform: str
+    attempts: tuple[RuntimeAttemptReport, ...]
+    selected_command: str | None
+    capability_checks: tuple[dict[str, str], ...]
+
+
+@dataclass(frozen=True)
+class ExecutionReport:
+    """记录正式写入实际采用的执行模式。"""
+
+    mode: str
+    runtime_detection: RuntimeDetectionReport
+
+
+@dataclass(frozen=True)
 class ValidationReport:
     """记录实际执行的知识库验证结果。"""
 
     result: str
+    authority: str
+    deterministic_validation: str
     command: str
     exit_code: int
     issue_count: int
+    checks: tuple[dict[str, str], ...]
 
 
 @dataclass(frozen=True)
@@ -60,6 +93,7 @@ class InitializationReport:
     knowledge_base: Path
     proposal_revision: str
     confirmation: ConfirmationReport
+    execution: ExecutionReport
     written_files: tuple[str, ...]
     technology_stacks: tuple[dict[str, object], ...]
     validation: ValidationReport
@@ -165,13 +199,38 @@ def execute_initialization_proposal(
         knowledge_base=target,
         proposal_revision=revision,
         confirmation=ConfirmationReport("confirmed", confirmed_revision),
+        execution=ExecutionReport(
+            mode="python_executor",
+            runtime_detection=RuntimeDetectionReport(
+                performed_by="python_executor",
+                platform=sys.platform,
+                attempts=(
+                    RuntimeAttemptReport(
+                        command=sys.executable,
+                        result="available",
+                        exit_code=0,
+                        python_major=sys.version_info.major,
+                    ),
+                ),
+                selected_command=sys.executable,
+                capability_checks=(),
+            ),
+        ),
         written_files=written_files,
         technology_stacks=tuple(facts["technology_stacks"]),
         validation=ValidationReport(
             "passed" if exit_code == 0 else "failed",
+            "deterministic_executor",
+            "passed" if exit_code == 0 else "failed",
             command,
             exit_code,
             len(validation_issues),
+            (
+                {
+                    "name": "full_schema_and_reference_validation",
+                    "result": "passed" if exit_code == 0 else "failed",
+                },
+            ),
         ),
         unknowns=unknowns,
         conflicts=conflicts,

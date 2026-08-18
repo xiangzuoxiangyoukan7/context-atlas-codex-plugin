@@ -1,4 +1,4 @@
 interface:
-  display_name: "更新脉络地图"
+  display_name: "context-atlas-update"
   short_description: "更新当前项目已有的 Context Atlas 知识库"
   default_prompt: "使用 $context-atlas-update 更新当前项目知识库。"

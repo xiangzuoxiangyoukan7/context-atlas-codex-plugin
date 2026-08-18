@@ -1,6 +1,6 @@
 {
   "name": "context-atlas",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "通过统一协议初始化、维护和验证项目知识库",
   "author": {
     "name": "Context Atlas Maintainers"
@@ -9,7 +9,7 @@
   "keywords": ["knowledge-base", "project-context", "traceability"],
   "skills": "./skills/",
   "interface": {
-    "displayName": "脉络地图",
+    "displayName": "context-atlas",
     "shortDescription": "初始化、维护和验证项目知识库",
     "longDescription": "通过统一 Skill、模板、Schema 和确定性检查器维护可追溯的项目知识库。",
     "developerName": "Context Atlas Maintainers",

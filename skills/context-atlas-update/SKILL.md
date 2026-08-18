@@ -9,7 +9,9 @@ description: Update an existing self-contained Context Atlas project knowledge b
 
 Update an existing project knowledge base. Formal writes require explicit invocation of this Skill; natural-language requests may inspect and propose but must not update.
 
-Read `../../references/执行状态机.md`, `../../references/知识采集与确认.md`, `../../references/更新冲突与归档.md`, and `../../references/验证与结果报告.md` before writing. Read the target knowledge base's root `README.md` and `knowledge-base.yaml` before proposing changes.
+Read `../../references/执行状态机.md`, `../../references/知识采集与确认.md`, `../../references/更新冲突与归档.md`, `../../references/验证与结果报告.md`, and `../../references/宿主执行与运行时探测.md` before writing. Read the target knowledge base's root `README.md` and `knowledge-base.yaml` before proposing changes.
+
+Before apply, follow the runtime detection contract. Use the bundled Python executor when Python 3 is available. If it is unavailable, `agent_host` may apply only the exact confirmed file changes through an isolated staging copy, verify that no path outside the knowledge base changed, and report `deterministic_validation: not_run`; if the host capability preflight fails, stop with zero formal writes. A failing Windows Store `python` alias (including exit code 9009) does not prove Python is unavailable until all platform candidates have been checked.
 
 Follow `inspect -> propose -> await_confirmation -> apply -> validate -> report`. Present exact target paths and a revisioned Proposal, then obtain explicit confirmation of that revision. If no Context Atlas knowledge base exists, stop and direct the user to `$context-atlas-init`.
 
