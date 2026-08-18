@@ -1,6 +1,13 @@
 # 核心 Schema
 
-`catalog.json` 是检查器读取的唯一 Schema 目录。各 Schema 使用 JSON，确保 Python 标准库即可解析；知识库 Markdown 使用受控 YAML Front Matter，只支持字符串和一维字符串列表。
+Schema 可以理解为“机器可执行的表格填写规则”：它不保存项目知识，而是规定某类文件必须有哪些字段、字段允许填什么、格式必须怎样。
+
+本目录有两类 Schema：
+
+1. `catalog.json` 登记的轻量 Schema，约束知识库 Markdown 顶部的 YAML Front Matter。
+2. `initialization-*.schema.json` 标准 JSON Schema，约束初始化前的 Proposal 和初始化后的报告，不属于知识条目类型，所以不登记进 `catalog.json`。
+
+完整的逐文件、逐字段中文解释见[字段说明](./字段说明.md)。
 
 - [目录](./catalog.json)
 - [项目清单](./project-manifest.schema.json)
@@ -11,6 +18,8 @@
 - [治理任务](./governance-task.schema.json)
 - [验收](./acceptance.schema.json)
 - [知识来源](./source.schema.json)
+- [初始化 Proposal](./initialization-proposal.schema.json)
+- [初始化报告](./initialization-report.schema.json)
 
 技术栈记录只增加项目事实，不能改变核心状态、权威来源、确认规则或验收结果。
 

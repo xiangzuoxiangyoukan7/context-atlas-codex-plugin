@@ -13,6 +13,10 @@ Read `../../references/执行状态机.md`, `../../references/初始化协议.md
 
 Follow `inspect -> propose -> await_confirmation -> apply -> validate -> report`. Obtain the user's 显式确认 for the exact Proposal revision before applying it. Derive the default target as `doc-<项目目录名>`. If the 目标已存在, stop and direct the user to `$context-atlas-update`; never overwrite or reinitialize it.
 
-Use `../../assets/templates/core/doc-project/` as the only template source. After approval, invoke the structured executor under `../../assets/scripts/`; do not ask the user to provide low-level revision, file, or content parameters. Copy the bundled schemas and validation scripts into the target `.project-kb/` bundle, validate the result, and report exact paths and unresolved items.
+Build an initialization Proposal that conforms to `../../assets/schemas/initialization-proposal.schema.json`. Compute `proposal_revision` from canonical JSON excluding that field, display the same revision with the human-readable Proposal, and require confirmation of that exact revision. Do not ask the user to write JSON or provide low-level file parameters.
+
+Use `../../assets/templates/core/doc-project/` as the only template source. After approval, pass the Proposal through standard input to `../../assets/scripts/agent_kb_operation.py initialize --proposal - --confirmed-revision <revision>`. The executor owns all formal writes; never write knowledge files directly. Treat only an output conforming to `../../assets/schemas/initialization-report.schema.json` with `operation: initialized` and `validation.result: passed` as success.
+
+Copy the bundled schemas and validation scripts into the target `.project-kb/` bundle, validate the result, and report exact paths and unresolved items.
 
 Keep repository evidence, AI inference, user approval, stored knowledge, and validator results distinct. Never store secrets or unredacted personal data. Never create or maintain `AGENTS.md`, `CLAUDE.md`, or another Agent-specific adapter.

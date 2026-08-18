@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/initialization-report.schema.json",
+  "title": "Context Atlas Initialization Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["operation", "project_root", "knowledge_base", "proposal_revision", "confirmation", "written_files", "technology_stacks", "validation", "unknowns", "conflicts", "next_action"],
+  "properties": {
+    "operation": {"enum": ["initialized", "failed"]},
+    "project_root": {"type": "string"},
+    "knowledge_base": {"type": "string"},
+    "proposal_revision": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "confirmed_revision"],
+      "properties": {
+        "state": {"const": "confirmed"},
+        "confirmed_revision": {"type": "string"}
+      }
+    },
+    "written_files": {"type": "array", "items": {"type": "string"}},
+    "technology_stacks": {"type": "array", "items": {"type": "object"}},
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result", "command", "exit_code", "issue_count"],
+      "properties": {
+        "result": {"enum": ["passed", "failed"]},
+        "command": {"type": "string"},
+        "exit_code": {"type": "integer"},
+        "issue_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "unknowns": {"type": "array", "items": {"type": "string"}},
+    "conflicts": {"type": "array", "items": {"type": "string"}},
+    "next_action": {"type": "string"}
+  }
+}

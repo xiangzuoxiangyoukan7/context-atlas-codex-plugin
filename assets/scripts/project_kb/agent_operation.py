@@ -6,7 +6,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
+from .initialization_contract import validate_initialization_proposal
 from .initializer import initialize_from_assets
 from .validator import ValidationConfig, validate
 
@@ -29,6 +31,41 @@ class OperationReport:
     changed_files: tuple[str, ...]
     validator_exit_code: int
     issues: tuple[OperationIssue, ...]
+
+
+@dataclass(frozen=True)
+class ConfirmationReport:
+    """记录执行器实际验证的确认修订。"""
+
+    state: str
+    confirmed_revision: str
+
+
+@dataclass(frozen=True)
+class ValidationReport:
+    """记录实际执行的知识库验证结果。"""
+
+    result: str
+    command: str
+    exit_code: int
+    issue_count: int
+
+
+@dataclass(frozen=True)
+class InitializationReport:
+    """返回初始化结果 Schema 要求的全部字段。"""
+
+    operation: str
+    project_root: Path
+    knowledge_base: Path
+    proposal_revision: str
+    confirmation: ConfirmationReport
+    written_files: tuple[str, ...]
+    technology_stacks: tuple[dict[str, object], ...]
+    validation: ValidationReport
+    unknowns: tuple[str, ...]
+    conflicts: tuple[str, ...]
+    next_action: str
 
 
 def _relative_text(path: Path, root: Path) -> str:
@@ -79,4 +116,64 @@ def execute_initialize(
         changed_files=changed_files,
         validator_exit_code=0 if not issues else 1,
         issues=issues,
+    )
+
+
+def execute_initialization_proposal(
+    proposal: object,
+    confirmed_revision: str,
+    assets_root: Path,
+) -> InitializationReport:
+    """校验完整 Proposal、执行确定性初始化并返回规范报告。"""
+
+    normalized = validate_initialization_proposal(proposal)
+    revision = str(normalized["proposal_revision"])
+    if revision != confirmed_revision:
+        raise PermissionError("confirmed revision does not match current proposal")
+    project = normalized["project"]
+    assert isinstance(project, dict)
+    project_root = Path(str(project["root"])).resolve()
+    target = initialize_from_assets(
+        project_root=project_root,
+        project_name=str(project["id"]),
+        assets_root=assets_root,
+        proposal=normalized,
+        project_display_name=str(project["name"]),
+    )
+    schema_root = target / ".project-kb" / "schemas"
+    validation_issues = validate(target, ValidationConfig(schema_root=schema_root))
+    written_files = tuple(
+        path.relative_to(target).as_posix()
+        for path in sorted(target.rglob("*"))
+        if path.is_file()
+    )
+    facts = normalized["facts"]
+    assert isinstance(facts, dict)
+    unknowns = tuple(str(item["id"]) for item in normalized["unknowns"])
+    conflicts = tuple(str(item["id"]) for item in normalized["conflicts"])
+    next_action = (
+        f"处理 {conflicts[0]}" if conflicts else f"确认 {unknowns[0]}" if unknowns else "none"
+    )
+    command = (
+        f"py {target.name}/.project-kb/scripts/check_knowledge_base.py "
+        f"{target.name} --schema-root {target.name}/.project-kb/schemas"
+    )
+    exit_code = 0 if not validation_issues else 1
+    return InitializationReport(
+        operation="initialized" if exit_code == 0 else "failed",
+        project_root=project_root,
+        knowledge_base=target,
+        proposal_revision=revision,
+        confirmation=ConfirmationReport("confirmed", confirmed_revision),
+        written_files=written_files,
+        technology_stacks=tuple(facts["technology_stacks"]),
+        validation=ValidationReport(
+            "passed" if exit_code == 0 else "failed",
+            command,
+            exit_code,
+            len(validation_issues),
+        ),
+        unknowns=unknowns,
+        conflicts=conflicts,
+        next_action=next_action,
     )

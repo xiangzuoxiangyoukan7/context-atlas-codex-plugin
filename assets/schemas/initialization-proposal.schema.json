@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/initialization-proposal.schema.json",
+  "title": "Context Atlas Initialization Proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["operation", "proposal_revision", "project", "facts", "unknowns", "conflicts"],
+  "properties": {
+    "operation": {"const": "initialize"},
+    "proposal_revision": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "id", "name", "knowledge_base_name"],
+      "properties": {
+        "root": {"type": "string", "minLength": 1},
+        "id": {"type": "string", "pattern": "^[^./\\\\][^/\\\\]*$"},
+        "name": {"type": "string", "minLength": 1},
+        "knowledge_base_name": {"type": "string", "pattern": "^doc-[^/\\\\]+$"}
+      }
+    },
+    "facts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["goals", "boundaries_in", "boundaries_out", "technology_stacks", "local_commands"],
+      "properties": {
+        "goals": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "boundaries_in": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "boundaries_out": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "technology_stacks": {"type": "array", "items": {"$ref": "#/$defs/technology"}},
+        "local_commands": {"type": "array", "items": {"$ref": "#/$defs/command"}}
+      }
+    },
+    "unknowns": {"type": "array", "items": {"$ref": "#/$defs/open_item"}},
+    "conflicts": {"type": "array", "items": {"$ref": "#/$defs/open_item"}}
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "reference"],
+      "properties": {
+        "type": {"enum": ["repository_file", "user_statement", "existing_document", "command_output", "ai_inference"]},
+        "reference": {"type": "string", "minLength": 1}
+      }
+    },
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "value", "status", "source"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"},
+        "value": {"type": "string", "minLength": 1},
+        "status": {"enum": ["confirmed", "proposed"]},
+        "source": {"$ref": "#/$defs/source"}
+      }
+    },
+    "technology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "value", "status", "source", "name", "version", "location", "purpose", "commands", "configuration"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"},
+        "value": {"type": "string", "minLength": 1},
+        "status": {"enum": ["confirmed", "proposed"]},
+        "source": {"$ref": "#/$defs/source"},
+        "name": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "location": {"type": "string", "minLength": 1},
+        "purpose": {"type": "string", "minLength": 1},
+        "commands": {"type": "array", "items": {"type": "string"}},
+        "configuration": {"type": "string", "minLength": 1}
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "value", "status", "source", "purpose", "prerequisites", "command", "expected_result"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"},
+        "value": {"type": "string", "minLength": 1},
+        "status": {"enum": ["confirmed", "proposed"]},
+        "source": {"$ref": "#/$defs/source"},
+        "purpose": {"type": "string", "minLength": 1},
+        "prerequisites": {"type": "string", "minLength": 1},
+        "command": {"type": "string", "minLength": 1},
+        "expected_result": {"type": "string", "minLength": 1}
+      }
+    },
+    "open_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "question", "owner_action"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^(UNKNOWN|CONFLICT)-[0-9]{3}$"},
+        "question": {"type": "string", "minLength": 1},
+        "owner_action": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
