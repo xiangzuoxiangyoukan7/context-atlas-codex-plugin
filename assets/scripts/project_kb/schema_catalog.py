@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 import re
+import json
 from typing import Mapping
 
 from .model import Issue
@@ -92,7 +93,7 @@ class SchemaCatalog:
                 )
         for field in schema.get("unique_lists", []):
             value = metadata.get(field)
-            if isinstance(value, list) and len(value) != len(set(value)):
+            if isinstance(value, list) and len(value) != len({json.dumps(item, ensure_ascii=False, sort_keys=True) for item in value}):
                 issues.append(
                     Issue("KB_SCHEMA_LIST", path, f"{field} must contain unique values")
                 )

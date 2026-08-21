@@ -18,7 +18,9 @@ from scripts.project_kb.compatibility import CompatibilityPolicy
 from scripts.project_kb.discovery import discover_records
 from scripts.project_kb.identity import discover_identity_match
 from scripts.project_kb.migration import apply_migration, build_migration_proposal
+from scripts.project_kb.navigation import query_children, query_graph, query_neighbors
 from scripts.project_kb.updater import UpdateChange, execute_update
+from scripts.project_kb.archive import apply_archive, build_archive_proposal
 
 
 def _default_assets_root() -> Path:
@@ -56,7 +58,7 @@ def _parser() -> argparse.ArgumentParser:
     update.add_argument("--file", action="append", required=True)
     update.add_argument("--content-file", action="append", required=True)
 
-    diagnose = subparsers.add_parser("diagnose-format")
+    diagnose = subparsers.add_parser("upgrade-diagnose", aliases=["diagnose-format"])
     diagnose.add_argument("knowledge_base_root", type=Path)
     diagnose.add_argument(
         "--compatibility", type=Path, default=_default_compatibility()
@@ -77,20 +79,58 @@ def _parser() -> argparse.ArgumentParser:
     capture.add_argument("--operated-by", required=True)
     capture.add_argument("--project-version", required=True)
     capture.add_argument("--captured-at", required=True)
+    capture.add_argument("--user-requested", action="store_true", required=True)
 
     identify = subparsers.add_parser("identify-contributor")
     identify.add_argument("repository_root", type=Path)
     identify.add_argument("knowledge_base_root", type=Path)
 
-    for operation in ("migrate-propose", "migrate-apply"):
-        migration = subparsers.add_parser(operation)
+    neighbors = subparsers.add_parser("neighbors")
+    neighbors.add_argument("knowledge_base_root", type=Path)
+    query = neighbors.add_mutually_exclusive_group(required=True)
+    query.add_argument("--id", dest="identifier")
+    query.add_argument("--path")
+    neighbors.add_argument(
+        "--direction", choices=("outgoing", "incoming", "both"), default="both"
+    )
+    neighbors.add_argument("--relation")
+
+    children = subparsers.add_parser("children")
+    children.add_argument("knowledge_base_root", type=Path)
+    children.add_argument("--path", default=".")
+
+    graph = subparsers.add_parser("graph")
+    graph.add_argument("knowledge_base_root", type=Path)
+    graph_scope = graph.add_mutually_exclusive_group(required=True)
+    graph_scope.add_argument("--start")
+    graph_scope.add_argument("--all", dest="all_nodes", action="store_true")
+    graph.add_argument("--depth", type=int, default=1)
+    graph.add_argument("--max-nodes", type=int, default=200)
+    graph.add_argument("--relation")
+    graph.add_argument("--type", dest="node_type")
+    graph.add_argument("--status")
+
+    for operation, alias in (("upgrade-propose", "migrate-propose"), ("upgrade-apply", "migrate-apply")):
+        migration = subparsers.add_parser(operation, aliases=[alias])
         migration.add_argument("knowledge_base_root", type=Path)
         migration.add_argument(
             "--compatibility", type=Path, default=_default_compatibility()
         )
-        if operation == "migrate-apply":
+        if operation == "upgrade-apply":
             migration.add_argument("--proposal-revision", required=True)
             migration.add_argument("--confirmed-revision", required=True)
+    for operation in ("archive-propose", "archive-apply"):
+        archive = subparsers.add_parser(operation)
+        archive.add_argument("knowledge_base_root", type=Path)
+        archive.add_argument("--source", required=True)
+        archive.add_argument("--target", required=True)
+        archive.add_argument("--successor-id", required=True)
+        archive.add_argument("--archived-at", required=True)
+        archive.add_argument("--reason", required=True)
+        archive.add_argument("--source-reference", required=True)
+        if operation == "archive-apply":
+            archive.add_argument("--proposal-revision", required=True)
+            archive.add_argument("--confirmed-revision", required=True)
     return parser
 
 
@@ -132,7 +172,7 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
             ),
         )
         return report, report.validator_exit_code
-    if args.operation == "diagnose-format":
+    if args.operation in {"upgrade-diagnose", "diagnose-format"}:
         result = CompatibilityPolicy.load(args.compatibility).diagnose(
             args.knowledge_base_root
         )
@@ -154,19 +194,53 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
         )
         return (
             capture_candidate(
-                args.knowledge_base_root, candidate, captured_at=args.captured_at
+                args.knowledge_base_root,
+                candidate,
+                captured_at=args.captured_at,
+                user_requested=args.user_requested,
             ),
             0,
         )
     if args.operation == "identify-contributor":
         people_path = (
-            args.knowledge_base_root.resolve() / "00-项目总览" / "协作人员.md"
+            args.knowledge_base_root.resolve() / "05-知识治理" / "协作与责任.md"
         )
         return discover_identity_match(args.repository_root, people_path), 0
+    if args.operation == "neighbors":
+        return query_neighbors(
+            args.knowledge_base_root,
+            identifier=args.identifier,
+            path=args.path,
+            direction=args.direction,
+            relation=args.relation,
+        ), 0
+    if args.operation == "children":
+        return query_children(args.knowledge_base_root, path=args.path), 0
+    if args.operation == "graph":
+        return query_graph(
+            args.knowledge_base_root,
+            start=args.start,
+            all_nodes=args.all_nodes,
+            depth=args.depth,
+            max_nodes=args.max_nodes,
+            relation=args.relation,
+            node_type=args.node_type,
+            status=args.status,
+        ), 0
+    if args.operation in {"archive-propose", "archive-apply"}:
+        proposal = build_archive_proposal(
+            args.knowledge_base_root, args.source, args.target, args.successor_id,
+            args.archived_at, args.reason, args.source_reference,
+        )
+        if args.operation == "archive-propose":
+            return proposal, 0
+        if args.proposal_revision != proposal.proposal_revision:
+            raise PermissionError("proposal revision no longer matches current files")
+        return apply_archive(args.knowledge_base_root, proposal, args.confirmed_revision), 0
     proposal = _migration_proposal(
         args.knowledge_base_root, args.compatibility
     )
-    if args.operation == "migrate-propose":
+    if args.operation in {"upgrade-propose", "migrate-propose"}:
         # 未解析关系属于需要人工处理的有效分析结果，而不是程序崩溃。
         return proposal, 3 if proposal.unresolved else 0
     if args.proposal_revision != proposal.proposal_revision:

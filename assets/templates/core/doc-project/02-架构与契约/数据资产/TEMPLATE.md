@@ -4,7 +4,7 @@ type: data_asset
 title: 数据资产名称
 status: proposed
 version: 0.1.0
-sources: [SRC-001]
+sources: []
 owner: missing
 source_types: [database]
 sensitivity: missing
@@ -28,7 +28,7 @@ last_updated: {{INITIALIZED_AT}}
 | --- | --- | --- | --- | --- | --- |
 | database | missing | missing | missing | missing | proposed |
 
-数据来源描述实际数据流；支撑本卡内容的证据在[知识来源](../../00-项目总览/知识来源.md)中记录。
+数据来源描述实际数据流；支撑本卡内容的证据直接记录在本卡的来源字段中。
 
 ## 主要内容
 
@@ -42,7 +42,7 @@ last_updated: {{INITIALIZED_AT}}
 - 处理：missing
 - 下游：missing
 
-技术细节链接至[数据库](../数据库/README.md)、[接口契约](../接口契约.md)或已确认的具体技术契约。
+技术细节链接至[数据库](../数据库/README.md)、[接口契约](../接口/README.md)或已确认的具体技术契约。
 
 ## 质量要求
 

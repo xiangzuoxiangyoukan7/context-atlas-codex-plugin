@@ -24,7 +24,15 @@ FACT_GROUPS = {
     "boundaries_in",
     "boundaries_out",
     "technology_stacks",
-    "local_commands",
+    "terms",
+    "capabilities",
+    "features",
+    "modules",
+    "interfaces",
+    "databases",
+    "external_dependencies",
+    "tests",
+    "adrs",
 }
 
 
@@ -66,11 +74,28 @@ def _text(value: object, label: str) -> str:
 def _source(value: object, label: str) -> dict[str, str]:
     """校验事实来源类型和可回查引用。"""
 
-    source = _object(value, label, {"type", "reference"}, {"type", "reference"})
+    source = _object(
+        value, label,
+        {"type", "reference", "observed_at", "confirmation_status", "confirmed_at"},
+        {"type", "reference", "observed_at", "confirmation_status"},
+    )
     source_type = _text(source["type"], f"{label}.type")
     if source_type not in SOURCE_TYPES:
         raise ValueError(f"{label}.type is unsupported")
-    return {"type": source_type, "reference": _text(source["reference"], f"{label}.reference")}
+    confirmation_status = _text(source["confirmation_status"], f"{label}.confirmation_status")
+    if confirmation_status not in {"observed", "confirmed"}:
+        raise ValueError(f"{label}.confirmation_status is unsupported")
+    normalized = {
+        "type": source_type,
+        "reference": _text(source["reference"], f"{label}.reference"),
+        "observed_at": _text(source["observed_at"], f"{label}.observed_at"),
+        "confirmation_status": confirmation_status,
+    }
+    if "confirmed_at" in source:
+        normalized["confirmed_at"] = _text(source["confirmed_at"], f"{label}.confirmed_at")
+    if confirmation_status == "confirmed" and "confirmed_at" not in normalized:
+        raise ValueError(f"{label}.confirmed_at is required when confirmed")
+    return normalized
 
 
 def _fact(value: object, label: str, extra: set[str] | None = None) -> dict[str, Any]:
@@ -139,7 +164,11 @@ def validate_initialization_proposal(proposal: object) -> dict[str, Any]:
 
     facts = _object(root["facts"], "proposal.facts", FACT_GROUPS, FACT_GROUPS)
     normalized_facts: dict[str, list[dict[str, Any]]] = {}
-    for group in ("goals", "boundaries_in", "boundaries_out"):
+    for group in (
+        "goals", "boundaries_in", "boundaries_out", "terms", "capabilities",
+        "features", "modules", "interfaces", "databases",
+        "external_dependencies", "tests", "adrs",
+    ):
         normalized_facts[group] = [
             _fact(item, f"proposal.facts.{group}[{index}]")
             for index, item in enumerate(_list(facts[group], f"proposal.facts.{group}"))
@@ -157,16 +186,6 @@ def validate_initialization_proposal(proposal: object) -> dict[str, Any]:
             _text(command, f"{label}.commands") for command in _list(item["commands"], f"{label}.commands")
         ]
         normalized_facts["technology_stacks"].append(normalized)
-
-    command_fields = {"purpose", "prerequisites", "command", "expected_result"}
-    normalized_facts["local_commands"] = []
-    for index, item in enumerate(_list(facts["local_commands"], "proposal.facts.local_commands")):
-        label = f"proposal.facts.local_commands[{index}]"
-        normalized = _fact(item, label, command_fields)
-        assert isinstance(item, dict)
-        for field in command_fields:
-            normalized[field] = _text(item[field], f"{label}.{field}")
-        normalized_facts["local_commands"].append(normalized)
 
     def open_items(key: str) -> list[dict[str, str]]:
         """校验未知项或冲突项的固定字段。"""

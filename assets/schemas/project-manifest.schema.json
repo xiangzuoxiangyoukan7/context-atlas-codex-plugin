@@ -6,7 +6,7 @@
     "project_id": "[a-zA-Z0-9][a-zA-Z0-9_-]*",
     "knowledge_base_name": "doc-[a-zA-Z0-9][a-zA-Z0-9_-]*",
     "project_version": "\\d+\\.\\d+\\.\\d+",
-    "format_version": "2",
+    "format_version": "3",
     "revision": "\\d+"
   },
   "unique_lists": []

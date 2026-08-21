@@ -22,13 +22,21 @@
     "facts": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["goals", "boundaries_in", "boundaries_out", "technology_stacks", "local_commands"],
+      "required": ["goals", "boundaries_in", "boundaries_out", "technology_stacks", "terms", "capabilities", "features", "modules", "interfaces", "databases", "external_dependencies", "tests", "adrs"],
       "properties": {
         "goals": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
         "boundaries_in": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
         "boundaries_out": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
         "technology_stacks": {"type": "array", "items": {"$ref": "#/$defs/technology"}},
-        "local_commands": {"type": "array", "items": {"$ref": "#/$defs/command"}}
+        "terms": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "capabilities": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "features": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "modules": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "interfaces": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "databases": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "external_dependencies": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "tests": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+        "adrs": {"type": "array", "items": {"$ref": "#/$defs/fact"}}
       }
     },
     "unknowns": {"type": "array", "items": {"$ref": "#/$defs/open_item"}},
@@ -38,10 +46,13 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "reference"],
+      "required": ["type", "reference", "observed_at", "confirmation_status"],
       "properties": {
         "type": {"enum": ["repository_file", "user_statement", "existing_document", "command_output", "ai_inference"]},
-        "reference": {"type": "string", "minLength": 1}
+        "reference": {"type": "string", "minLength": 1},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "confirmation_status": {"enum": ["observed", "confirmed"]},
+        "confirmed_at": {"type": "string", "format": "date-time"}
       }
     },
     "fact": {
@@ -70,21 +81,6 @@
         "purpose": {"type": "string", "minLength": 1},
         "commands": {"type": "array", "items": {"type": "string"}},
         "configuration": {"type": "string", "minLength": 1}
-      }
-    },
-    "command": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["id", "value", "status", "source", "purpose", "prerequisites", "command", "expected_result"],
-      "properties": {
-        "id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"},
-        "value": {"type": "string", "minLength": 1},
-        "status": {"enum": ["confirmed", "proposed"]},
-        "source": {"$ref": "#/$defs/source"},
-        "purpose": {"type": "string", "minLength": 1},
-        "prerequisites": {"type": "string", "minLength": 1},
-        "command": {"type": "string", "minLength": 1},
-        "expected_result": {"type": "string", "minLength": 1}
       }
     },
     "open_item": {

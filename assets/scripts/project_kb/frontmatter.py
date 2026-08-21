@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
+from typing import Any
 
 from .model import DocumentRecord
 
@@ -46,6 +47,7 @@ def parse_document(path: Path) -> DocumentRecord:
     metadata: dict[str, object] = {}
     closing_index: int | None = None
     pending_list_key: str | None = None
+    pending_mapping: dict[str, object] | None = None
     for index, raw_line in enumerate(lines[1:], start=1):
         line = raw_line.rstrip("\r\n")
         if line == "---":
@@ -55,13 +57,21 @@ def parse_document(path: Path) -> DocumentRecord:
                 )
             closing_index = index
             break
+        if line.startswith("    "):
+            if pending_mapping is None or ":" not in line:
+                raise FrontMatterError(f"{path}:{index + 1}: unsupported nested metadata")
+            key, value = (part.strip() for part in line.split(":", maxsplit=1))
+            if not key or not value or key in pending_mapping:
+                raise FrontMatterError(f"{path}:{index + 1}: invalid nested mapping field")
+            pending_mapping[key] = _parse_scalar(value)
+            continue
         if line.startswith("  - "):
             if pending_list_key is None:
                 raise FrontMatterError(
                     f"{path}:{index + 1}: nested metadata is unsupported"
                 )
             item = line[4:].strip()
-            if not item or MAPPING_ITEM_PATTERN.match(item):
+            if not item:
                 raise FrontMatterError(
                     f"{path}:{index + 1}: nested metadata is unsupported"
                 )
@@ -70,7 +80,19 @@ def parse_document(path: Path) -> DocumentRecord:
                 raise FrontMatterError(
                     f"{path}:{index + 1}: mixed scalar and list metadata"
                 )
-            pending_values.append(_unquote_scalar(item))
+            if MAPPING_ITEM_PATTERN.match(item):
+                if pending_list_key != "sources":
+                    raise FrontMatterError(
+                        f"{path}:{index + 1}: nested metadata is unsupported"
+                    )
+                key, nested_value = (part.strip() for part in item.split(":", maxsplit=1))
+                if not nested_value:
+                    raise FrontMatterError(f"{path}:{index + 1}: empty nested mapping value")
+                pending_mapping = {key: _parse_scalar(nested_value)}
+                pending_values.append(pending_mapping)
+            else:
+                pending_mapping = None
+                pending_values.append(_unquote_scalar(item))
             continue
         if line.startswith((" ", "\t", "- ")):
             raise FrontMatterError(f"{path}:{index + 1}: nested metadata is unsupported")
@@ -80,6 +102,7 @@ def parse_document(path: Path) -> DocumentRecord:
                     f"{path}:{index + 1}: empty block list is unsupported"
                 )
             pending_list_key = None
+            pending_mapping = None
         if ":" not in line:
             raise FrontMatterError(f"{path}:{index + 1}: expected key: value")
         key, value = (part.strip() for part in line.split(":", maxsplit=1))

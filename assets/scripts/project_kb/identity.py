@@ -178,7 +178,7 @@ def discover_identity_match(root: Path, people_path: Path) -> IdentityMatch:
 def validate_people(root: Path) -> list[Issue]:
     """当固定协作人员入口存在时验证其人员编号和隐私边界。"""
 
-    path = root.resolve() / "00-项目总览" / "协作人员.md"
+    path = root.resolve() / "05-知识治理" / "协作与责任.md"
     if not path.is_file():
         return []
     _, issues = load_people(path)

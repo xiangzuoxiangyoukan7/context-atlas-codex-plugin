@@ -175,8 +175,13 @@ def capture_candidate(
     root: Path,
     candidate: CaptureCandidate,
     captured_at: str,
+    *,
+    user_requested: bool = False,
 ) -> CaptureReport:
-    """验证结构化候选、去重并只创建 `proposed` 知识提案。"""
+    """在用户明确要求记录时，验证、去重并创建待确认知识。"""
+
+    if not user_requested:
+        raise ValueError("recording pending knowledge requires an explicit user request")
 
     if candidate.checkpoint not in CHECKPOINTS:
         raise ValueError(f"unsupported capture checkpoint: {candidate.checkpoint}")
@@ -193,7 +198,7 @@ def capture_candidate(
     except ValueError as error:
         raise ValueError("captured_at must be ISO-8601") from error
     digest = _content_digest(candidate)
-    queue = root.resolve() / "03-实施与验收" / "知识提案"
+    queue = root.resolve() / "03-变更与证据" / "待确认知识"
     existing = _existing_by_digest(queue, digest)
     if existing is not None:
         return CaptureReport("duplicate", existing[0], existing[1], digest)

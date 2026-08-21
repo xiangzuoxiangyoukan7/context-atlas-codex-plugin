@@ -55,20 +55,33 @@ def execute_update(
         seen.add(target)
         replacements.append((target, target.read_bytes() if target.exists() else None, change.content_file.read_bytes()))
 
-    for target, _, content in replacements:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile(dir=target.parent, delete=False) as handle:
-            handle.write(content)
-            temporary = Path(handle.name)
-        temporary.replace(target)
+    def rollback() -> None:
+        """恢复本次操作涉及的全部文件。"""
 
-    issues = validate(root, ValidationConfig(schema_root=root / ".project-kb" / "schemas"))
-    if issues:
         for target, previous, _ in replacements:
             if previous is None:
                 target.unlink(missing_ok=True)
             else:
                 target.write_bytes(previous)
+
+    try:
+        for target, _, content in replacements:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(dir=target.parent, delete=False) as handle:
+                handle.write(content)
+                temporary = Path(handle.name)
+            temporary.replace(target)
+
+        issues = validate(
+            root,
+            ValidationConfig(schema_root=root / ".project-kb" / "schemas"),
+        )
+    except Exception:
+        rollback()
+        raise
+
+    if issues:
+        rollback()
     operation_issues = tuple(
         OperationIssue(issue.code, _relative_text(issue.path, root), issue.message)
         for issue in issues

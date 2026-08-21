@@ -11,8 +11,9 @@ from .model import DocumentRecord, Issue
 # context-atlas-rules: [[rules/知识治理规则#RULE-SRC-001|RULE-SRC-001]]
 
 
-ACCEPTANCE_PATTERN = re.compile(r"(?:F\d{2}|KB)-AC-\d{2}\Z")
+ACCEPTANCE_PATTERN = re.compile(r"(?:(?:F\d{2}|KB)-AC-\d{2}|AC-[A-Z0-9]+-[0-9]{3})\Z")
 ACCEPTANCE_RESULTS = {"not_started", "partial", "passed", "not_applicable"}
+SOURCE_TYPES = {"user_statement", "repository_file", "command_output", "existing_document", "external_document", "ai_inference"}
 REFERENCE_FIELDS = (
     "depends_on",
     "contracts",
@@ -84,7 +85,9 @@ def _validate_lifecycle(
         if metadata.get("type") not in LIFECYCLE_TYPES:
             continue
         status = metadata.get("status")
-        sources = as_list(metadata.get("sources"))
+        raw_sources = metadata.get("sources")
+        embedded_sources = raw_sources if isinstance(raw_sources, list) and all(isinstance(item, dict) for item in raw_sources) else None
+        sources = as_list(raw_sources) if embedded_sources is None else []
         for source in sources:
             if source not in ids:
                 issues.append(
@@ -119,11 +122,24 @@ def _validate_lifecycle(
                     )
                 )
             registered_sources = [ids[source] for source in sources if source in ids]
-            if registered_sources and all(
-                source.metadata.get("type") == "source"
-                and source.metadata.get("source_type") == "ai_inference"
+            only_ai_inference = bool(registered_sources) and all(
+                source.metadata.get("type") == "source" and source.metadata.get("source_type") == "ai_inference"
                 for source in registered_sources
-            ):
+            )
+            if embedded_sources is not None:
+                for index, source in enumerate(embedded_sources):
+                    required = {"type", "reference", "observed_at", "confirmation_status"}
+                    missing = required - set(source)
+                    if missing:
+                        issues.append(Issue("KB_SOURCE_EMBEDDED", record.path, f"embedded source {index} lacks: {', '.join(sorted(missing))}"))
+                    if source.get("type") not in SOURCE_TYPES:
+                        issues.append(Issue("KB_SOURCE_EMBEDDED", record.path, f"embedded source {index} has invalid type"))
+                    if source.get("confirmation_status") not in {"observed", "confirmed"}:
+                        issues.append(Issue("KB_SOURCE_EMBEDDED", record.path, f"embedded source {index} has invalid confirmation_status"))
+                    if source.get("confirmation_status") == "confirmed" and not source.get("confirmed_at"):
+                        issues.append(Issue("KB_SOURCE_EMBEDDED", record.path, f"embedded source {index} lacks confirmed_at"))
+                only_ai_inference = bool(embedded_sources) and all(source.get("type") == "ai_inference" for source in embedded_sources)
+            if only_ai_inference:
                 issues.append(
                     Issue(
                         "KB_APPROVAL_AI_INFERENCE",
@@ -132,7 +148,8 @@ def _validate_lifecycle(
                     )
                 )
         if status == "conflicted":
-            if len(set(sources)) < 2:
+            source_count = len({str(source) for source in (embedded_sources or sources)})
+            if source_count < 2:
                 issues.append(
                     Issue(
                         "KB_CONFLICT_SOURCES",
@@ -189,6 +206,7 @@ def _validate_lifecycle(
 def _validate_references(
     records: Iterable[DocumentRecord],
     ids: Mapping[str, DocumentRecord],
+    archived_ids: frozenset[str] = frozenset(),
 ) -> list[Issue]:
     """验证受控引用字段均指向已登记知识编号。"""
 
@@ -196,7 +214,7 @@ def _validate_references(
     for record in _records_with_metadata(records):
         for field in REFERENCE_FIELDS:
             for reference in as_list(record.metadata.get(field)):
-                if reference and reference not in ids:
+                if reference and reference not in ids and not (field == "supersedes" and reference in archived_ids):
                     issues.append(
                         Issue(
                             "KB_TRACE_REFERENCE",
@@ -260,6 +278,27 @@ def _registered(value: str) -> bool:
     return bool(value.strip() and value.strip() not in {"—", "-"})
 
 
+def _evidence_path(root: Path, value: str) -> Path | None:
+    """把矩阵证据单元格解析为当前证据目录中的实际文件。"""
+
+    link = re.search(r"\[[^\]]+\]\((?P<path>[^)]+)\)", value)
+    if link:
+        candidate = (root / "03-变更与证据" / link.group("path")).resolve()
+        try:
+            candidate.relative_to(root.resolve())
+        except ValueError:
+            return None
+        return candidate if candidate.is_file() else None
+    evidence_root = root / "03-变更与证据" / "验收证据"
+    normalized = re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", value)
+    matches = [
+        path
+        for path in evidence_root.glob("*.md")
+        if re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", path.stem) == normalized
+    ]
+    return matches[0] if len(matches) == 1 else None
+
+
 def _validate_matrix(root: Path, records: Iterable[DocumentRecord]) -> list[Issue]:
     """核对验收声明、矩阵行和完成状态证据。"""
 
@@ -274,7 +313,7 @@ def _validate_matrix(root: Path, records: Iterable[DocumentRecord]) -> list[Issu
         if record.metadata.get("status") == "completed":
             completed.append((record.path, acceptance))
 
-    matrix = root / "03-实施与验收" / "验收矩阵.md"
+    matrix = root / "03-变更与证据" / "验收矩阵.md"
     if not matrix.exists():
         if declared:
             issues.append(Issue("KB_MATRIX_REQUIRED", matrix, "acceptance matrix is required"))
@@ -304,6 +343,16 @@ def _validate_matrix(root: Path, records: Iterable[DocumentRecord]) -> list[Issu
             issues.append(
                 Issue("KB_ACCEPTANCE_EVIDENCE", matrix, f"passed acceptance lacks evidence: {identifier}")
             )
+        elif result == "passed":
+            evidence_path = _evidence_path(root, evidence)
+            if evidence_path is None:
+                issues.append(
+                    Issue(
+                        "KB_COVERAGE_EVIDENCE_PATH",
+                        matrix,
+                        f"passed acceptance evidence does not resolve to a current evidence file: {identifier}",
+                    )
+                )
     for path, acceptance in completed:
         for identifier in acceptance:
             row = row_map.get(identifier)
@@ -318,13 +367,17 @@ def _validate_matrix(root: Path, records: Iterable[DocumentRecord]) -> list[Issu
     return issues
 
 
-def validate_traceability(root: Path, records: Iterable[DocumentRecord]) -> list[Issue]:
+def validate_traceability(
+    root: Path,
+    records: Iterable[DocumentRecord],
+    archived_ids: frozenset[str] = frozenset(),
+) -> list[Issue]:
     """汇总生命周期、引用和验收矩阵的追溯问题。"""
 
     materialized = list(records)
     issues: list[Issue] = []
     ids = _id_index(materialized, issues)
     issues.extend(_validate_lifecycle(materialized, ids))
-    issues.extend(_validate_references(materialized, ids))
+    issues.extend(_validate_references(materialized, ids, archived_ids))
     issues.extend(_validate_matrix(root, materialized))
     return issues

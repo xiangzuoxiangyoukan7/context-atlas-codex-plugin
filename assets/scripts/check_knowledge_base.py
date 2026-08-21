@@ -48,6 +48,12 @@ def _parser() -> argparse.ArgumentParser:
         help="可选的关系目录路径；默认使用 Schema 目录中的 relation-catalog.json",
     )
     parser.add_argument("--format", choices=("text", "json"), default="text")
+    parser.add_argument(
+        "--level",
+        choices=("all", "structure", "spec", "readiness"),
+        default="all",
+        help="选择全部、基础结构、规格或就绪度检查",
+    )
     return parser
 
 
@@ -62,6 +68,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ValidationConfig(
                 schema_root=args.schema_root,
                 relation_catalog_path=args.relation_catalog,
+                level=args.level,
             ),
         )
     except (OSError, ValueError) as error:

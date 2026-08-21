@@ -20,6 +20,12 @@
       "enforced_by": ["acceptance", "operation", "skill"]
     },
     {
+      "id": "RULE-ARCHIVE-001",
+      "name_zh": "归档必须在替代和引用迁移后确认执行",
+      "authority": "[[rules/知识治理规则#RULE-ARCHIVE-001|RULE-ARCHIVE-001]]",
+      "enforced_by": ["acceptance", "operation", "template", "validator"]
+    },
+    {
       "id": "RULE-DB-001",
       "name_zh": "数据库表字段必须记录值域和逻辑外键",
       "authority": "[[rules/知识治理规则#RULE-DB-001|RULE-DB-001]]",
