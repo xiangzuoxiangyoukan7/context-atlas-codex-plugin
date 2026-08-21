@@ -21,7 +21,7 @@
 
 | 当前目的 | 使用方式 |
 | --- | --- |
-| 项目还没有知识库 | 显式调用 `context-atlas-init`，确认 Proposal 后初始化 |
+| 项目还没有知识库 | 显式调用 `context-atlas-init`，可选择标准或 Obsidian 模式，确认 Proposal 后初始化 |
 | 查询需求、功能、接口、数据库或影响 | 使用 `context-atlas-navigate`，只读且按需渐进加载 |
 | 审查规格清晰度、覆盖或就绪度 | 使用 `context-atlas-review`，只报告问题和候选结论 |
 | 新增此前不存在的知识 | 显式调用 `context-atlas-add`，确认 Proposal 后新增 |

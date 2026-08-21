@@ -152,7 +152,7 @@ def validate_initialization_proposal(proposal: object) -> dict[str, Any]:
     project = _object(
         root["project"],
         "proposal.project",
-        {"root", "id", "name", "knowledge_base_name"},
+        {"root", "id", "name", "knowledge_base_name", "workspace_profile"},
         {"root", "id", "name", "knowledge_base_name"},
     )
     project_id = _text(project["id"], "proposal.project.id")
@@ -161,6 +161,12 @@ def validate_initialization_proposal(proposal: object) -> dict[str, Any]:
     knowledge_base_name = _text(project["knowledge_base_name"], "proposal.project.knowledge_base_name")
     if knowledge_base_name != f"doc-{project_id}":
         raise ValueError("knowledge_base_name must equal doc-<project.id>")
+    workspace_profile = _text(
+        project.get("workspace_profile", "standard"),
+        "proposal.project.workspace_profile",
+    )
+    if workspace_profile not in {"standard", "obsidian"}:
+        raise ValueError("proposal.project.workspace_profile is unsupported")
 
     facts = _object(root["facts"], "proposal.facts", FACT_GROUPS, FACT_GROUPS)
     normalized_facts: dict[str, list[dict[str, Any]]] = {}
@@ -212,6 +218,7 @@ def validate_initialization_proposal(proposal: object) -> dict[str, Any]:
             "id": project_id,
             "name": _text(project["name"], "proposal.project.name"),
             "knowledge_base_name": knowledge_base_name,
+            "workspace_profile": workspace_profile,
         },
         "facts": normalized_facts,
         "unknowns": open_items("unknowns"),

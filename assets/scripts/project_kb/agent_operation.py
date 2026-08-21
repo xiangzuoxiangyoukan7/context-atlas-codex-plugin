@@ -173,6 +173,7 @@ def execute_initialization_proposal(
         assets_root=assets_root,
         proposal=normalized,
         project_display_name=str(project["name"]),
+        workspace_profile=str(project["workspace_profile"]),
     )
     schema_root = target / ".project-kb" / "schemas"
     validation_issues = validate(target, ValidationConfig(schema_root=schema_root))

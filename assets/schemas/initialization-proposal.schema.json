@@ -16,7 +16,8 @@
         "root": {"type": "string", "minLength": 1},
         "id": {"type": "string", "pattern": "^[^./\\\\][^/\\\\]*$"},
         "name": {"type": "string", "minLength": 1},
-        "knowledge_base_name": {"type": "string", "pattern": "^doc-[^/\\\\]+$"}
+        "knowledge_base_name": {"type": "string", "pattern": "^doc-[^/\\\\]+$"},
+        "workspace_profile": {"enum": ["standard", "obsidian"]}
       }
     },
     "facts": {

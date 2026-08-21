@@ -5,12 +5,64 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 import re
+import json
 import shutil
 import uuid
 from .validator import ValidationConfig, validate
 
 
 MARKER_PATTERN = re.compile(r"{{[A-Z][A-Z0-9_]*}}")
+
+OBSIDIAN_COLOR_GROUPS = (
+    ("[type:requirement]", 14701138),
+    ("[type:feature]", 4360181),
+    ("[type:module]", 39423),
+    ("[type:interface]", 16753920),
+    ("[type:contract OR independent_contract]", 10181046),
+    ("[type:database_table OR database_unit OR database_namespace OR data_source]", 3447003),
+    ("[type:data_asset]", 16766720),
+    ("[type:adr]", 16744448),
+    ("[type:acceptance_contract]", 6737151),
+    ("[type:specification_change OR specification_delta]", 10040012),
+)
+
+
+def _materialize_obsidian_profile(root: Path) -> None:
+    """创建不含个人状态、插件和工作区布局的最小 Obsidian 配置。"""
+
+    settings = root / ".obsidian"
+    settings.mkdir()
+    (settings / "app.json").write_text("{}\n", encoding="utf-8", newline="\n")
+    graph = {
+        "collapse-filter": False,
+        "search": '-path:"90-历史归档"',
+        "showTags": False,
+        "showAttachments": False,
+        "hideUnresolved": False,
+        "showOrphans": True,
+        "collapse-color-groups": False,
+        "colorGroups": [
+            {"query": query, "color": {"a": 1, "rgb": rgb}}
+            for query, rgb in OBSIDIAN_COLOR_GROUPS
+        ],
+        "collapse-display": True,
+        "showArrow": True,
+        "textFadeMultiplier": 0,
+        "nodeSizeMultiplier": 1,
+        "lineSizeMultiplier": 1,
+        "collapse-forces": True,
+        "centerStrength": 0.5,
+        "repelStrength": 10,
+        "linkStrength": 1,
+        "linkDistance": 250,
+        "scale": 1,
+        "close": False,
+    }
+    (settings / "graph.json").write_text(
+        json.dumps(graph, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
 def _cell(value: object) -> str:
@@ -207,6 +259,7 @@ def initialize_from_assets(
     initialized_at: str | None = None,
     proposal: dict[str, object] | None = None,
     project_display_name: str | None = None,
+    workspace_profile: str = "standard",
 ) -> Path:
     """从 Skill 资产创建自包含且已验证的新知识库。"""
 
@@ -214,6 +267,8 @@ def initialize_from_assets(
     if not project_root.is_dir():
         raise ValueError("project root must be an existing directory")
     name = _safe_project_name(project_name or project_root.name)
+    if workspace_profile not in {"standard", "obsidian"}:
+        raise ValueError("workspace profile must be standard or obsidian")
     target = project_root / f"doc-{name}"
     if target.exists():
         raise FileExistsError(f"knowledge-base target already exists: {target}")
@@ -235,11 +290,14 @@ def initialize_from_assets(
                 "{{PROJECT_ID}}": name,
                 "{{PROJECT_NAME}}": project_display_name or name,
                 "{{KNOWLEDGE_BASE_NAME}}": target.name,
+                "{{WORKSPACE_PROFILE}}": workspace_profile,
                 "{{INITIALIZED_AT}}": initialized_at or date.today().isoformat(),
             },
         )
         if proposal is not None:
             _render_confirmed_content(staging, proposal)
+        if workspace_profile == "obsidian":
+            _materialize_obsidian_profile(staging)
         shutil.copytree(assets_root / "scripts", staging / ".project-kb" / "scripts")
         shutil.copytree(schema_root, staging / ".project-kb" / "schemas")
         shutil.copy2(

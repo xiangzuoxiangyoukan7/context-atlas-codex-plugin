@@ -11,6 +11,7 @@ TEMPLATE_MARKERS = frozenset(
         "{{PROJECT_ID}}",
         "{{PROJECT_NAME}}",
         "{{KNOWLEDGE_BASE_NAME}}",
+        "{{WORKSPACE_PROFILE}}",
         "{{INITIALIZED_AT}}",
     }
 )

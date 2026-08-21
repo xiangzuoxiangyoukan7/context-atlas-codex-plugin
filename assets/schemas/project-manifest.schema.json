@@ -7,7 +7,8 @@
     "knowledge_base_name": "doc-[a-zA-Z0-9][a-zA-Z0-9_-]*",
     "project_version": "\\d+\\.\\d+\\.\\d+",
     "format_version": "3",
-    "revision": "\\d+"
+    "revision": "\\d+",
+    "workspace_profile": "standard|obsidian"
   },
   "unique_lists": []
 }
