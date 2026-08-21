@@ -21,6 +21,8 @@ from scripts.project_kb.migration import apply_migration, build_migration_propos
 from scripts.project_kb.navigation import query_children, query_graph, query_neighbors
 from scripts.project_kb.updater import UpdateChange, execute_update
 from scripts.project_kb.archive import apply_archive, build_archive_proposal
+from scripts.project_kb.health import inspect_health
+from scripts.project_kb.ingest_enhancements import save_ingest_history
 
 
 def _default_assets_root() -> Path:
@@ -109,6 +111,15 @@ def _parser() -> argparse.ArgumentParser:
     graph.add_argument("--relation")
     graph.add_argument("--type", dest="node_type")
     graph.add_argument("--status")
+
+    health = subparsers.add_parser("health")
+    health.add_argument("knowledge_base_root", type=Path)
+    health.add_argument("--stale-days", type=int, default=180)
+
+    history = subparsers.add_parser("ingest-history-save")
+    history.add_argument("project_root", type=Path)
+    history.add_argument("--report", required=True, type=Path)
+    history.add_argument("--recorded-at")
 
     for operation, alias in (("upgrade-propose", "migrate-propose"), ("upgrade-apply", "migrate-apply")):
         migration = subparsers.add_parser(operation, aliases=[alias])
@@ -226,6 +237,23 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
             relation=args.relation,
             node_type=args.node_type,
             status=args.status,
+        ), 0
+    if args.operation == "health":
+        return inspect_health(
+            args.knowledge_base_root,
+            stale_days=args.stale_days,
+        ), 0
+    if args.operation == "ingest-history-save":
+        from datetime import datetime
+
+        payload = json.loads(args.report.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            raise ValueError("ingest history report must be a JSON object")
+        recorded_at = datetime.fromisoformat(args.recorded_at) if args.recorded_at else None
+        return save_ingest_history(
+            args.project_root,
+            payload,
+            recorded_at=recorded_at,
         ), 0
     if args.operation in {"archive-propose", "archive-apply"}:
         proposal = build_archive_proposal(
