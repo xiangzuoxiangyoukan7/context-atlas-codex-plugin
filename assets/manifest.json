@@ -36,6 +36,7 @@
     "schemas/interface.schema.json",
     "schemas/knowledge-item.schema.json",
     "schemas/knowledge-proposal.schema.json",
+    "schemas/managed-source.schema.json",
     "schemas/module.schema.json",
     "schemas/project-manifest.schema.json",
     "schemas/relation-catalog.json",
@@ -68,6 +69,7 @@
     "scripts/project_kb/initialization_contract.py",
     "scripts/project_kb/initializer.py",
     "scripts/project_kb/links.py",
+    "scripts/project_kb/managed_sources.py",
     "scripts/project_kb/migration.py",
     "scripts/project_kb/model.py",
     "scripts/project_kb/navigation.py",
@@ -131,7 +133,9 @@
     "templates/core/doc-project/05-知识治理/AI知识采集协议.md",
     "templates/core/doc-project/05-知识治理/README.md",
     "templates/core/doc-project/05-知识治理/使用场景.md",
+    "templates/core/doc-project/05-知识治理/来源资料/README.md",
     "templates/core/doc-project/90-历史归档/README.md",
+    "templates/core/doc-project/Clippings/README.md",
     "templates/core/doc-project/README.md",
     "templates/core/doc-project/knowledge-base.yaml"
   ]

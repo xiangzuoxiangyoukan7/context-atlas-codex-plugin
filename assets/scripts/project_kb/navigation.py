@@ -13,7 +13,7 @@ from .relation_catalog import RelationCatalog
 from .relations import RelationIndex
 
 
-EXCLUDED_DIRECTORIES = frozenset({".obsidian", "Excalidraw", "90-历史归档", ".project-kb"})
+EXCLUDED_DIRECTORIES = frozenset({".obsidian", "Excalidraw", "Clippings", "90-历史归档", ".project-kb"})
 ALLOWED_DIRECTIONS = frozenset({"outgoing", "incoming", "both"})
 
 

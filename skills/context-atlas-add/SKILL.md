@@ -5,6 +5,8 @@ description: Add new formal business knowledge to an existing self-contained Con
 
 # Context Atlas Add
 
+For a confirmed managed-source inbox Proposal, use the packaged `managed-source-apply` operation with the exact proposed and confirmed revision. It may write only under `05-知识治理/来源资料/` and remove an original from `Clippings/` only after digest verification and successful knowledge-base validation. Never recreate this move with ad-hoc file commands.
+
 Add a new formal knowledge item to an existing project knowledge base. Formal writes require explicit invocation of this Skill; natural-language requests may inspect and propose but must not write.
 
 Read `../../references/执行状态机.md`, `../../references/知识采集与确认.md`, `../../references/更新冲突与归档.md`, `../../references/验证与结果报告.md`, and `../../references/宿主执行与运行时探测.md`. Read the target knowledge base root `README.md` and `knowledge-base.yaml` before proposing changes.

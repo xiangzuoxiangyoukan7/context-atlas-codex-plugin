@@ -23,6 +23,7 @@ from scripts.project_kb.updater import UpdateChange, execute_update
 from scripts.project_kb.archive import apply_archive, build_archive_proposal
 from scripts.project_kb.health import inspect_health
 from scripts.project_kb.ingest_enhancements import save_ingest_history
+from scripts.project_kb.managed_sources import apply_source_import, build_source_import_proposal
 
 
 def _default_assets_root() -> Path:
@@ -121,6 +122,14 @@ def _parser() -> argparse.ArgumentParser:
     history.add_argument("--report", required=True, type=Path)
     history.add_argument("--recorded-at")
 
+    source_propose = subparsers.add_parser("managed-source-propose")
+    source_propose.add_argument("knowledge_base_root", type=Path)
+
+    source_apply = subparsers.add_parser("managed-source-apply")
+    source_apply.add_argument("knowledge_base_root", type=Path)
+    source_apply.add_argument("--proposal-revision", required=True)
+    source_apply.add_argument("--confirmed-revision", required=True)
+
     for operation, alias in (("upgrade-propose", "migrate-propose"), ("upgrade-apply", "migrate-apply")):
         migration = subparsers.add_parser(operation, aliases=[alias])
         migration.add_argument("knowledge_base_root", type=Path)
@@ -149,7 +158,7 @@ def _migration_proposal(root: Path, compatibility: Path) -> object:
     """发现知识记录并建立当前文件状态对应的只读迁移提案。"""
 
     records, issues = discover_records(
-        root.resolve(), frozenset({".obsidian", "Excalidraw", "90-历史归档"})
+        root.resolve(), frozenset({".obsidian", "Excalidraw", "Clippings", "90-历史归档"})
     )
     if issues:
         messages = "; ".join(f"{issue.code}: {issue.message}" for issue in issues)
@@ -254,6 +263,14 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
             args.project_root,
             payload,
             recorded_at=recorded_at,
+        ), 0
+    if args.operation == "managed-source-propose":
+        return build_source_import_proposal(args.knowledge_base_root), 0
+    if args.operation == "managed-source-apply":
+        return apply_source_import(
+            args.knowledge_base_root,
+            args.proposal_revision,
+            args.confirmed_revision,
         ), 0
     if args.operation in {"archive-propose", "archive-apply"}:
         proposal = build_archive_proposal(

@@ -28,7 +28,7 @@ class ValidationConfig:
     relation_catalog_path: Path | None = None
     level: str = "all"
     excluded_directories: frozenset[str] = frozenset(
-        {".obsidian", "Excalidraw", "90-历史归档"}
+        {".obsidian", "Excalidraw", "Clippings", "90-历史归档"}
     )
 
 
