@@ -5,7 +5,10 @@ from __future__ import annotations
 # context-atlas-rules: [[rules/知识治理规则#RULE-AGENT-001|RULE-AGENT-001]]
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
+import re
+import subprocess
 import sys
 from typing import Any
 
@@ -102,6 +105,54 @@ class InitializationReport:
     next_action: str
 
 
+def _navigation_smoke(target: Path) -> tuple[tuple[dict[str, str], ...], list[str]]:
+    """使用生成目标自己的脚本验证最小渐进导航链路。"""
+
+    operation = target / ".project-kb/scripts/agent_kb_operation.py"
+    commands: list[tuple[str, list[str]]] = [
+        ("self_contained_children", ["children", str(target), "--path", "."]),
+    ]
+    stable_ids = re.findall(
+        r"(?m)^id:\s*([^\s]+)",
+        "\n".join(
+            path.read_text(encoding="utf-8", errors="ignore")
+            for path in target.rglob("*.md")
+            if path.name != "TEMPLATE.md" and ".project-kb" not in path.parts
+        ),
+    )
+    if stable_ids:
+        identifier = stable_ids[0]
+        commands.extend(
+            (
+                ("self_contained_neighbors", ["neighbors", str(target), "--id", identifier]),
+                (
+                    "self_contained_bounded_graph",
+                    ["graph", str(target), "--start", identifier, "--depth", "1", "--max-nodes", "20"],
+                ),
+            )
+        )
+    checks: list[dict[str, str]] = []
+    failures: list[str] = []
+    for name, arguments in commands:
+        completed = subprocess.run(
+            [sys.executable, str(operation), *arguments],
+            cwd=target.parent,
+            capture_output=True,
+            timeout=120,
+        )
+        valid_json = False
+        try:
+            json.loads(completed.stdout.decode("utf-8"))
+            valid_json = True
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            pass
+        passed = completed.returncode == 0 and valid_json
+        checks.append({"name": name, "result": "passed" if passed else "failed"})
+        if not passed:
+            failures.append(name)
+    return tuple(checks), failures
+
+
 def _relative_text(path: Path, root: Path) -> str:
     """将问题路径限制为知识库内相对路径或安全文件名。"""
 
@@ -174,14 +225,20 @@ def execute_initialization_proposal(
         proposal=normalized,
         project_display_name=str(project["name"]),
         workspace_profile=str(project["workspace_profile"]),
+        agent_entry=normalized.get("agent_entry"),
     )
     schema_root = target / ".project-kb" / "schemas"
     validation_issues = validate(target, ValidationConfig(schema_root=schema_root))
+    smoke_checks, smoke_failures = _navigation_smoke(target)
     written_files = tuple(
         path.relative_to(target).as_posix()
         for path in sorted(target.rglob("*"))
         if path.is_file()
     )
+    if normalized.get("agent_entry"):
+        entry = normalized["agent_entry"]
+        assert isinstance(entry, dict)
+        written_files = (*written_files, str(entry["filename"]))
     facts = normalized["facts"]
     assert isinstance(facts, dict)
     unknowns = tuple(str(item["id"]) for item in normalized["unknowns"])
@@ -193,7 +250,7 @@ def execute_initialization_proposal(
         f"py {target.name}/.project-kb/scripts/check_knowledge_base.py "
         f"{target.name} --schema-root {target.name}/.project-kb/schemas"
     )
-    exit_code = 0 if not validation_issues else 1
+    exit_code = 0 if not validation_issues and not smoke_failures else 1
     return InitializationReport(
         operation="initialized" if exit_code == 0 else "failed",
         project_root=project_root,
@@ -229,8 +286,9 @@ def execute_initialization_proposal(
             (
                 {
                     "name": "full_schema_and_reference_validation",
-                    "result": "passed" if exit_code == 0 else "failed",
+                    "result": "passed" if not validation_issues else "failed",
                 },
+                *smoke_checks,
             ),
         ),
         unknowns=unknowns,

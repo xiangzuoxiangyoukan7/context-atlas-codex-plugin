@@ -59,6 +59,20 @@ $context-atlas-upgrade
 
 没有明确调用对应 Skill 的自然语言不能触发正式知识写入。
 
+## 升级插件
+
+回到安装插件的目标项目，保持相同的项目级 `CODEX_HOME`。`marketplace add` 不会刷新已经登记的 Marketplace；必须执行：
+
+```powershell
+$env:CODEX_HOME = (Join-Path $PWD ".codex")
+codex plugin marketplace upgrade context-atlas
+codex plugin remove context-atlas@context-atlas
+codex plugin add context-atlas@context-atlas
+codex plugin list
+```
+
+以 `codex plugin list` 显示的实际版本为准。升级后新建 Codex 会话，使新版 Skill 生效。
+
 ## 项目级卸载
 
 回到安装插件时使用的目标项目目录，使用相同的项目级 `CODEX_HOME`，先卸载插件，再移除 Marketplace：

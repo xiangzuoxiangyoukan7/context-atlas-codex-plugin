@@ -38,6 +38,15 @@ def _default_assets_root() -> Path:
     raise FileNotFoundError("Context Atlas assets root was not found")
 
 
+def _configure_utf8_stdio() -> None:
+    """在 Windows 等非 UTF-8 终端中稳定接收和输出结构化中文。"""
+
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8", errors="strict")
+
+
 def _default_compatibility() -> Path:
     """返回源码仓库或知识库内置工具中的默认兼容声明。"""
 
@@ -52,7 +61,7 @@ def _parser() -> argparse.ArgumentParser:
     initialize = subparsers.add_parser("initialize", aliases=["init"])
     initialize.add_argument("--proposal", required=True, help="Proposal JSON path, or - for stdin")
     initialize.add_argument("--confirmed-revision", required=True)
-    initialize.add_argument("--assets-root", type=Path, default=_default_assets_root())
+    initialize.add_argument("--assets-root", type=Path)
 
     update = subparsers.add_parser("update")
     update.add_argument("knowledge_base_root", type=Path)
@@ -64,7 +73,7 @@ def _parser() -> argparse.ArgumentParser:
     diagnose = subparsers.add_parser("upgrade-diagnose", aliases=["diagnose-format"])
     diagnose.add_argument("knowledge_base_root", type=Path)
     diagnose.add_argument(
-        "--compatibility", type=Path, default=_default_compatibility()
+        "--compatibility", type=Path
     )
 
     capture = subparsers.add_parser("capture")
@@ -134,7 +143,7 @@ def _parser() -> argparse.ArgumentParser:
         migration = subparsers.add_parser(operation, aliases=[alias])
         migration.add_argument("knowledge_base_root", type=Path)
         migration.add_argument(
-            "--compatibility", type=Path, default=_default_compatibility()
+            "--compatibility", type=Path
         )
         if operation == "upgrade-apply":
             migration.add_argument("--proposal-revision", required=True)
@@ -171,12 +180,18 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
     """按已解析操作执行并返回报告及进程退出码。"""
 
     if args.operation in {"initialize", "init"}:
-        proposal_text = sys.stdin.read() if args.proposal == "-" else Path(args.proposal).read_text(encoding="utf-8")
+        proposal_text = (
+            sys.stdin.buffer.read().decode("utf-8")
+            if args.proposal == "-" and hasattr(sys.stdin, "buffer")
+            else sys.stdin.read()
+            if args.proposal == "-"
+            else Path(args.proposal).read_text(encoding="utf-8")
+        )
         proposal = json.loads(proposal_text)
         report = execute_initialization_proposal(
             proposal=proposal,
             confirmed_revision=args.confirmed_revision,
-            assets_root=args.assets_root,
+            assets_root=args.assets_root or _default_assets_root(),
         )
         return report, report.validation.exit_code
     if args.operation == "update":
@@ -193,7 +208,9 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
         )
         return report, report.validator_exit_code
     if args.operation in {"upgrade-diagnose", "diagnose-format"}:
-        result = CompatibilityPolicy.load(args.compatibility).diagnose(
+        result = CompatibilityPolicy.load(
+            args.compatibility or _default_compatibility()
+        ).diagnose(
             args.knowledge_base_root
         )
         return result, 2 if result.write_blocked else 0
@@ -283,7 +300,7 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
             raise PermissionError("proposal revision no longer matches current files")
         return apply_archive(args.knowledge_base_root, proposal, args.confirmed_revision), 0
     proposal = _migration_proposal(
-        args.knowledge_base_root, args.compatibility
+        args.knowledge_base_root, args.compatibility or _default_compatibility()
     )
     if args.operation in {"upgrade-propose", "migrate-propose"}:
         # 未解析关系属于需要人工处理的有效分析结果，而不是程序崩溃。
@@ -301,6 +318,7 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
 def main(argv: Sequence[str] | None = None) -> int:
     """执行结构化知识操作并输出不含会话全文的 JSON 报告。"""
 
+    _configure_utf8_stdio()
     parser = _parser()
     try:
         args = parser.parse_args(list(argv) if argv is not None else None)
