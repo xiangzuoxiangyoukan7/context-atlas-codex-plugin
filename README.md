@@ -17,6 +17,7 @@ codex
 新建会话后初始化知识库：
 
 ```text
+$context-atlas-work
 $context-atlas-init
 ```
 

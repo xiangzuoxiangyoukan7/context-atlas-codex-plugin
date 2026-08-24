@@ -1,6 +1,6 @@
 {
   "name": "context-atlas",
-  "version": "0.11.2",
+  "version": "0.11.3",
   "description": "通过统一协议初始化、维护和验证项目知识库",
   "author": {
     "name": "Context Atlas Maintainers"
@@ -15,6 +15,6 @@
     "developerName": "Context Atlas Maintainers",
     "category": "Productivity",
     "capabilities": ["Interactive", "Write"],
-    "defaultPrompt": ["使用 $context-atlas-init 初始化知识库；使用 $context-atlas-review 只读审查规格；使用 $context-atlas-ingest 只读摄取单个来源；使用 $context-atlas-add、$context-atlas-revise 或 $context-atlas-retire 维护业务知识；使用 $context-atlas-upgrade 升级知识库格式。"]
+    "defaultPrompt": ["描述开发目标时使用 $context-atlas-work 自动编排查询、审查与知识维护；也可使用 $context-atlas-init、$context-atlas-navigate、$context-atlas-review、$context-atlas-ingest、$context-atlas-add、$context-atlas-revise、$context-atlas-retire 和 $context-atlas-upgrade 精确执行专用操作。"]
   }
 }
