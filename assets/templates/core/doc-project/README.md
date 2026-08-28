@@ -97,7 +97,8 @@ rel_satisfies:
 | 审查规格清晰度、覆盖或就绪度 | 使用 `context-atlas-review`，只报告问题和候选结论 |
 | 新增此前不存在的知识 | 显式调用 `context-atlas-add`，确认 Proposal 后新增 |
 | 修正、同步或替代已有知识 | 显式调用 `context-atlas-revise`，确认 Proposal 后修订 |
-| 替代、归档或受控删除失效知识 | 显式调用 `context-atlas-retire`，确认 Proposal 后退役 |
+| 以明确后继项替代现有知识 | 显式调用 `context-atlas-revise`，确认 Proposal 后建立替代关系 |
+| 无后继撤销、归档或受控删除失效知识 | 显式调用 `context-atlas-retire`，确认 Proposal 后退役；删除须有确定性操作支持 |
 | 只升级知识库结构或格式 | 显式调用 `context-atlas-upgrade`，确认 Proposal 后升级 |
 
 需求到来时，先定位相关现行知识并澄清目标、范围、行为、边界、约束和验收，再选择新增、修订或退役流程。只补充数据库信息时可以直接维护数据源或数据表，不必虚构业务需求；DDL 和迁移文件能证明技术结构，但字段业务含义、值域和负责人仍需确认。
