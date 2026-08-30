@@ -3,16 +3,18 @@
 这是由 [`context-atlas`](https://github.com/xiangzuoxiangyoukan7/context-atlas) 源码仓库自动生成的
 Codex 发布仓库。请勿直接修改本仓库中的生成文件。
 
-## 项目级安装
+## 用户级安装、项目级启用
 
-在需要使用 Context Atlas 的目标项目中执行：
+保持默认用户级 `CODEX_HOME`，安装 Marketplace 和插件。不要把 `CODEX_HOME` 指向项目的 `.codex/`：
 
 ```powershell
-$env:CODEX_HOME = (Join-Path $PWD ".codex")
 codex plugin marketplace add https://github.com/xiangzuoxiangyoukan7/context-atlas-codex-plugin.git
 codex plugin add context-atlas@context-atlas
+cd D:\你的目标项目
 codex
 ```
+
+若只希望在指定项目使用，在用户级 `~/.codex/config.toml` 中把 `[plugins."context-atlas@context-atlas"]` 的 `enabled` 设为 `false`，再在受信任目标项目的 `.codex/config.toml` 中将同一项设为 `true`。插件实体和运行缓存全局共享，项目知识仍保存在各自的 `doc-<项目名>/` 中。
 
 新建会话后初始化知识库：
 
@@ -34,19 +36,19 @@ $context-atlas-review
 $context-atlas-ingest
 ```
 
-向已有知识库新增业务知识：
+向已有知识库新增项目知识：
 
 ```text
 $context-atlas-add
 ```
 
-修订、同步或替代已有业务知识：
+修订现有项目知识或建立明确后继项：
 
 ```text
 $context-atlas-revise
 ```
 
-通过替代、归档或受控删除退役业务知识：
+撤销无后继项的当前权威，或归档已替代知识：
 
 ```text
 $context-atlas-retire
@@ -62,26 +64,24 @@ $context-atlas-upgrade
 
 ## 升级插件
 
-回到安装插件的目标项目，保持相同的项目级 `CODEX_HOME`。`marketplace add` 不会刷新已经登记的 Marketplace；必须执行：
+升级用户级共享安装。`marketplace add` 不会刷新已经登记的 Marketplace；必须执行：
 
 ```powershell
-$env:CODEX_HOME = (Join-Path $PWD ".codex")
 codex plugin marketplace upgrade context-atlas
 codex plugin remove context-atlas@context-atlas
 codex plugin add context-atlas@context-atlas
 codex plugin list
 ```
 
-以 `codex plugin list` 显示的实际版本为准。升级后新建 Codex 会话，使新版 Skill 生效。
+以 `codex plugin list` 显示的实际版本为准。重新安装后确认用户级默认禁用、目标项目启用，并新建 Codex 会话，使新版 Skill 生效。
 
-## 项目级卸载
+## 卸载
 
-回到安装插件时使用的目标项目目录，使用相同的项目级 `CODEX_HOME`，先卸载插件，再移除 Marketplace：
+卸载用户级插件会影响该用户的所有项目：
 
 ```powershell
-$env:CODEX_HOME = (Join-Path $PWD ".codex")
 codex plugin remove context-atlas@context-atlas
 codex plugin marketplace remove context-atlas
 ```
 
-不要直接删除整个 `.codex/` 目录，其中可能还有该项目的其他配置和插件。
+只需停止某个项目使用时，删除项目 `.codex/config.toml` 中的启用项或将其设为 `false`。不要直接删除整个 `.codex/` 目录，其中可能还有该项目的其他配置。
