@@ -1,9 +1,10 @@
 {
   "plugin": "context-atlas",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "files": {
     ".agents/plugins/marketplace.json": "1729d9fb23dc1a69af34ae23c732afcb430204c029d7eb1021dde64c5d7b8d99",
-    ".codex-plugin/plugin.json": "fa5e0940e639643f270515a09db42d0af302dab8fed0c19531931ff0985d3c97",
+    ".codex-plugin/plugin.json": "ad80d791e51b34dbcf4ca2b59857c3faf1872d02176467b5915c8fa67f5fd512",
+    ".gitignore": "4fcb3f373574e806859c1f01ced0d93e7b4cc9c431c11a85ca24b18f1b4df356",
     "assets/compatibility.json": "9b3a0a15fc3bfe8f301799ce521cbac9db1afbb9e01c44d1f721c8482c677c86",
     "assets/manifest.json": "1d6b96366b964ce0806608976f3b908f2456fb36d5bfb718a52b2c7d7a9c03cd",
     "assets/operations/archive.json": "0784a74255507e5d331c58315ca4a70e985bc9cb45edf17e621fae8b66173205",
@@ -92,7 +93,7 @@
     "assets/scripts/project_kb/initializer.py": "a0135278a1a0c1c89470a38169c964d39590c62a89ca25bee4a49dc37335252c",
     "assets/scripts/project_kb/links.py": "86366fee14073d83e5dff8e3bcd0c0b5bb467a357d861dccb20bdd00c0466c1d",
     "assets/scripts/project_kb/managed_sources.py": "40e4e8a191f210a2eda239116b6d189deedeeeabc31b6d3d8629b1bc23d159b7",
-    "assets/scripts/project_kb/migration.py": "89da0abb93f3027282d33b2efa3c5930f7b658631f7c6de90eea9cf4b25c30f8",
+    "assets/scripts/project_kb/migration.py": "10d6ce682d5fc3a848ab2c9125a805133f013ae018cd9005019b38409ab5a4ce",
     "assets/scripts/project_kb/model.py": "b287f8302ef54f93fa965b1506030dcbf23b48e8a45a7439273ac2e90add6751",
     "assets/scripts/project_kb/navigation.py": "95285e5ed354652477f9ec44874f1c8a700f29688e496a284639c9821564ba45",
     "assets/scripts/project_kb/plugin_assets.py": "e9746aa4a14f44790edd61b00af26017c2d775268c87bdb1a4f7c561f3d0a6c2",
