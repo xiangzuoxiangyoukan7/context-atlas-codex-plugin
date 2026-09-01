@@ -547,7 +547,7 @@ def build_migration_proposal(
 
     resolved_root = root.resolve()
     result = policy.diagnose(resolved_root)
-    if not result.conversion_available:
+    if not result.conversion_available and result.format_version != result.creates_format_version:
         raise ValueError("current format has no applicable conversion")
     record_list = list(records)
     sources = _source_paths(record_list)
@@ -849,6 +849,11 @@ def apply_migration(
         manifest.read_text(encoding="utf-8"), proposal.target_version
     )
     manifest_content = _rewrite_governance_paths(manifest_content)
+    manifest_content = (
+        manifest_content
+        .replace("03-变更与证据/验收矩阵.md", "03-变更与证据/验收证据/README.md")
+        .replace("03-变更与证据/当前变更.md", "03-变更与证据/README.md")
+    )
     affected = {path for path, _ in prepared} | {item.source for item in proposal.moves} | {item.target for item in proposal.moves} | {item.path for item in proposal.removals} | {item.path for item in proposal.rewrites} | {item.path for item in proposal.creations} | {item.path for item in proposal.assets} | {manifest}
     backups = {path: path.read_bytes() if path.is_file() else None for path in affected}
     existing_directories = {
