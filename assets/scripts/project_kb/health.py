@@ -110,7 +110,12 @@ def inspect_health(
                 group.get("query") for group in groups
                 if isinstance(group, dict) and isinstance(group.get("query"), str)
             ] if isinstance(groups, list) else []
-            for document_type in sorted({str(record.metadata.get("type")) for record in records}):
+            document_types = {
+                document_type
+                for record in records
+                if isinstance((document_type := record.metadata.get("type")), str)
+            }
+            for document_type in sorted(document_types):
                 expected = type_query(document_type)
                 if document_type not in TYPE_COLORS:
                     findings.append(HealthFinding("KB_OBSIDIAN_COLOR_TYPE_UNKNOWN", "error", ".obsidian/graph.json", None, f"no managed color for type: {document_type}"))
