@@ -42,21 +42,21 @@
       "description": "format_version 的受控取值；必须根据实际状态或场景选择。",
       "oneOf": [
         {
-          "const": "0.19.0",
-          "title": "0.19.0",
-          "description": "当实际语义为 0.19.0 时使用。",
+          "const": "0.19.2",
+          "title": "0.19.2",
+          "description": "当实际语义为 0.19.2 时使用。",
           "examples": [
-            "0.19.0"
+            "0.19.2"
           ],
           "x-context-atlas": {
             "use_when": [
-              "实际语义明确为 0.19.0"
+              "实际语义明确为 0.19.2"
             ]
           }
         }
       ],
       "examples": [
-        "0.19.0"
+        "0.19.2"
       ]
     },
     "knowledge_revision": {
@@ -116,10 +116,10 @@
     "lifecycle": {
       "field": "format_version",
       "initial_states": [
-        "0.19.0"
+        "0.19.2"
       ],
       "terminal_states": [
-        "0.19.0"
+        "0.19.2"
       ],
       "transitions": [],
       "invalid_inferences": [
@@ -155,7 +155,7 @@
       "project_id": "example",
       "project_name": "example",
       "knowledge_base_name": "example",
-      "format_version": "0.19.0",
+      "format_version": "0.19.2",
       "knowledge_revision": "example",
       "created_by": "example"
     },
@@ -163,14 +163,14 @@
       "project_id": "recommended",
       "project_name": "recommended",
       "knowledge_base_name": "recommended",
-      "format_version": "0.19.0",
+      "format_version": "0.19.2",
       "knowledge_revision": "recommended",
       "created_by": "recommended"
     }
   ],
   "enums": {
     "format_version": [
-      "0.19.0"
+      "0.19.2"
     ]
   }
 }

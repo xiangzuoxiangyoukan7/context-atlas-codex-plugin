@@ -229,7 +229,7 @@
       "type": "string",
       "minLength": 1,
       "examples": [
-        "0.19.0"
+        "0.19.2"
       ]
     }
   },
@@ -248,7 +248,7 @@
       "condition": "生成标准知识库",
       "result": "not_started",
       "evidence": "待执行",
-      "version": "0.19.0"
+      "version": "0.19.2"
     },
     {
       "id": "AC-知识治理-全量结构校验-检查全部正式知识",
@@ -258,7 +258,7 @@
       "evidence": [
         "03-变更与证据/验收证据/数据库知识治理.md"
       ],
-      "version": "0.19.0"
+      "version": "0.19.2"
     }
   ],
   "enums": {

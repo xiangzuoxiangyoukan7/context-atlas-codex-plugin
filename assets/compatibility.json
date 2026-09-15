@@ -16,113 +16,129 @@
     13,
     14,
     "0.18.2",
-    "0.19.0"
+    "0.19.0",
+    "0.19.1",
+    "0.19.2"
   ],
-  "created_format_version": "0.19.0",
+  "created_format_version": "0.19.2",
   "conversions": [
     {
       "from": 1,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "embedded-sources-and-knowledge-governance",
-      "description": "把格式 1 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 1 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 2,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "knowledge-governance-layout-and-embedded-sources",
-      "description": "把格式 2 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 2 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 3,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "embedded-sources",
-      "description": "把格式 3 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 3 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 4,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "typed-knowledge-and-simplified-contract-layout",
-      "description": "把格式 4 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 4 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 5,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "changes-and-evidence-without-task-packages",
-      "description": "把格式 5 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 5 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 6,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "specification-readiness-and-change-workspaces",
-      "description": "把格式 6 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 6 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 7,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "unified-version-model-and-knowledge-granularity",
-      "description": "把格式 7 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 7 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 8,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "embedded-acceptance-and-concrete-interfaces",
-      "description": "把格式 8 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 8 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 9,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "feature-integrated-design-and-acceptance",
-      "description": "把格式 9 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 9 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 10,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "readme-classification-and-current-layout",
-      "description": "把格式 10 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 10 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 11,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "requirement-body-authority-and-readiness-decoupling",
-      "description": "把格式 11 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 11 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 12,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "decision-content-integration-and-current-layout",
-      "description": "把格式 12 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 12 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 13,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "data-asset-independence-and-obsidian-color-quality",
-      "description": "把格式 13 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 13 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 14,
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "search-first-navigation-and-two-version-model",
-      "description": "把格式 14 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 14 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
       "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": "0.18.2",
-      "to": "0.19.0",
+      "to": "0.19.2",
       "id": "semantic-requirement-identities-and-self-describing-schemas",
-      "description": "把格式 0.18.2 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "description": "把格式 0.18.2 的知识库等价转换为 0.19.2，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
+    },
+    {
+      "from": "0.19.0",
+      "to": "0.19.2",
+      "id": "obsidian-property-query-compatibility",
+      "description": "把格式 0.19.0 的知识库等价转换为 0.19.2，修复 Obsidian 类型颜色查询并保持业务事实与批准状态不变。",
+      "output_policy": "convert_only_no_legacy_coexistence"
+    },
+    {
+      "from": "0.19.1",
+      "to": "0.19.2",
+      "id": "obsidian-property-query-compatibility-from-plugin-patch",
+      "description": "把格式 0.19.1 的知识库等价转换为 0.19.2，修复 Obsidian 类型颜色查询并保持业务事实与批准状态不变。",
       "output_policy": "convert_only_no_legacy_coexistence"
     }
   ],

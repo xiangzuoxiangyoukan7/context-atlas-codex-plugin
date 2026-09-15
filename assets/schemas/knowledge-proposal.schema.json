@@ -491,7 +491,7 @@
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$",
       "examples": [
-        "0.19.0"
+        "0.19.2"
       ]
     },
     "captured_at": {
@@ -538,7 +538,7 @@
       "operated_by": "AGENT-CODEX",
       "confirmed_by": "",
       "git_commit": "",
-      "project_version": "0.19.0",
+      "project_version": "0.19.2",
       "captured_at": "2026-09-15T12:00:00+08:00"
     },
     {
@@ -557,7 +557,7 @@
       "operated_by": "AGENT-CODEX",
       "confirmed_by": "PERSON-OWNER",
       "git_commit": "",
-      "project_version": "0.19.0",
+      "project_version": "0.19.2",
       "captured_at": "2026-09-15T12:05:00+08:00"
     }
   ],
