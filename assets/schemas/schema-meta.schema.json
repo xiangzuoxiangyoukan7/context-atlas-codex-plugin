@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/schema-meta.schema.json",
+  "title": "Context Atlas 自描述 Schema 元契约",
+  "description": "约束采用 self_describing/v1 Profile 的知识类型 Schema 必须具备的说明、规则、示例和兼容信息。",
+  "type": "object",
+  "required": ["$schema", "$id", "title", "description", "type", "x-context-atlas", "properties", "required", "examples"],
+  "properties": {
+    "$schema": {"type": "string", "format": "uri"},
+    "$id": {"type": "string", "format": "uri", "pattern": "^https://context-atlas\\.dev/schemas/[^/]+\\.json$", "description": "稳定逻辑标识；不承诺网络可访问，验证器必须从本地注册表解析 $ref。"},
+    "title": {"type": "string", "minLength": 1},
+    "description": {"type": "string", "minLength": 1},
+    "type": {"const": "object"},
+    "x-context-atlas": {
+      "type": "object",
+      "required": ["profile", "schema_version", "knowledge_type", "purpose", "use_when", "do_not_use_when", "canonical_location", "identity_contract", "body_contract", "lifecycle", "rules", "compatibility", "invalid_examples"],
+      "properties": {
+        "profile": {"const": "self_describing/v1"},
+        "schema_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "knowledge_type": {"type": "string", "minLength": 1},
+        "purpose": {"type": "string", "minLength": 1},
+        "use_when": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "do_not_use_when": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "canonical_location": {"type": "string", "minLength": 1},
+        "identity_contract": {"$ref": "#/$defs/identityContract"},
+        "body_contract": {"type": "object", "minProperties": 1},
+        "lifecycle": {"$ref": "#/$defs/lifecycle"},
+        "rules": {"type": "array", "items": {"$ref": "#/$defs/rule"}},
+        "compatibility": {"type": "object", "minProperties": 1},
+        "invalid_examples": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/invalidExample"}}
+      }
+    },
+    "properties": {"type": "object", "additionalProperties": {"$ref": "#/$defs/documentedProperty"}},
+    "required": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "examples": {"type": "array", "minItems": 2, "items": {"type": "object"}}
+  },
+  "$defs": {
+    "documentedProperty": {
+      "type": "object",
+      "required": ["title", "description", "examples"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "examples": {"type": "array", "minItems": 1}
+      }
+    },
+    "identityContract": {
+      "type": "object",
+      "required": ["id_field", "filename_stem_equals_id", "semantic_name_field", "semantic_name_normalization", "semantic_identity", "date_capture_pattern", "maximum_length", "rename_policy", "collision_policy"],
+      "properties": {
+        "id_field": {"type": "string", "minLength": 1},
+        "filename_stem_equals_id": {"type": "boolean", "description": "有独立文件的知识项必须为 true；固定名 README 由 semantic_identity 按目录作用域校验。"},
+        "semantic_name_field": {"type": "string", "minLength": 1},
+        "semantic_name_normalization": {"const": "remove_non_alphanumeric_or_hyphen"},
+        "semantic_identity": {"const": "type_and_file_or_scope", "description": "普通知识的 ID 必须等于文件名主体，并表达类型、层级或领域和名称；README 使用完整目录作用域。"},
+        "date_capture_pattern": {"type": "string", "minLength": 1},
+        "maximum_length": {"type": "integer", "minimum": 1},
+        "rename_policy": {"type": "string", "minLength": 1},
+        "collision_policy": {"type": "string", "minLength": 1}
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": ["id", "enforcement", "description", "remediation"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$"},
+        "enforcement": {"enum": ["json_schema", "deterministic", "human_review", "advisory"]},
+        "description": {"type": "string", "minLength": 1},
+        "diagnostic_code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+        "remediation": {"type": "string", "minLength": 1}
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "required": ["field", "initial_states", "terminal_states", "transitions", "invalid_inferences"],
+      "properties": {
+        "field": {"type": "string", "minLength": 1},
+        "initial_states": {"type": "array", "minItems": 1, "uniqueItems": true},
+        "terminal_states": {"type": "array", "minItems": 1, "uniqueItems": true},
+        "transitions": {"type": "array", "items": {"type": "object", "required": ["from", "to", "when"]}},
+        "invalid_inferences": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "invalidExample": {
+      "type": "object",
+      "required": ["case", "value", "expected_rule", "reason"],
+      "properties": {
+        "case": {"type": "string", "minLength": 1},
+        "value": {"type": "object"},
+        "expected_rule": {"type": "string", "minLength": 1},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

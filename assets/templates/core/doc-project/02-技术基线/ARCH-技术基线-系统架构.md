@@ -1,9 +1,9 @@
 ---
-id: ARCH-001
+id: ARCH-技术基线-系统架构
 type: architecture
 title: 系统架构
 rel_classified_under:
-  - "[[02-技术基线/README|IDX-TECHNICAL-BASELINE]]"
+  - "[[02-技术基线/README|IDX-技术基线]]"
 ---
 # 系统架构
 

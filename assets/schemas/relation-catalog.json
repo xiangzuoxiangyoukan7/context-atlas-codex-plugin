@@ -4,222 +4,749 @@
     {
       "field": "rel_classified_under",
       "name_zh": "归入该知识分类",
-      "source_prefixes": ["*"],
-      "target_prefixes": ["IDX"],
+      "source_prefixes": [
+        "*"
+      ],
+      "target_prefixes": [
+        "IDX"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "informational",
-      "impact_rules": {"removed": "required", "renamed": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "removed": "required",
+        "renamed": "review_required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_classified_under 表示“归入该知识分类”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“归入该知识分类”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_belongs_to",
       "name_zh": "属于该数据库层级",
-      "source_prefixes": ["DB", "NS", "TABLE"],
-      "target_prefixes": ["DS", "DB", "NS"],
+      "source_prefixes": [
+        "TABLE"
+      ],
+      "target_prefixes": [
+        "DS"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"removed": "required", "renamed": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "removed": "required",
+        "renamed": "review_required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_belongs_to 表示“属于该数据库层级”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“属于该数据库层级”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_supported_by",
       "name_zh": "由该来源支持",
-      "source_prefixes": ["*"],
-      "target_prefixes": ["SRC"],
+      "source_prefixes": [
+        "*"
+      ],
+      "target_prefixes": [
+        "SRC"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"source_invalid": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "source_invalid": "review_required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_supported_by 表示“由该来源支持”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“由该来源支持”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_conforms_to",
       "name_zh": "遵循该规则",
-      "source_prefixes": ["*"],
-      "target_prefixes": ["RULE"],
+      "source_prefixes": [
+        "*"
+      ],
+      "target_prefixes": [
+        "RULE"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"rule_changed": "review_required", "rule_removed": "required", "formatting_only": "informational", "file_moved": "informational"}
-    },
-    {
-      "field": "rel_implements",
-      "name_zh": "实现该需求",
-      "source_prefixes": ["F", "FEATURE", "RULE"],
-      "target_prefixes": ["REQ"],
-      "direction": "forward_only",
-      "status": "deprecated",
-      "default_impact": "review_required",
-      "impact_rules": {"scope_removed": "required", "superseded": "required", "behavior_changed": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "rule_changed": "review_required",
+        "rule_removed": "required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_conforms_to 表示“遵循该规则”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“遵循该规则”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_satisfies",
       "name_zh": "满足该需求",
-      "source_prefixes": ["F", "FEATURE"],
-      "target_prefixes": ["REQ"],
+      "source_prefixes": [
+        "F",
+        "FEATURE"
+      ],
+      "target_prefixes": [
+        "REQ"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"scope_removed": "required", "superseded": "required", "behavior_changed": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "scope_removed": "required",
+        "superseded": "required",
+        "behavior_changed": "review_required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_satisfies 表示“满足该需求”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“满足该需求”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_primary_module",
       "name_zh": "主要由该模块实现",
-      "source_prefixes": ["F", "FEATURE"],
-      "target_prefixes": ["MOD", "MODULE"],
+      "source_prefixes": [
+        "F",
+        "FEATURE"
+      ],
+      "target_prefixes": [
+        "MOD",
+        "MODULE"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"responsibility_changed": "required", "removed": "required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "responsibility_changed": "required",
+        "removed": "required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_primary_module 表示“主要由该模块实现”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“主要由该模块实现”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_participating_modules",
       "name_zh": "由该模块参与实现",
-      "source_prefixes": ["F", "FEATURE"],
-      "target_prefixes": ["MOD", "MODULE"],
+      "source_prefixes": [
+        "F",
+        "FEATURE"
+      ],
+      "target_prefixes": [
+        "MOD",
+        "MODULE"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"responsibility_changed": "review_required", "removed": "required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "responsibility_changed": "review_required",
+        "removed": "required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_participating_modules 表示“由该模块参与实现”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“由该模块参与实现”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_provides",
       "name_zh": "提供该接口",
-      "source_prefixes": ["MOD", "MODULE"],
-      "target_prefixes": ["API", "RPC", "EVENT", "WEBHOOK", "FILE"],
+      "source_prefixes": [
+        "MOD",
+        "MODULE"
+      ],
+      "target_prefixes": [
+        "INTERFACE",
+        "API",
+        "RPC",
+        "EVENT",
+        "WEBHOOK",
+        "FILE"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"breaking_change": "required", "removed": "required", "deprecated": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "breaking_change": "required",
+        "removed": "required",
+        "deprecated": "review_required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_provides 表示“提供该接口”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“提供该接口”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_calls",
       "name_zh": "调用或消费该接口",
-      "source_prefixes": ["F", "FEATURE", "MOD", "MODULE", "API", "RPC", "EVENT", "WEBHOOK", "TASK"],
-      "target_prefixes": ["API", "RPC", "EVENT", "WEBHOOK", "FILE"],
+      "source_prefixes": [
+        "F",
+        "FEATURE",
+        "MOD",
+        "MODULE",
+        "INTERFACE",
+        "API",
+        "RPC",
+        "EVENT",
+        "WEBHOOK",
+        "TASK"
+      ],
+      "target_prefixes": [
+        "INTERFACE",
+        "API",
+        "RPC",
+        "EVENT",
+        "WEBHOOK",
+        "FILE"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"breaking_change": "required", "removed": "required", "deprecated": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "breaking_change": "required",
+        "removed": "required",
+        "deprecated": "review_required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_calls 表示“调用或消费该接口”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“调用或消费该接口”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_exposes",
       "name_zh": "对外提供该契约",
-      "source_prefixes": ["F", "FEATURE", "MOD", "MODULE"],
-      "target_prefixes": ["API", "RPC", "EVENT", "WEBHOOK", "FILE"],
+      "source_prefixes": [
+        "F",
+        "FEATURE",
+        "MOD",
+        "MODULE"
+      ],
+      "target_prefixes": [
+        "INTERFACE",
+        "API",
+        "RPC",
+        "EVENT",
+        "WEBHOOK",
+        "FILE"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"breaking_change": "required", "removed": "required", "deprecated": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "breaking_change": "required",
+        "removed": "required",
+        "deprecated": "review_required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_exposes 表示“对外提供该契约”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“对外提供该契约”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_reads",
       "name_zh": "读取该数据",
-      "source_prefixes": ["F", "FEATURE", "MOD", "MODULE", "API", "RPC", "EVENT", "WEBHOOK", "FILE", "TASK"],
-      "target_prefixes": ["TABLE", "DATA"],
+      "source_prefixes": [
+        "F",
+        "FEATURE",
+        "MOD",
+        "MODULE",
+        "INTERFACE",
+        "API",
+        "RPC",
+        "EVENT",
+        "WEBHOOK",
+        "FILE",
+        "TASK"
+      ],
+      "target_prefixes": [
+        "TABLE",
+        "DATA"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"field_removed": "required", "type_changed": "required", "enum_value_removed": "required", "field_description_changed": "review_required", "field_added_optional": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "field_removed": "required",
+        "type_changed": "required",
+        "enum_value_removed": "required",
+        "field_description_changed": "review_required",
+        "field_added_optional": "review_required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_reads 表示“读取该数据”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“读取该数据”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_writes",
       "name_zh": "写入该数据",
-      "source_prefixes": ["F", "FEATURE", "MOD", "MODULE", "API", "RPC", "EVENT", "WEBHOOK", "FILE", "TASK"],
-      "target_prefixes": ["TABLE", "DATA"],
+      "source_prefixes": [
+        "F",
+        "FEATURE",
+        "MOD",
+        "MODULE",
+        "INTERFACE",
+        "API",
+        "RPC",
+        "EVENT",
+        "WEBHOOK",
+        "FILE",
+        "TASK"
+      ],
+      "target_prefixes": [
+        "TABLE",
+        "DATA"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"required_added": "required", "type_changed": "required", "enum_value_removed": "required", "default_changed": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "required_added": "required",
+        "type_changed": "required",
+        "enum_value_removed": "required",
+        "default_changed": "review_required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_writes 表示“写入该数据”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“写入该数据”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_depends_on",
       "name_zh": "运行或业务上依赖",
-      "source_prefixes": ["F", "FEATURE", "MOD", "MODULE", "API", "RPC", "EVENT", "WEBHOOK", "FILE", "TASK"],
-      "target_prefixes": ["MOD", "MODULE", "DEP"],
+      "source_prefixes": [
+        "F",
+        "FEATURE",
+        "MOD",
+        "MODULE",
+        "INTERFACE",
+        "API",
+        "RPC",
+        "EVENT",
+        "WEBHOOK",
+        "FILE",
+        "TASK"
+      ],
+      "target_prefixes": [
+        "MOD",
+        "MODULE",
+        "DEP"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"unavailable": "required", "removed": "required", "breaking_change": "required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "unavailable": "required",
+        "removed": "required",
+        "breaking_change": "required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_depends_on 表示“运行或业务上依赖”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“运行或业务上依赖”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_verified_by",
       "name_zh": "由该验收项证明",
-      "source_prefixes": ["REQ", "F", "FEATURE", "RULE", "API", "RPC", "EVENT", "WEBHOOK", "FILE"],
-      "target_prefixes": ["AC", "F", "KB"],
+      "source_prefixes": [
+        "REQ",
+        "F",
+        "FEATURE",
+        "RULE",
+        "INTERFACE",
+        "API",
+        "RPC",
+        "EVENT",
+        "WEBHOOK",
+        "FILE"
+      ],
+      "target_prefixes": [
+        "AC",
+        "F",
+        "KB"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"behavior_changed": "review_required", "acceptance_invalid": "required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "behavior_changed": "review_required",
+        "acceptance_invalid": "required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_verified_by 表示“由该验收项证明”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“由该验收项证明”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_changes",
       "name_zh": "本次变更涉及",
-      "source_prefixes": ["CHG"],
-      "target_prefixes": ["*"],
+      "source_prefixes": [
+        "CHG"
+      ],
+      "target_prefixes": [
+        "*"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_changes 表示“本次变更涉及”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“本次变更涉及”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_supersedes",
       "name_zh": "替代旧知识",
-      "source_prefixes": ["*"],
-      "target_prefixes": ["*"],
+      "source_prefixes": [
+        "*"
+      ],
+      "target_prefixes": [
+        "*"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"superseded": "required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "superseded": "required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_supersedes 表示“替代旧知识”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“替代旧知识”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_logical_parent",
       "name_zh": "逻辑上引用主表",
-      "source_prefixes": ["TABLE"],
-      "target_prefixes": ["TABLE"],
+      "source_prefixes": [
+        "TABLE"
+      ],
+      "target_prefixes": [
+        "TABLE"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"key_changed": "required", "key_removed": "required", "type_changed": "required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "key_changed": "required",
+        "key_removed": "required",
+        "type_changed": "required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_logical_parent 表示“逻辑上引用主表”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“逻辑上引用主表”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_evidenced_by",
       "name_zh": "由该次实际证据证明",
-      "source_prefixes": ["AC", "F", "KB"],
-      "target_prefixes": ["EVID"],
+      "source_prefixes": [
+        "AC",
+        "F",
+        "KB"
+      ],
+      "target_prefixes": [
+        "EVID"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"evidence_invalid": "required", "evidence_stale": "review_required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "evidence_invalid": "required",
+        "evidence_stale": "review_required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_evidenced_by 表示“由该次实际证据证明”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“由该次实际证据证明”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_scenario_for",
       "name_zh": "验收该规范行为",
-      "source_prefixes": ["AC"],
-      "target_prefixes": ["REQ", "F", "FEATURE", "API", "RPC", "EVENT", "WEBHOOK", "FILE", "CLI", "AGENT"],
+      "source_prefixes": [
+        "AC"
+      ],
+      "target_prefixes": [
+        "REQ",
+        "F",
+        "FEATURE",
+        "API",
+        "RPC",
+        "EVENT",
+        "WEBHOOK",
+        "FILE",
+        "CLI",
+        "AGENT"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"behavior_changed": "review_required", "removed": "required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "behavior_changed": "review_required",
+        "removed": "required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_scenario_for 表示“验收该规范行为”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“验收该规范行为”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_changed_by",
       "name_zh": "由该规格变更修改",
-      "source_prefixes": ["DELTA"],
-      "target_prefixes": ["CHG"],
+      "source_prefixes": [
+        "DELTA"
+      ],
+      "target_prefixes": [
+        "CHG"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"change_cancelled": "required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "change_cancelled": "required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_changed_by 表示“由该规格变更修改”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“由该规格变更修改”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     },
     {
       "field": "rel_executes",
       "name_zh": "执行该变更集中的工作",
-      "source_prefixes": ["TASK"],
-      "target_prefixes": ["CHG"],
+      "source_prefixes": [
+        "TASK"
+      ],
+      "target_prefixes": [
+        "CHG"
+      ],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
-      "impact_rules": {"scope_changed": "review_required", "change_cancelled": "required", "formatting_only": "informational", "file_moved": "informational"}
+      "impact_rules": {
+        "scope_changed": "review_required",
+        "change_cancelled": "required",
+        "formatting_only": "informational",
+        "file_moved": "informational"
+      },
+      "description": "关系字段 rel_executes 表示“执行该变更集中的工作”。",
+      "use_when": [
+        "需要从允许的 source_prefixes 指向 target_prefixes，表达“执行该变更集中的工作”时"
+      ],
+      "do_not_use_when": [
+        "仅为了维护可由索引计算的反向关系时"
+      ]
     }
-  ]
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/relation-catalog.json",
+  "title": "关系类型目录",
+  "description": "登记允许的正向关系、源目标身份范围和变化影响等级。",
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "relation_catalog",
+    "purpose": "作为关系字段、方向和影响传播规则的唯一机器权威。",
+    "use_when": [
+      "验证 rel_* 字段或计算变化影响"
+    ],
+    "do_not_use_when": [
+      "登记具体知识实体之间的关系实例"
+    ],
+    "canonical_location": "schemas/relation-catalog.json",
+    "identity_contract": {
+      "id_field": "field",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "name_zh",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 96,
+      "rename_policy": "关系字段重命名必须提供迁移映射并更新全部引用。",
+      "collision_policy": "field 必须唯一，重复时阻塞。"
+    },
+    "body_contract": {
+      "format": "json_registry",
+      "authoritative_for": [
+        "关系名称",
+        "方向",
+        "允许的源目标",
+        "影响传播"
+      ],
+      "required_sections": [],
+      "forbidden_content": [
+        "人工维护反向关系列表"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "active"
+      ],
+      "terminal_states": [
+        "retired"
+      ],
+      "transitions": [
+        {
+          "from": "active",
+          "to": "retired",
+          "when": "替代关系已登记且所有当前引用完成迁移"
+        }
+      ],
+      "invalid_inferences": [
+        "关系可用不表示目标知识存在",
+        "Markdown 链接不自动构成关系"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-关系目录-关系字段必须唯一",
+        "enforcement": "deterministic",
+        "description": "每个关系 field 必须唯一。",
+        "diagnostic_code": "KB_REL_DUPLICATE",
+        "remediation": "删除重复项或分配不同语义字段。"
+      },
+      {
+        "id": "RULE-SCHEMA-关系目录-关系方向必须使用受控事实方向",
+        "enforcement": "deterministic",
+        "description": "当前关系只维护 forward_only 正向事实。",
+        "diagnostic_code": "KB_REL_DIRECTION",
+        "remediation": "移除人工反向关系并通过索引计算反向邻居。"
+      }
+    ],
+    "compatibility": {
+      "catalog_version": 1,
+      "unknown_relation_policy": "未登记 rel_* 字段必须拒绝"
+    },
+    "invalid_examples": [
+      {
+        "case": "重复关系字段",
+        "value": {
+          "field": "rel_reads"
+        },
+        "expected_rule": "RULE-SCHEMA-关系目录-关系字段必须唯一",
+        "reason": "会产生竞争规则。"
+      }
+    ]
+  },
+  "value_semantics": {
+    "direction": {
+      "forward_only": "只在事实使用方保存指向被依赖方的关系，反向关系由索引计算。"
+    },
+    "status": {
+      "active": "允许当前知识使用。",
+      "retired": "只作为迁移输入或历史解释，不允许新写入。"
+    },
+    "impact_level": {
+      "required": "存在确定性破坏风险，必须处理。",
+      "review_required": "机器只能确认存在影响，需要责任人复核。",
+      "informational": "通常不改变业务含义，仅提供追溯信息。"
+    },
+    "wildcard_prefix": "* 表示允许任意已登记知识身份前缀。"
+  }
 }

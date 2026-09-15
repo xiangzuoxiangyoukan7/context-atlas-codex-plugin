@@ -18,9 +18,16 @@ from scripts.project_kb.capture import CaptureCandidate, capture_candidate
 from scripts.project_kb.compatibility import CompatibilityPolicy
 from scripts.project_kb.discovery import discover_records
 from scripts.project_kb.identity import discover_identity_match
-from scripts.project_kb.migration import apply_migration, build_migration_proposal
-from scripts.project_kb.navigation import query_children, query_graph, query_neighbors
+from scripts.project_kb.migration import (
+    MigrationReport,
+    apply_migration,
+    build_migration_proposal,
+    merge_agent_migration_plan,
+    preflight_migration,
+)
+from scripts.project_kb.navigation import query_children, query_graph, query_neighbors, query_search
 from scripts.project_kb.updater import UpdateChange, execute_update
+from scripts.project_kb.deletion import apply_delete, build_delete_proposal
 from scripts.project_kb.archive import apply_archive, build_archive_proposal
 from scripts.project_kb.health import inspect_health
 from scripts.project_kb.ingest_enhancements import save_ingest_history
@@ -72,6 +79,14 @@ def _parser() -> argparse.ArgumentParser:
     update.add_argument("--file", action="append", required=True)
     update.add_argument("--content-file", action="append", required=True)
 
+    for operation in ("delete-propose", "delete-apply"):
+        deletion = subparsers.add_parser(operation)
+        deletion.add_argument("knowledge_base_root", type=Path)
+        deletion.add_argument("--plan", required=True, type=Path)
+        if operation == "delete-apply":
+            deletion.add_argument("--proposal-revision", required=True)
+            deletion.add_argument("--confirmed-revision", required=True)
+
     diagnose = subparsers.add_parser("upgrade-diagnose", aliases=["diagnose-format"])
     diagnose.add_argument("knowledge_base_root", type=Path)
     diagnose.add_argument(
@@ -113,6 +128,15 @@ def _parser() -> argparse.ArgumentParser:
     children.add_argument("knowledge_base_root", type=Path)
     children.add_argument("--path", default=".")
 
+    search = subparsers.add_parser("search")
+    search.add_argument("knowledge_base_root", type=Path)
+    search.add_argument("--query", required=True)
+    search.add_argument("--type", dest="node_types", action="append", default=[])
+    search.add_argument("--status", dest="statuses", action="append", default=[])
+    search.add_argument("--path")
+    search.add_argument("--limit", type=int, default=10)
+    search.add_argument("--include-archive", action="store_true")
+
     graph = subparsers.add_parser("graph")
     graph.add_argument("knowledge_base_root", type=Path)
     graph_scope = graph.add_mutually_exclusive_group(required=True)
@@ -152,6 +176,10 @@ def _parser() -> argparse.ArgumentParser:
         migration.add_argument(
             "--compatibility", type=Path
         )
+        migration.add_argument(
+            "--agent-plan", type=Path,
+            help="Agent-authored semantic migration decisions JSON",
+        )
         if operation == "upgrade-apply":
             migration.add_argument("--proposal-revision", required=True)
             migration.add_argument("--confirmed-revision", required=True)
@@ -170,8 +198,10 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _migration_proposal(root: Path, compatibility: Path) -> object:
-    """发现知识记录并建立当前文件状态对应的只读迁移提案。"""
+def _migration_proposal(
+    root: Path, compatibility: Path, agent_plan: Path | None = None
+) -> object:
+    """合并确定性转换与 Agent 语义决策，并在隔离副本预演验证。"""
 
     records, issues = discover_records(
         root.resolve(), frozenset({".project-kb", ".obsidian", "Excalidraw", "Clippings", "90-历史归档"})
@@ -180,7 +210,11 @@ def _migration_proposal(root: Path, compatibility: Path) -> object:
         messages = "; ".join(f"{issue.code}: {issue.message}" for issue in issues)
         raise ValueError(f"knowledge discovery failed: {messages}")
     policy = CompatibilityPolicy.load(compatibility)
-    return build_migration_proposal(root, records, policy)
+    proposal = build_migration_proposal(root, records, policy)
+    proposal = merge_agent_migration_plan(root.resolve(), proposal, agent_plan)
+    return preflight_migration(
+        root.resolve(), proposal, _default_assets_root() / "schemas"
+    )
 
 
 def _execute(args: argparse.Namespace) -> tuple[object, int]:
@@ -214,22 +248,43 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
             ),
         )
         return report, report.validator_exit_code
+    if args.operation == "delete-propose":
+        proposal = build_delete_proposal(args.knowledge_base_root, args.plan)
+        return proposal, 0 if proposal.preflight_status == "passed" else 3
+    if args.operation == "delete-apply":
+        report = apply_delete(
+            args.knowledge_base_root, args.plan, args.proposal_revision, args.confirmed_revision
+        )
+        return report, report.validator_exit_code
     if args.operation in {"upgrade-diagnose", "diagnose-format"}:
         policy = CompatibilityPolicy.load(
             args.compatibility or _default_compatibility()
         )
         result = policy.diagnose(args.knowledge_base_root)
-        if result.format_version == result.created_format_version:
-            issues = validate(
-                args.knowledge_base_root,
-                ValidationConfig(schema_root=_default_assets_root() / "schemas"),
+        issues = validate(
+            args.knowledge_base_root,
+            ValidationConfig(schema_root=_default_assets_root() / "schemas"),
+        )
+        health = inspect_health(args.knowledge_base_root)
+        blocking_health = tuple(
+            finding for finding in health.findings if finding.severity != "warning"
+        )
+        result = replace(
+            result,
+            validation_issue_count=len(issues),
+            health_finding_count=len(health.findings),
+            blocking_health_finding_count=len(blocking_health),
+        )
+        if (
+            result.status != "unsupported"
+            and (issues or blocking_health)
+            and result.format_version == result.created_format_version
+        ):
+            result = replace(
+                result,
+                status="needs_normalization",
+                conversion_available=True,
             )
-            if issues:
-                result = replace(
-                    result,
-                    status="needs_normalization",
-                    conversion_available=True,
-                )
         return result, 2 if result.write_blocked else 0
     if args.operation == "capture":
         candidate = CaptureCandidate(
@@ -270,6 +325,16 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
         ), 0
     if args.operation == "children":
         return query_children(args.knowledge_base_root, path=args.path), 0
+    if args.operation == "search":
+        return query_search(
+            args.knowledge_base_root,
+            query=args.query,
+            node_types=tuple(args.node_types),
+            statuses=tuple(args.statuses),
+            path=args.path,
+            limit=args.limit,
+            include_archive=args.include_archive,
+        ), 0
     if args.operation == "graph":
         return query_graph(
             args.knowledge_base_root,
@@ -318,19 +383,41 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
             raise PermissionError("proposal revision no longer matches current files")
         return apply_archive(args.knowledge_base_root, proposal, args.confirmed_revision), 0
     proposal = _migration_proposal(
-        args.knowledge_base_root, args.compatibility or _default_compatibility()
+        args.knowledge_base_root,
+        args.compatibility or _default_compatibility(),
+        args.agent_plan,
     )
     if args.operation in {"upgrade-propose", "migrate-propose"}:
-        # 未解析关系属于需要人工处理的有效分析结果，而不是程序崩溃。
-        return proposal, 3 if proposal.unresolved else 0
+        # 未解析或预演失败是供 Agent 继续分析的有效结果，不是程序崩溃。
+        return proposal, 0 if proposal.preflight_status == "passed" else 3
     if args.proposal_revision != proposal.proposal_revision:
         raise PermissionError("proposal revision no longer matches current files")
-    return (
-        apply_migration(
-            args.knowledge_base_root, proposal, args.confirmed_revision
-        ),
-        0,
+    if proposal.preflight_status != "passed":
+        return MigrationReport(
+            "preflight_failed", (), proposal.target_version,
+            len(proposal.preflight_validation_issues),
+            len(proposal.preflight_health_findings),
+            len(proposal.preflight_health_findings),
+        ), 1
+    report = apply_migration(
+        args.knowledge_base_root, proposal, args.confirmed_revision
     )
+    issues = validate(
+        args.knowledge_base_root,
+        ValidationConfig(schema_root=_default_assets_root() / "schemas"),
+    )
+    health = inspect_health(args.knowledge_base_root)
+    blocking_health = tuple(
+        finding for finding in health.findings if finding.severity != "warning"
+    )
+    report = replace(
+        report,
+        status="migrated" if not issues and not blocking_health else "validation_failed",
+        validation_issue_count=len(issues),
+        health_finding_count=len(health.findings),
+        blocking_health_finding_count=len(blocking_health),
+    )
+    return report, 0 if not issues and not blocking_health else 1
 
 
 def main(argv: Sequence[str] | None = None) -> int:

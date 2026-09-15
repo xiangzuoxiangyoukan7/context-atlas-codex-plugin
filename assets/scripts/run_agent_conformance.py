@@ -650,7 +650,7 @@ def _run_obsidian_after_confirmation(
     graph = target / ".obsidian" / "graph.json"
     if graph.is_file():
         graph_text = graph.read_text(encoding="utf-8")
-        for phrase in ("[type:feature]", "90-历史归档", "colorGroups"):
+        for phrase in ('[\\"type\\":feature]', "90-历史归档", "colorGroups"):
             if phrase not in graph_text:
                 issues.append(f"Obsidian 图谱缺少预期规则：{phrase}")
     turns = [first_turn, second_turn]

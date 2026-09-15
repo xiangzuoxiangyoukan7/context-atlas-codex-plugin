@@ -5,7 +5,7 @@ description: Initialize the first self-contained Context Atlas knowledge base fo
 
 # Context Atlas Init
 
-<!-- context-atlas-rules: [[rules/知识治理规则#RULE-AGENT-001|RULE-AGENT-001]] [[rules/知识治理规则#RULE-IMPACT-001|RULE-IMPACT-001]] [[rules/知识治理规则#RULE-IMPACT-002|RULE-IMPACT-002]] [[rules/知识治理规则#RULE-REL-002|RULE-REL-002]] -->
+<!-- context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-正式写入必须基于已确认提案|RULE-知识治理规则-正式写入必须基于已确认提案]] [[rules/知识治理规则#RULE-知识治理规则-业务影响由关系分析与验收证据共同判断|RULE-知识治理规则-业务影响由关系分析与验收证据共同判断]] [[rules/知识治理规则#RULE-知识治理规则-影响分析只提供三级人工决策输入|RULE-知识治理规则-影响分析只提供三级人工决策输入]] [[rules/知识治理规则#RULE-知识治理规则-关系只保存统一的权威正向链接|RULE-知识治理规则-关系只保存统一的权威正向链接]] -->
 
 Initialize a new project knowledge base. Formal writes require explicit invocation of this Skill; natural-language requests may inspect and propose but must not initialize.
 

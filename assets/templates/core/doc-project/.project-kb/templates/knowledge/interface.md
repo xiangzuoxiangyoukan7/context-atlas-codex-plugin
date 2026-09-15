@@ -1,5 +1,5 @@
 ---
-id: API-DOMAIN-001
+id: IFACE-{{INITIALIZED_AT_COMPACT}}-接口名称
 type: interface
 title: 接口名称
 status: proposed
@@ -15,11 +15,12 @@ rel_reads: []
 rel_writes: []
 rel_depends_on: []
 rel_verified_by: []
+identity_created_at: {{INITIALIZED_AT}}
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[02-技术基线/接口/README|IDX-INTERFACES]]"
+  - "[[02-技术基线/接口/README|IDX-技术基线-接口]]"
 ---
-# API-DOMAIN-001：接口名称
+# IFACE-{{INITIALIZED_AT_COMPACT}}-接口名称：接口名称
 
 ## 入口与调用方
 

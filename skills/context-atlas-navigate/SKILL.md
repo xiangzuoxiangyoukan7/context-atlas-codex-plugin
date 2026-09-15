@@ -11,10 +11,19 @@ Resolve the project root and exactly one current `doc-*` knowledge base first. I
 
 Choose the smallest operation that answers the question:
 
+- Locate candidate knowledge from a natural-language request, stable ID, endpoint, table, field, or code symbol: query `search` first.
 - Discover what knowledge exists: query one directory level with `children`.
 - Relate a located stable node: query one hop with `neighbors`.
 - Analyze a wider relation area: query a bounded subgraph with `graph --start`.
 - Analyze the whole knowledge base only when explicitly needed: query `graph --all`.
+
+When the user has not supplied an exact stable ID or path, start with bounded search:
+
+```text
+python <knowledge-base>/.project-kb/scripts/agent_kb_operation.py search <knowledge-base> --query "<user terms>" --limit 10
+```
+
+Optionally repeat `--type` or `--status`, narrow with `--path`, and use `--include-archive` only for an explicit historical question. Search results expose score, matched fields, matched terms, status, summary, and path so the Agent can select a candidate without loading every body. Markdown links are reading conveniences, not classification membership or proof of complete reachability.
 
 Start directory discovery at the knowledge-base root and descend only into relevant children:
 
@@ -24,7 +33,7 @@ python <knowledge-base>/.project-kb/scripts/agent_kb_operation.py children <know
 
 `children` returns directory and Markdown summaries. Directory descriptions come from their `README.md`; the filesystem remains the authoritative tree. Do not recursively enumerate the tree unless the user's question requires it.
 
-After locating a formal node, identify it by stable Front Matter `id` or knowledge-base-relative file path and query direct relations:
+After locating a formal node through `search` or `children`, identify it by stable Front Matter `id` or knowledge-base-relative file path and query direct relations:
 
 ```text
 python <knowledge-base>/.project-kb/scripts/agent_kb_operation.py neighbors <knowledge-base> --id <ID>

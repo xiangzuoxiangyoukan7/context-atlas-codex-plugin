@@ -1,5 +1,5 @@
 ---
-id: DATA-001
+id: DATA-{{INITIALIZED_AT_COMPACT}}-数据资产名称
 type: data_asset
 title: 数据资产名称
 status: proposed
@@ -10,9 +10,10 @@ source_types: [database]
 independence_basis: [missing]
 sensitivity: missing
 retention: missing
+identity_created_at: {{INITIALIZED_AT}}
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[02-技术基线/数据资产/README|IDX-DATA-ASSETS]]"
+  - "[[02-技术基线/数据资产/README|IDX-技术基线-数据资产]]"
 ---
 
 # 数据资产名称

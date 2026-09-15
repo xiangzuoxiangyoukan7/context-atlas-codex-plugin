@@ -1,9 +1,9 @@
 ---
-id: IDX-CHANGES-EVIDENCE
+id: IDX-变更与证据
 type: knowledge_index
 title: 变更与证据
 rel_classified_under:
-  - "[[README|IDX-ROOT]]"
+  - "[[README|IDX-知识库]]"
 ---
 # 变更与证据
 

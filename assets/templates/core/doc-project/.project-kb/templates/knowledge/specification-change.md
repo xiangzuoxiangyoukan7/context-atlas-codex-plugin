@@ -1,5 +1,5 @@
 ---
-id: CHG-20000101-001
+id: CHG-{{INITIALIZED_AT_COMPACT}}-单一变更意图
 type: specification_change
 title: 单一变更意图
 status: draft
@@ -10,12 +10,13 @@ affected_ids: []
 delta_paths: []
 acceptance: []
 sources: []
+identity_created_at: {{INITIALIZED_AT}}
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[03-变更与证据/变更/README|IDX-CHANGES]]"
+  - "[[03-变更与证据/变更/README|IDX-变更与证据-变更]]"
 ---
 
-# CHG-20000101-001：单一变更意图
+# CHG-{{INITIALIZED_AT_COMPACT}}-单一变更意图：单一变更意图
 
 ## Why
 

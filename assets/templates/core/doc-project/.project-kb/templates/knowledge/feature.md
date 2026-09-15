@@ -1,5 +1,5 @@
 ---
-id: F-DOMAIN-001
+id: FEAT-{{INITIALIZED_AT_COMPACT}}-功能名称
 type: feature
 title: 功能名称
 status: candidate
@@ -17,11 +17,12 @@ rel_satisfies:
   - "[[../需求/REQ-DOMAIN-001-需求名称|REQ-DOMAIN-001]]"
 rel_primary_module: []
 rel_participating_modules: []
+identity_created_at: {{INITIALIZED_AT}}
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[01-功能基线/功能/README|IDX-FEATURES]]"
+  - "[[01-功能基线/功能/README|IDX-功能基线-功能]]"
 ---
-# F-DOMAIN-001：功能名称
+# FEAT-{{INITIALIZED_AT_COMPACT}}-功能名称：功能名称
 
 ## 目标
 

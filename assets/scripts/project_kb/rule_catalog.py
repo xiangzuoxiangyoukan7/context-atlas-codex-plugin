@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-# context-atlas-rules: [[rules/知识治理规则#RULE-GOV-001|RULE-GOV-001]] [[rules/知识治理规则#RULE-GOV-002|RULE-GOV-002]]
+# context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-每条正式规则只有一个中文权威来源|RULE-知识治理规则-每条正式规则只有一个中文权威来源]] [[rules/知识治理规则#RULE-知识治理规则-规则使用方主动引用并接受覆盖检查|RULE-知识治理规则-规则使用方主动引用并接受覆盖检查]]
 
 import json
 import re
@@ -17,6 +17,7 @@ EXPECTED_OPERATION_IDS = frozenset(
         "capture",
         "create",
         "update",
+        "delete",
         "archive",
         "impact-analysis",
         "migrate",
@@ -25,7 +26,7 @@ EXPECTED_OPERATION_IDS = frozenset(
     }
 )
 RULE_LINK_RE = re.compile(
-    r"\[\[(?P<path>rules/[^#\]|]+)(?:\.md)?#(?P<id>RULE-[A-Z0-9-]+)\|(?P=id)\]\]"
+    r"\[\[(?P<path>rules/[^#\]|]+)(?:\.md)?#(?P<id>RULE-[0-9A-Za-z\u4e00-\u9fff-]+)\|(?P=id)\]\]"
 )
 
 
@@ -38,6 +39,10 @@ class Rule:
     authority: str
     authority_path: Path
     enforced_by: frozenset[str]
+    description: str
+    use_when: tuple[str, ...]
+    diagnostic_codes: tuple[str, ...]
+    human_review_boundary: str
 
 
 @dataclass(frozen=True)
@@ -48,6 +53,10 @@ class Operation:
     name_zh: str
     rules: frozenset[str]
     path: Path
+    description: str
+    use_when: tuple[str, ...]
+    do_not_use_when: tuple[str, ...]
+    execution_mode: str
 
 
 @dataclass(frozen=True)
@@ -97,8 +106,8 @@ def load_rule_catalog(root: Path) -> dict[str, Rule]:
 
     root = root.resolve()
     payload = _read_json(root / "rules" / "catalog.json")
-    if not isinstance(payload, dict) or payload.get("format_version") != 1:
-        raise ValueError("rules/catalog.json format_version must be 1")
+    if not isinstance(payload, dict) or payload.get("catalog_version") != 2:
+        raise ValueError("rules/catalog.json catalog_version must be 2")
     entries = payload.get("rules")
     if not isinstance(entries, list):
         raise ValueError("rules/catalog.json rules must be a list")
@@ -111,10 +120,25 @@ def load_rule_catalog(root: Path) -> dict[str, Rule]:
         name_zh = entry.get("name_zh")
         authority = entry.get("authority")
         enforced_by = entry.get("enforced_by")
+        description = entry.get("description")
+        use_when = entry.get("use_when")
+        diagnostic_codes = entry.get("diagnostic_codes")
+        human_review_boundary = entry.get("human_review_boundary")
+        enforcement_layers = entry.get("enforcement_layers")
         if not isinstance(rule_id, str) or not isinstance(name_zh, str):
             raise ValueError("rule id and name_zh must be strings")
         if not isinstance(authority, str) or not isinstance(enforced_by, list):
             raise ValueError(f"invalid rule mapping: {rule_id}")
+        if not isinstance(description, str) or not description.strip():
+            raise ValueError(f"rule description must be non-empty: {rule_id}")
+        if not isinstance(use_when, list) or not use_when or not all(isinstance(item, str) and item.strip() for item in use_when):
+            raise ValueError(f"rule use_when must be a non-empty string list: {rule_id}")
+        if not isinstance(diagnostic_codes, list) or not all(isinstance(item, str) for item in diagnostic_codes):
+            raise ValueError(f"invalid rule diagnostic_codes: {rule_id}")
+        if enforcement_layers != enforced_by:
+            raise ValueError(f"rule enforcement_layers must match enforced_by: {rule_id}")
+        if not isinstance(human_review_boundary, str) or not human_review_boundary.strip():
+            raise ValueError(f"rule human_review_boundary must be non-empty: {rule_id}")
         linked_id, authority_path = _authority_parts(root, authority)
         if linked_id != rule_id:
             raise ValueError(f"authority id mismatch: {rule_id}")
@@ -126,6 +150,10 @@ def load_rule_catalog(root: Path) -> dict[str, Rule]:
             authority=authority,
             authority_path=authority_path,
             enforced_by=frozenset(str(item) for item in enforced_by),
+            description=description,
+            use_when=tuple(use_when),
+            diagnostic_codes=tuple(diagnostic_codes),
+            human_review_boundary=human_review_boundary,
         )
     return result
 
@@ -141,10 +169,31 @@ def load_operations(root: Path) -> dict[str, Operation]:
         operation_id = payload.get("id")
         name_zh = payload.get("name_zh")
         rules = payload.get("rules")
+        description = payload.get("description")
+        use_when = payload.get("use_when")
+        do_not_use_when = payload.get("do_not_use_when")
+        execution_mode = payload.get("execution_mode")
+        confirmation = payload.get("confirmation")
+        if payload.get("contract_version") != 2:
+            raise ValueError(f"operation contract_version must be 2: {path}")
         if not isinstance(operation_id, str) or not isinstance(name_zh, str):
             raise ValueError(f"invalid operation identity: {path}")
         if not isinstance(rules, list) or not all(isinstance(item, str) for item in rules):
             raise ValueError(f"invalid operation rules: {path}")
+        if not isinstance(description, str) or not description.strip():
+            raise ValueError(f"invalid operation description: {path}")
+        if not isinstance(use_when, list) or not use_when or not all(isinstance(item, str) and item.strip() for item in use_when):
+            raise ValueError(f"invalid operation use_when: {path}")
+        if not isinstance(do_not_use_when, list) or not do_not_use_when or not all(isinstance(item, str) and item.strip() for item in do_not_use_when):
+            raise ValueError(f"invalid operation do_not_use_when: {path}")
+        if execution_mode not in {"read_only", "proposal_gated"}:
+            raise ValueError(f"invalid operation execution_mode: {path}")
+        for field in ("preconditions", "inputs", "outputs", "failure_modes"):
+            value = payload.get(field)
+            if not isinstance(value, list) or not value or not all(isinstance(item, str) and item.strip() for item in value):
+                raise ValueError(f"invalid operation {field}: {path}")
+        if not isinstance(confirmation, dict) or confirmation.get("required") is not (execution_mode == "proposal_gated"):
+            raise ValueError(f"operation confirmation contradicts execution_mode: {path}")
         if operation_id in result:
             raise ValueError(f"duplicate operation id: {operation_id}")
         result[operation_id] = Operation(
@@ -152,6 +201,10 @@ def load_operations(root: Path) -> dict[str, Operation]:
             name_zh=name_zh,
             rules=frozenset(rules),
             path=path.resolve(),
+            description=description,
+            use_when=tuple(use_when),
+            do_not_use_when=tuple(do_not_use_when),
+            execution_mode=execution_mode,
         )
     return result
 

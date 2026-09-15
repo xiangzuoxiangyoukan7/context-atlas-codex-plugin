@@ -1,15 +1,28 @@
 ---
-id: IDX-ROOT
+id: IDX-知识库
 type: knowledge_index
 title: 知识库
 rel_classified_under: []
 ---
-<!-- context-atlas-rules: [[rules/知识治理规则#RULE-GOV-003|RULE-GOV-003]] [[rules/知识治理规则#RULE-REL-002|RULE-REL-002]] -->
+<!-- context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-当前变更是可选知识而不是任务执行门禁|RULE-知识治理规则-当前变更是可选知识而不是任务执行门禁]] [[rules/知识治理规则#RULE-知识治理规则-关系只保存统一的权威正向链接|RULE-知识治理规则-关系只保存统一的权威正向链接]] -->
 # {{PROJECT_NAME}} 项目知识库
 
-本目录是 `{{KNOWLEDGE_BASE_NAME}}`，由 AI Agent 与项目责任人协作维护。先读本页，再读 [AI 知识采集协议](./05-知识治理/AI知识采集协议.md)。机器入口为 `knowledge-base.yaml`。
+本目录是 `{{KNOWLEDGE_BASE_NAME}}`，由 AI Agent 与项目责任人协作维护。先读本页，再读 [AI 知识采集协议](./05-知识治理/GOV-知识治理-AI-知识采集协议.md)。机器入口为 `knowledge-base.yaml`。
 
-本知识库只保存经过治理的当前项目知识、可追溯证据和历史归档；不保存无长期价值的日志、秘密或未确认猜测。目录成员通过分类关系动态查询，不维护重复的人工清单。
+本知识库只保存经过治理的当前项目知识、可追溯证据和历史归档；不保存无长期价值的日志、秘密或未确认猜测。每个知识项和子分类通过 `rel_classified_under` 主动指向直接分类 README，查询器通过反向索引发现成员；README 中的 Markdown 链接只提供阅读入口，不是完整成员清单。
+
+## 按用户问题查询
+
+| 用户问题 | 首选知识 | 查询方式 |
+| --- | --- | --- |
+| 为什么做、范围和业务规则 | 需求 | `search --type requirement` |
+| 系统应如何表现 | 功能 | `search --type feature` |
+| 代码职责和实现位置 | 模块 | `search --type module` |
+| 输入、输出、消息和端点 | 接口 | `search --type interface` |
+| 表、字段、索引和数据来源 | 数据库 | `search --type database_table` 或 `data_source` |
+| 谁使用它、变化影响谁 | 已定位节点的入向关系 | `neighbors --direction incoming`，必要时 bounded `graph` |
+
+默认流程为 `search → children（按需）→ neighbors → bounded graph → 读取少量正文`。默认查询当前知识；只有用户明确询问历史时才使用 `--include-archive`。
 
 ## 权威入口
 
@@ -20,7 +33,7 @@ rel_classified_under: []
 - [变更与证据](./03-变更与证据/README.md)
 - 影响记录模板位于 `.project-kb/templates/knowledge/impact-record.md`，仅按需保存需审计的人工结论。
 - [知识治理](./05-知识治理/README.md)
-- [使用场景](./05-知识治理/使用场景.md)：初始化、需求、数据库、摄取、查询和维护入口
+- [使用场景](./05-知识治理/GOV-知识治理-使用场景.md)：初始化、需求、数据库、摄取、查询和维护入口
 - [历史归档](./90-历史归档/README.md)
 
 未知内容不得猜测为事实：登记为 `missing` 或 Proposal，附来源，等待责任人确认。自动检查只证明结构和引用有效，不代表内容已获批准。
@@ -52,11 +65,11 @@ rel_classified_under: []
 | `Clippings` | 等待显式摄取的外部原文件 | 不等于正式知识或批准正文 |
 | `.project-kb` | Schema、检查器和运行资产 | 不保存业务事实 |
 
-模块一项一文件；一个具体接口、事件或交换入口一个文件，文件名必须同时包含稳定 ID 和业务用途。功能自身的方案和局部约束写入功能文档，具体技术对象按稳定身份独立建模。数据库默认按数据源建立目录并一张表一个文件。业务验收写在需求中，功能验收场景内嵌功能，验收结果与证据独立记录。
+模块一项一文件；一个具体接口、事件或交换入口一个文件，文件名必须同时包含稳定 ID 和业务用途。功能自身的方案和局部约束写入功能文档，具体技术对象按稳定身份独立建模。数据库默认按数据源建立目录，`DS-*/README.md` 同时作为数据源实体和目录入口，目录内一张表一个文件。业务验收写在需求中，功能验收场景内嵌功能，验收结果与证据独立记录。
 
 ## 格式要求
 
-本知识库当前磁盘格式为 `format_version: 14`，并由 `knowledge-base.yaml` 声明。正式知识项采用 Markdown 正文和 YAML Front Matter，字段以 `.project-kb/schemas/` 中当前 Schema 为机器权威。需求的业务内容以正文为唯一权威，决策依据归入所属需求、功能、技术或治理文档。只有 `format_version` 参与兼容判断；`project_version`、`knowledge_revision` 和领域对象版本各自保持独立语义。
+本知识库当前磁盘格式为 `format_version: 0.20.0`，与 Context Atlas 发布版本一致，并由 `knowledge-base.yaml` 声明。正式知识项采用 Markdown 正文和 YAML Front Matter，字段以 `.project-kb/schemas/` 中当前 Schema 为机器权威。需求的业务内容以正文为唯一权威，决策依据归入所属需求、功能、技术或治理文档。`knowledge_revision` 由执行器在正式知识事务成功后递增；新知识库不再生成容易与知识修订混淆的全局 `project_version`。
 
 通用格式示例：
 
@@ -113,4 +126,4 @@ rel_satisfies:
 
 需要保存外部原文件时，将其放入 `Clippings/` 暂存箱并显式摄取；确认后合格文件移动到 `05-知识治理/来源资料/`，失败或阻塞文件保持不变。
 
-使用已安装的 `context-atlas-navigate` Skill 渐进浏览知识：先用 `children` 从本入口逐层发现目录和文件；定位到带稳定 `id` 的需求、功能、模块、接口或数据库表后，用 `neighbors` 查询一跳正向与反向邻居；只有多跳或全局分析才使用受节点上限约束的 `graph`。这些查询只返回摘要和路径，由 Agent 按当前任务选择是否读取正文；未安装 Skill 时可运行 `.project-kb/scripts/agent_kb_operation.py` 的同名操作。
+使用已安装的 `context-atlas-navigate` Skill 渐进浏览知识：用户未提供稳定 ID 或路径时先用 `search` 定位候选；浏览已知分类时使用 `children`；定位节点后用 `neighbors` 查询一跳关系；只有多跳或全局分析才使用受节点上限约束的 `graph`。这些查询只返回摘要和路径，由 Agent 按当前任务选择是否读取正文；未安装 Skill 时可运行 `.project-kb/scripts/agent_kb_operation.py` 的同名操作。

@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Sequence
 
-# context-atlas-rules: [[rules/知识治理规则#RULE-GOV-003|RULE-GOV-003]]
+# context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-当前变更是可选知识而不是任务执行门禁|RULE-知识治理规则-当前变更是可选知识而不是任务执行门禁]]
 
 
 TEMPLATE_MARKERS = frozenset(
@@ -13,6 +13,7 @@ TEMPLATE_MARKERS = frozenset(
         "{{KNOWLEDGE_BASE_NAME}}",
         "{{WORKSPACE_PROFILE}}",
         "{{INITIALIZED_AT}}",
+        "{{INITIALIZED_AT_COMPACT}}",
     }
 )
 
@@ -28,13 +29,13 @@ def required_template_paths() -> Sequence[Path]:
             ".project-kb/README.md",
             "Clippings/README.md",
             "00-项目总览/README.md",
-            "00-项目总览/项目概述.md",
-            "00-项目总览/术语表.md",
+            "00-项目总览/OVERVIEW-项目总览-项目概述.md",
+            "00-项目总览/OVERVIEW-项目总览-术语表.md",
             "01-功能基线/README.md",
             "01-功能基线/需求/README.md",
             "01-功能基线/功能/README.md",
             "02-技术基线/README.md",
-            "02-技术基线/系统架构.md",
+            "02-技术基线/ARCH-技术基线-系统架构.md",
             "02-技术基线/模块/README.md",
             "02-技术基线/接口/README.md",
             "02-技术基线/数据库/README.md",
@@ -47,8 +48,8 @@ def required_template_paths() -> Sequence[Path]:
             "03-变更与证据/待确认知识/README.md",
             "05-知识治理/README.md",
             "05-知识治理/来源资料/README.md",
-            "05-知识治理/AI知识采集协议.md",
-            "05-知识治理/使用场景.md",
+            "05-知识治理/GOV-知识治理-AI-知识采集协议.md",
+            "05-知识治理/GOV-知识治理-使用场景.md",
             "90-历史归档/README.md",
             ".project-kb/templates/knowledge/requirement.md",
             ".project-kb/templates/knowledge/feature.md",

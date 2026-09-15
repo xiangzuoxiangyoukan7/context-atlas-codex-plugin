@@ -1,1 +1,35 @@
-{"id":"release-archive","name_zh":"封存项目版本变更","rules":["RULE-AGENT-001","RULE-IMPACT-001"]}
+{
+  "contract_version": 2,
+  "id": "release-archive",
+  "name_zh": "封存项目版本变更",
+  "description": "封存一次有证据的项目版本变化",
+  "use_when": [
+    "发布事实已有来源且需要形成历史记录"
+  ],
+  "do_not_use_when": [
+    "仅因任务状态变化推断已经发布"
+  ],
+  "execution_mode": "proposal_gated",
+  "preconditions": [
+    "目标路径位于指定项目或知识库边界内",
+    "所需输入可被确定性解析"
+  ],
+  "inputs": [
+    "版本事实、变化、来源、验收证据"
+  ],
+  "outputs": [
+    "版本归档记录、验证报告"
+  ],
+  "confirmation": {
+    "required": true,
+    "rule": "正式写入仅接受与当前 proposal_revision 完全一致的 confirmed_revision"
+  },
+  "failure_modes": [
+    "输入或目标不合法时拒绝执行",
+    "验证失败时报告失败且不得声称成功"
+  ],
+  "rules": [
+    "RULE-知识治理规则-正式写入必须基于已确认提案",
+    "RULE-知识治理规则-业务影响由关系分析与验收证据共同判断"
+  ]
+}

@@ -8,7 +8,7 @@ from .discovery import discover_records
 from .links import LINK_PATTERN
 from .model import DocumentRecord, Issue
 
-# context-atlas-rules: [[rules/知识治理规则#RULE-ARCHIVE-001|RULE-ARCHIVE-001]]
+# context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-归档必须在替代和引用迁移后确认执行|RULE-知识治理规则-归档必须在替代和引用迁移后确认执行]]
 
 
 ARCHIVABLE_TYPES = frozenset(

@@ -52,6 +52,7 @@ $context-atlas-revise
 
 ```text
 $context-atlas-retire
+$context-atlas-delete
 ```
 
 升级已有知识库格式和结构：

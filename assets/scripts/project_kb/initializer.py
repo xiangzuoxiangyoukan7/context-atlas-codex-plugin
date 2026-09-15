@@ -10,6 +10,7 @@ from .obsidian import graph_text
 from .validator import ValidationConfig, validate
 from .temporary_workspace import operation_workspace
 from .agent_entry import apply_entry
+from .semantic_identity import normalize_semantic_name
 
 
 MARKER_PATTERN = re.compile(r"{{[A-Z][A-Z0-9_]*}}")
@@ -81,14 +82,15 @@ def _interface_business_name(item: dict[str, object]) -> str:
 def _render_module(root: Path, item: dict[str, object]) -> None:
     """把模块观察写成可独立引用的模块契约。"""
 
-    identifier = _cell(item["id"])
+    title = _cell(item["value"])
+    identifier = f"MOD-技术基线-模块-{normalize_semantic_name(title)}"
     source = item["source"]
     assert isinstance(source, dict)
     lines = [
-        "---", f"id: {identifier}", "type: module", f"title: {identifier}",
+        "---", f"id: {identifier}", "type: module", f"title: {title}",
         f"status: {_knowledge_status(item)}", f"paths: [{_cell(source['reference'])}]", "sources:",
         *_embedded_source_lines(item), "rel_classified_under:",
-        '  - "[[02-技术基线/模块/README|IDX-MODULES]]"',
+        '  - "[[02-技术基线/模块/README|IDX-技术基线-模块]]"',
         "rel_provides: []", "rel_calls: []", "rel_depends_on: []",
         f"last_updated: {str(source['observed_at'])[:10]}", "---", f"# {identifier}", "",
         "## 职责", "", _cell(item["value"]), "", "## 明确不负责", "", "待确认。", "",
@@ -100,33 +102,37 @@ def _render_module(root: Path, item: dict[str, object]) -> None:
 def _render_interface(root: Path, item: dict[str, object]) -> None:
     """把接口观察写成统一接口契约并按编号确定通信类型。"""
 
-    identifier = _cell(item["id"])
     business_name = _interface_business_name(item)
+    identifier = f"INTERFACE-技术基线-接口-{normalize_semantic_name(business_name)}"
     source = item["source"]
     assert isinstance(source, dict)
-    prefix = identifier.split("-", 1)[0]
+    prefix = _cell(item["id"]).split("-", 1)[0]
     kinds = {"API": "http", "RPC": "rpc", "EVENT": "event", "WEBHOOK": "webhook", "FILE": "file"}
     lines = [
         "---", f"id: {identifier}", "type: interface", f"title: {business_name}",
         f"status: {_knowledge_status(item)}", f"interface_kind: {kinds.get(prefix, 'function')}",
         "visibility: internal", "content_revision: 1", "api_version: v1", "sources:", *_embedded_source_lines(item),
-        "rel_classified_under:", '  - "[[02-技术基线/接口/README|IDX-INTERFACES]]"',
+        "rel_classified_under:", '  - "[[02-技术基线/接口/README|IDX-技术基线-接口]]"',
         "rel_reads: []", "rel_writes: []", "rel_depends_on: []", "rel_verified_by: []",
         f"last_updated: {str(source['observed_at'])[:10]}", "---", f"# {identifier}：{business_name}", "",
         "## 入口、输入与输出", "", _cell(item["value"]), "", "## 错误语义", "", "待确认。", "",
         "## 版本、兼容与敏感字段", "", "待确认。", "",
     ]
-    (root / "02-技术基线" / "接口" / f"{identifier}-{business_name}.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
+    (root / "02-技术基线" / "接口" / f"{identifier}.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 
 def _render_observed_item(root: Path, item: dict[str, object], directory: str, index_id: str) -> None:
     """把初始化观察写成单一事实文件，避免覆盖分类 README。"""
 
-    identifier = _cell(item["id"])
     source = item["source"]
     assert isinstance(source, dict)
     title = _cell(item["value"])
     filename = _interface_business_name(item)
+    scope = "-".join(
+        normalize_semantic_name(re.sub(r"^\d+-", "", part))
+        for part in Path(directory).parts
+    )
+    identifier = f"ITEM-{scope}-{normalize_semantic_name(filename)}"
     status = _knowledge_status(item)
     approval = [] if status != "approved" else [
         "approved_by: project_owner",
@@ -140,7 +146,7 @@ def _render_observed_item(root: Path, item: dict[str, object], directory: str, i
         f"last_updated: {str(source['observed_at'])[:10]}", "---", f"# {identifier}：{title}", "",
         "初始化只记录可定位观察；产品含义和设计理由仍需责任人确认。", "",
     ]
-    target = root / directory / f"{identifier}-{filename}.md"
+    target = root / directory / f"{identifier}.md"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
@@ -152,8 +158,8 @@ def _render_confirmed_content(root: Path, proposal: dict[str, object]) -> None:
     assert isinstance(facts, dict)
 
     overview = [
-        "---", "id: OVERVIEW-PROJECT", "type: overview_document", "title: 项目概述",
-        "rel_classified_under:", '  - "[[00-项目总览/README|IDX-OVERVIEW]]"', "---", "",
+        "---", "id: OVERVIEW-项目总览-项目概述", "type: overview_document", "title: 项目概述",
+        "rel_classified_under:", '  - "[[00-项目总览/README|IDX-项目总览]]"', "---", "",
         f"# {_cell(proposal['project']['name'])} 项目概述", "", "## 项目定位", "",
     ]
     goal_items = facts["goals"]
@@ -180,11 +186,11 @@ def _render_confirmed_content(root: Path, proposal: dict[str, object]) -> None:
     if not source_items:
         overview.append("待确认。")
     overview.append("")
-    (root / "00-项目总览" / "项目概述.md").write_text("\n".join(overview), encoding="utf-8", newline="\n")
+    (root / "00-项目总览" / "OVERVIEW-项目总览-项目概述.md").write_text("\n".join(overview), encoding="utf-8", newline="\n")
 
     technologies = [
-        "---", "id: ARCH-001", "type: architecture", "title: 系统架构",
-        "rel_classified_under:", '  - "[[02-技术基线/README|IDX-TECHNICAL-BASELINE]]"', "---", "",
+        "---", "id: ARCH-技术基线-系统架构", "type: architecture", "title: 系统架构",
+        "rel_classified_under:", '  - "[[02-技术基线/README|IDX-技术基线]]"', "---", "",
         "# 系统架构", "", "## 技术基线", "", "| 技术 | 版本 | 使用目录或模块 | 项目用途 | 构建、测试与运行命令 | 配置位置 | 来源 | 状态 |", "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     stacks = facts["technology_stacks"]
@@ -195,7 +201,7 @@ def _render_confirmed_content(root: Path, proposal: dict[str, object]) -> None:
     )
     technologies.append("")
     technologies.extend(["", "## 上下文与组件", "", "待确认。", ""])
-    (root / "02-技术基线" / "系统架构.md").write_text("\n".join(technologies), encoding="utf-8", newline="\n")
+    (root / "02-技术基线" / "ARCH-技术基线-系统架构.md").write_text("\n".join(technologies), encoding="utf-8", newline="\n")
 
     def render_table(relative: str, title: str, group: str, headers: tuple[str, ...]) -> None:
         """将一类仓库观察写入其唯一固定文档。"""
@@ -210,22 +216,22 @@ def _render_confirmed_content(root: Path, proposal: dict[str, object]) -> None:
         lines.extend(["", "仓库观察只证明可定位的实现事实；产品含义、设计原因和批准状态仍需责任人确认。", ""])
         (root / relative).write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
-    render_table("00-项目总览/术语表.md", "术语表", "terms", ("术语编号", "名称与含义", "来源", "状态"))
-    glossary = root / "00-项目总览" / "术语表.md"
+    render_table("00-项目总览/OVERVIEW-项目总览-术语表.md", "术语表", "terms", ("术语编号", "名称与含义", "来源", "状态"))
+    glossary = root / "00-项目总览" / "OVERVIEW-项目总览-术语表.md"
     glossary.write_text(
-        "---\nid: GLOSSARY\ntype: overview_document\ntitle: 术语表\nrel_classified_under:\n  - \"[[00-项目总览/README|IDX-OVERVIEW]]\"\n---\n" + glossary.read_text(encoding="utf-8"),
+        "---\nid: OVERVIEW-项目总览-术语表\ntype: overview_document\ntitle: 术语表\nrel_classified_under:\n  - \"[[00-项目总览/README|IDX-项目总览]]\"\n---\n" + glossary.read_text(encoding="utf-8"),
         encoding="utf-8", newline="\n",
     )
     for item in [*facts["capabilities"], *facts["features"]]:
-        _render_observed_item(root, item, "01-功能基线/功能", "IDX-FEATURES")
+        _render_observed_item(root, item, "01-功能基线/功能", "IDX-功能基线-功能")
     for module in facts["modules"]:
         _render_module(root, module)
     for interface in facts["interfaces"]:
         _render_interface(root, interface)
     for item in facts["databases"]:
-        _render_observed_item(root, item, "02-技术基线/数据库", "IDX-DATABASE")
+        _render_observed_item(root, item, "02-技术基线/数据库", "IDX-技术基线-数据库")
     for item in facts["external_dependencies"]:
-        _render_observed_item(root, item, "02-技术基线/外部依赖", "IDX-DEPENDENCIES")
+        _render_observed_item(root, item, "02-技术基线/外部依赖", "IDX-技术基线-外部依赖")
     # 格式 13 不建立独立 ADR；初始化发现的决策候选必须归入所属知识，
     # 无法判断归属的内容由后续维护流程放入待确认知识。
 
@@ -238,7 +244,7 @@ def _render_confirmed_content(root: Path, proposal: dict[str, object]) -> None:
             for item in test_items
         )
         technologies.append("")
-        (root / "02-技术基线" / "系统架构.md").write_text("\n".join(technologies), encoding="utf-8", newline="\n")
+        (root / "02-技术基线" / "ARCH-技术基线-系统架构.md").write_text("\n".join(technologies), encoding="utf-8", newline="\n")
 
 
 def _safe_project_name(name: str) -> str:
@@ -312,6 +318,7 @@ def initialize_from_assets(
                     "{{KNOWLEDGE_BASE_NAME}}": target.name,
                     "{{WORKSPACE_PROFILE}}": workspace_profile,
                     "{{INITIALIZED_AT}}": initialized_at or date.today().isoformat(),
+                    "{{INITIALIZED_AT_COMPACT}}": (initialized_at or date.today().isoformat()).replace("-", ""),
                 },
             )
             if proposal is not None:

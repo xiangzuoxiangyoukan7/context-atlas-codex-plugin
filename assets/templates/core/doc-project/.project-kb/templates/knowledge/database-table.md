@@ -1,5 +1,5 @@
 ---
-id: TABLE-DOMAIN-NAME
+id: TABLE-{{INITIALIZED_AT_COMPACT}}-table-name
 type: database_table
 title: 数据表名称
 status: proposed
@@ -11,11 +11,10 @@ sources: []
 ddl_sources: [missing]
 rel_belongs_to:
   - "[[02-技术基线/数据库/DS-DOMAIN-NAME/README|DS-DOMAIN-NAME]]"
+identity_created_at: {{INITIALIZED_AT}}
 last_updated: {{INITIALIZED_AT}}
-rel_classified_under:
-  - "[[02-技术基线/数据库/README|IDX-DATABASE]]"
 ---
-# TABLE-DOMAIN-NAME：数据表名称
+# TABLE-{{INITIALIZED_AT_COMPACT}}-table-name：数据表名称
 
 ## 字段定义
 

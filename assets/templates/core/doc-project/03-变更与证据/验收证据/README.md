@@ -1,9 +1,9 @@
 ---
-id: IDX-EVIDENCE
+id: IDX-变更与证据-验收证据
 type: knowledge_index
 title: 验收证据
 rel_classified_under:
-  - "[[03-变更与证据/README|IDX-CHANGES-EVIDENCE]]"
+  - "[[03-变更与证据/README|IDX-变更与证据]]"
 ---
 # 验收证据
 

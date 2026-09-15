@@ -1,5 +1,5 @@
 ---
-id: MOD-DOMAIN-NAME
+id: MOD-{{INITIALIZED_AT_COMPACT}}-模块名称
 type: module
 title: 模块名称
 status: proposed
@@ -11,11 +11,12 @@ sources: []
 rel_provides: []
 rel_calls: []
 rel_depends_on: []
+identity_created_at: {{INITIALIZED_AT}}
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[02-技术基线/模块/README|IDX-MODULES]]"
+  - "[[02-技术基线/模块/README|IDX-技术基线-模块]]"
 ---
-# MOD-DOMAIN-NAME：模块名称
+# MOD-{{INITIALIZED_AT_COMPACT}}-模块名称：模块名称
 
 ## 职责
 

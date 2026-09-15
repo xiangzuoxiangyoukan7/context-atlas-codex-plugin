@@ -1,6 +1,7 @@
 ---
-id: PROP-20000101-00000000
+id: PROP-{{INITIALIZED_AT_COMPACT}}-待确认知识候选
 type: knowledge_proposal
+identity_created_at: {{INITIALIZED_AT}}
 title: 待确认知识候选
 status: proposed
 checkpoint: user_decision
@@ -15,9 +16,9 @@ git_commit: pending
 project_version: 0.1.0
 captured_at: 2000-01-01T00:00:00+00:00
 rel_classified_under:
-  - "[[03-变更与证据/待确认知识/README|IDX-PROPOSALS]]"
+  - "[[03-变更与证据/待确认知识/README|IDX-变更与证据-待确认知识]]"
 ---
-# PROP-20000101-00000000 待确认知识候选
+# PROP-{{INITIALIZED_AT_COMPACT}}-待确认知识候选 待确认知识候选
 
 > 本文件仅在用户明确要求记录候选时创建；它不是正式知识，也不构成任务执行许可。
 

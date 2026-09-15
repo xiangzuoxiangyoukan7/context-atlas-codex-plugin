@@ -1,0 +1,47 @@
+# Agent 升级决策
+
+当确定性 `upgrade-propose` 的隔离预演仍有问题时，Agent 读取对应旧文档、新 Schema、目录契约和关系目标，生成临时 JSON 决策文件，再以 `--agent-plan` 重新生成 Proposal。决策文件不是正式知识，不得放入目标知识库。
+
+```json
+{
+  "decisions": [
+    {
+      "action": "rewrite",
+      "path": "02-技术基线/数据库/DS-NKGIS/README.md",
+      "content": "完整的新 Markdown 内容",
+      "reason": "合并旧数据源实体与目录入口并保留双方内容",
+      "resolves": ["upgrade-unresolved-0123456789ab"],
+      "source_paths": [
+        "02-技术基线/数据库/DS-NKGIS/DS-NKGIS.md",
+        "02-技术基线/数据库/DS-NKGIS/README.md"
+      ]
+    },
+    {
+      "action": "remove",
+      "path": "02-技术基线/数据库/DS-NKGIS/DS-NKGIS.md",
+      "reason": "全部内容已可追溯地合并到数据源 README",
+      "resolves": [],
+      "source_paths": [
+        "02-技术基线/数据库/DS-NKGIS/DS-NKGIS.md",
+        "02-技术基线/数据库/DS-NKGIS/README.md"
+      ]
+    }
+  ]
+}
+```
+
+支持 `rewrite`、`create`、`move`、`remove`。`rewrite` 和 `create` 必须提供完整 `content`；`move` 必须提供 `target`。每项必须给出非空 `reason`、实际参与判断的 `source_paths` 和 `resolves`；没有直接消解诊断项时使用空数组。`resolves` 只能引用当前 Proposal 输出的稳定 `unresolved[].issue_id`，且诊断项对应文件必须出现在该决策的 `source_paths` 中。执行器只有在动作、路径、来源及摘要都通过校验后才消解这些诊断项，并将决策、内容、目标、诊断项编号和来源摘要共同纳入 `proposal_revision`。不得根据路径或错误文案隐式猜测某个诊断项已经解决。
+
+Agent 不得通过决策文件修改 `.project-kb/`、`.obsidian/` 或 `knowledge-base.yaml`；这些资产由确定性执行器管理。不得根据文件名补写业务事实，也不得改变批准状态或来源事实。当前输出移除旧根级 `project_version`；若该值确有业务追溯价值，只能凭来源转换到对应变更、技术对象或验收证据。能够证明等价时才合并、改写或删除；无法确定归属的真实内容转换为当前 `knowledge_item` 并标记待确认，不以旧类型继续保留。
+
+确定性执行器必须先把移动、删除、重写和创建组合为同一个最终状态投影：移动文件的重写内容应用到目标路径，已移动或删除的源路径不得被后续重写重新创建，模板元数据和目录契约按最终路径选择。Agent 只处理最终状态预检后仍需理解正文语义的问题，不得用 Agent 决策补偿执行器的操作顺序缺陷。
+
+数据库结构归一化时，旧 `database_unit`、`database_namespace` 不是当前目标实体。Agent 必须读取旧文件和所在 `DS-*/README.md`，把可证明归属的数据库名、命名空间、正文事实和来源等价合并进数据源 README，再删除已完整吸收的旧文件；不能证明归属时转换为当前 `knowledge_item` 并标记待确认。具体表删除指向 `IDX-技术基线-数据库` 的 `rel_classified_under`，并保留或修正指向所在数据源 README 的 `rel_belongs_to`。不得用表到数据源的分类边替代归属边。
+
+每次生成决策后运行：
+
+```text
+upgrade-propose <知识库> --compatibility <当前插件兼容清单> --agent-plan <临时决策文件>
+```
+
+只有 `preflight_status: passed`、`preflight_validation_issues` 为空、`preflight_health_findings` 为空且 `unresolved` 为空时，才能向用户展示最终 Proposal 并请求确认。`upgrade-apply` 必须使用同一 `--agent-plan`、`proposal_revision` 和 `confirmed_revision`；执行器会重新读取全部来源并拒绝陈旧确认。

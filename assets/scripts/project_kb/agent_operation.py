@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-# context-atlas-rules: [[rules/知识治理规则#RULE-AGENT-001|RULE-AGENT-001]]
+# context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-正式写入必须基于已确认提案|RULE-知识治理规则-正式写入必须基于已确认提案]]
 
 from dataclasses import dataclass
 import json

@@ -1,9 +1,9 @@
 ---
-id: GOV-CAPTURE-PROTOCOL
+id: GOV-知识治理-AI-知识采集协议
 type: governance_document
 title: AI 知识采集协议
 rel_classified_under:
-  - "[[05-知识治理/README|IDX-GOVERNANCE]]"
+  - "[[05-知识治理/README|IDX-知识治理]]"
 ---
 # AI 知识采集协议
 

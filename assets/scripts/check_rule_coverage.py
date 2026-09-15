@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-# context-atlas-rules: [[rules/知识治理规则#RULE-GOV-002|RULE-GOV-002]]
+# context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-规则使用方主动引用并接受覆盖检查|RULE-知识治理规则-规则使用方主动引用并接受覆盖检查]]
 
 import argparse
 from pathlib import Path

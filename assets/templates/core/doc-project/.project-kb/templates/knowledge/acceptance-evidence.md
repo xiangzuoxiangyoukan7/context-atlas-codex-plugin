@@ -1,5 +1,5 @@
 ---
-id: EVID-DOMAIN-001
+id: EVID-{{INITIALIZED_AT_COMPACT}}-验收证据标题
 type: knowledge_item
 title: 验收证据标题
 status: proposed
@@ -8,9 +8,10 @@ sources:
     reference: 待填写
     observed_at: {{INITIALIZED_AT}}T00:00:00Z
     confirmation_status: observed
+identity_created_at: {{INITIALIZED_AT}}
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[03-变更与证据/验收证据/README|IDX-EVIDENCE]]"
+  - "[[03-变更与证据/验收证据/README|IDX-变更与证据-验收证据]]"
 ---
 # 验收证据：编号与标题
 

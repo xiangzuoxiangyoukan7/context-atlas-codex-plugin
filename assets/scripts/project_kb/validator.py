@@ -18,6 +18,23 @@ from .traceability import validate_traceability
 from .structure import validate_structure
 from .archive_validation import discover_archive, validate_current_archive_links
 from .specification import validate_specifications
+from .readme_contract import validate_readme_contracts
+from .compatibility import format_generation, parse_format_version
+
+
+def _executes_current_json_schema(root: Path) -> bool:
+    """仅对 0.19.0 及后续新格式执行完整标准 Schema。"""
+
+    manifest = root / "knowledge-base.yaml"
+    if not manifest.is_file():
+        return False
+    for line in manifest.read_text(encoding="utf-8").splitlines():
+        if line.startswith("format_version:"):
+            try:
+                return format_generation(parse_format_version(line.split(":", 1)[1].strip())) >= 16
+            except ValueError:
+                return False
+    return False
 
 
 @dataclass(frozen=True)
@@ -41,11 +58,20 @@ def validate(root: Path, config: ValidationConfig) -> list[Issue]:
 
     records, issues = discover_records(resolved_root, config.excluded_directories)
     issues.extend(validate_structure(resolved_root, records))
+    issues.extend(validate_readme_contracts(resolved_root, records))
     catalog = SchemaCatalog.load(config.schema_root)
+    execute_json_schema = _executes_current_json_schema(resolved_root)
     for record in records:
         kind = record.metadata.get("type")
         if isinstance(kind, str) and kind in catalog.schemas:
-            issues.extend(catalog.validate(kind, record.metadata, record.path))
+            issues.extend(
+                catalog.validate(
+                    kind,
+                    record.metadata,
+                    record.path,
+                    execute_json_schema=execute_json_schema,
+                )
+            )
     relation_catalog_path = (
         config.relation_catalog_path
         if config.relation_catalog_path is not None

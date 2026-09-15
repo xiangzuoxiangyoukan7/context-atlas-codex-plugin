@@ -23,6 +23,14 @@ def load_asset_manifest(manifest_path: Path) -> tuple[str, ...]:
     """读取有序、唯一的发布资产清单。"""
 
     payload = json.loads(manifest_path.resolve().read_text(encoding="utf-8"))
+    if not isinstance(payload, dict) or payload.get("version") != 1:
+        raise ValueError("资产清单 version 必须为 1")
+    for field in (
+        "title", "description", "inclusion_rule", "exclusion_rule",
+        "ordering_rule", "missing_file_policy",
+    ):
+        if not isinstance(payload.get(field), str) or not payload[field].strip():
+            raise ValueError(f"资产清单 {field} 必须是非空字符串")
     files = payload.get("files") if isinstance(payload, dict) else None
     if not isinstance(files, list) or not all(isinstance(item, str) for item in files):
         raise ValueError("资产清单 files 必须是字符串数组")

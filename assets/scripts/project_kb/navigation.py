@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Iterable
 
 from .discovery import discover_records
@@ -102,6 +103,33 @@ class GraphReport:
     edges: tuple[GraphEdge, ...]
 
 
+@dataclass(frozen=True)
+class SearchResult:
+    """表示一个带可解释匹配信息的知识检索结果。"""
+
+    id: str
+    type: str
+    title: str
+    status: str | None
+    path: str
+    summary: str | None
+    score: int
+    matched_fields: tuple[str, ...]
+    matched_terms: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class SearchReport:
+    """表示自然语言或稳定标识的有界只读检索结果。"""
+
+    operation: str
+    knowledge_base: str
+    query: str
+    limit: int
+    truncated: bool
+    results: tuple[SearchResult, ...]
+
+
 def _issue_message(issues: Iterable[object]) -> str:
     """把发现或关系问题整理为稳定的失败消息。"""
 
@@ -152,7 +180,33 @@ def _discover_graph_records(root: Path) -> tuple[list[DocumentRecord], list[obje
 
 
 def _summary(body: str) -> str | None:
-    """提取正文中第一个非标题、非列表的短段落作为导航说明。"""
+    """按稳定章节优先级提取适合导航的正文摘要。"""
+
+    cleaned = re.sub(r"<!--.*?-->", "", body, flags=re.DOTALL)
+    sections: dict[str, list[str]] = {}
+    current = ""
+    for raw_line in cleaned.splitlines():
+        heading = re.match(r"^#{2,6}\s+(.+?)\s*$", raw_line.strip())
+        if heading:
+            current = heading.group(1)
+            sections.setdefault(current, [])
+        elif current:
+            sections[current].append(raw_line)
+    candidates = [
+        "\n".join(sections[name])
+        for name in ("摘要", "目标", "问题与价值", "职责", "规范性行为")
+        if name in sections
+    ]
+    candidates.append(cleaned)
+    for candidate in candidates:
+        summary = _first_meaningful_paragraph(candidate)
+        if summary:
+            return summary
+    return None
+
+
+def _first_meaningful_paragraph(body: str) -> str | None:
+    """提取首个有信息量的普通段落并跳过导航噪声。"""
 
     paragraph: list[str] = []
     for raw_line in body.splitlines():
@@ -161,12 +215,113 @@ def _summary(body: str) -> str | None:
             if paragraph:
                 break
             continue
-        if line.startswith(("#", "- ", "* ", ">", "```", "|")):
+        if line.startswith(("#", "- ", "* ", ">", "```", "|", "<!--")):
             if paragraph:
                 break
             continue
         paragraph.append(line)
-    return " ".join(paragraph) if paragraph else None
+    result = " ".join(paragraph) if paragraph else None
+    if result in {"无未确认假设。", "当前没有未确认假设。", "无待澄清问题。"}:
+        return None
+    return result
+
+
+def _normalized(value: str) -> str:
+    """归一化大小写与常见分隔符，保留中文和技术标识。"""
+
+    return re.sub(r"[\s_./:\\-]+", " ", value.casefold()).strip()
+
+
+def _query_terms(query: str) -> tuple[str, ...]:
+    """生成稳定、去重的查询词，并保留完整查询用于中文子串匹配。"""
+
+    normalized = _normalized(query)
+    terms = [normalized] if normalized else []
+    terms.extend(part for part in normalized.split() if part)
+    return tuple(dict.fromkeys(terms))
+
+
+def query_search(
+    knowledge_base_root: Path,
+    *,
+    query: str,
+    node_types: tuple[str, ...] = (),
+    statuses: tuple[str, ...] = (),
+    path: str | None = None,
+    limit: int = 10,
+    include_archive: bool = False,
+) -> SearchReport:
+    """按稳定标识、标题、路径、摘要、标题和正文检索候选知识。"""
+
+    root = knowledge_base_root.resolve()
+    if not root.is_dir():
+        raise ValueError("knowledge-base root must be an existing directory")
+    if not query.strip():
+        raise ValueError("search query must not be empty")
+    if limit < 1:
+        raise ValueError("limit must be greater than zero")
+    relative_prefix = None
+    if path is not None:
+        directory = _tree_path(root, path)
+        relative_prefix = directory.relative_to(root)
+    excluded = EXCLUDED_DIRECTORIES if include_archive else GRAPH_EXCLUDED_DIRECTORIES
+    records, issues = discover_records(root, excluded)
+    if issues:
+        raise ValueError(f"knowledge discovery failed: {_issue_message(issues)}")
+    terms = _query_terms(query)
+    matches: list[SearchResult] = []
+    for record in records:
+        relative = record.path.resolve().relative_to(root)
+        if relative_prefix is not None and not relative.is_relative_to(relative_prefix):
+            continue
+        metadata = record.metadata
+        identifier = metadata.get("id")
+        item_type = metadata.get("type")
+        title = metadata.get("title")
+        status = metadata.get("status")
+        if not isinstance(identifier, str) or not isinstance(item_type, str):
+            continue
+        if node_types and item_type not in node_types:
+            continue
+        if statuses and status not in statuses:
+            continue
+        title_text = title if isinstance(title, str) and title else record.path.stem
+        summary = _summary(record.body)
+        headings = " ".join(
+            match.group(1) for match in re.finditer(r"(?m)^#{1,6}\s+(.+?)\s*$", record.body)
+        )
+        fields = {
+            "id": identifier,
+            "title": title_text,
+            "path": relative.as_posix(),
+            "summary": summary or "",
+            "headings": headings,
+            "body": record.body,
+        }
+        normalized_fields = {name: _normalized(value) for name, value in fields.items()}
+        matched_fields: list[str] = []
+        matched_terms: list[str] = []
+        score = 0
+        weights = {"id": 100, "path": 85, "title": 80, "summary": 50, "headings": 40, "body": 20}
+        complete = terms[0]
+        for name, value in normalized_fields.items():
+            field_terms = [term for term in terms if term and term in value]
+            if not field_terms:
+                continue
+            matched_fields.append(name)
+            matched_terms.extend(field_terms)
+            score += weights[name] + (20 if value == complete else 0) + 5 * (len(field_terms) - 1)
+        if score:
+            matches.append(
+                SearchResult(
+                    identifier, item_type, title_text,
+                    status if isinstance(status, str) else None,
+                    relative.as_posix(), summary, score,
+                    tuple(matched_fields), tuple(dict.fromkeys(matched_terms)),
+                )
+            )
+    ordered = sorted(matches, key=lambda item: (-item.score, item.id, item.path))
+    return SearchReport("search", root.name, query, limit, len(ordered) > limit, tuple(ordered[:limit]))
 
 
 def _visible_child(path: Path) -> bool:
@@ -215,9 +370,9 @@ def _tree_node(root: Path, path: Path) -> TreeNode:
             path="." if path == root else path.relative_to(root).as_posix(),
             title=title,
             description=None if record is None else _summary(record.body),
-            id=None,
-            type=None,
-            status=None,
+            id=metadata.get("id") if isinstance(metadata.get("id"), str) else None,
+            type=metadata.get("type") if isinstance(metadata.get("type"), str) else None,
+            status=metadata.get("status") if isinstance(metadata.get("status"), str) else None,
             child_count=len(children),
         )
     record = parse_document(path)

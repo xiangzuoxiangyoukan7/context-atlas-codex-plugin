@@ -1,14 +1,522 @@
 {
-  "required": ["id", "type", "title", "status", "product", "product_version", "owner", "config_reference", "environments", "sources", "last_updated"],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/data-source.schema.json",
+  "title": "数据源知识",
+  "description": "数据库连接位置及其产品、逻辑命名空间和环境边界的安全知识。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "data_source",
+    "purpose": "保存数据源定位和治理信息，不保存口令、Token 或真实连接密钥。",
+    "use_when": [
+      "多张表共享同一数据库连接与治理边界",
+      "需要区分产品、版本、数据库和命名空间",
+      "环境位置需要以配置引用而非秘密值表达"
+    ],
+    "do_not_use_when": [
+      "只描述单张表结构",
+      "只描述业务数据集合",
+      "需要保存真实密码或连接串"
+    ],
+    "canonical_location": "02-技术基线/数据库/DS-<领域>-<名称>/README.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 96,
+      "rename_policy": "语义未发生身份级变化时保持稳定 ID；身份级变化建立后继项并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": [
+        "用途与边界",
+        "连接定位方式",
+        "环境差异",
+        "安全与治理"
+      ],
+      "required_sections": [
+        "用途与边界",
+        "连接定位方式"
+      ],
+      "forbidden_content": [
+        "密码",
+        "Token",
+        "私钥",
+        "未脱敏连接串"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "missing",
+        "proposed"
+      ],
+      "terminal_states": [
+        "archived"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "approved",
+          "when": "产品、位置和治理信息得到确认"
+        },
+        {
+          "from": "approved",
+          "to": "stale",
+          "when": "配置或产品版本可能变化"
+        },
+        {
+          "from": "approved",
+          "to": "superseded",
+          "when": "后继数据源承接当前表和调用方"
+        },
+        {
+          "from": "superseded",
+          "to": "archived",
+          "when": "引用迁移完成并确认归档"
+        }
+      ],
+      "invalid_inferences": [
+        "config_reference 存在不证明连接可用",
+        "approved 不证明凭据有效",
+        "other 不表示产品可以省略"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-数据源-必须声明运行环境",
+        "enforcement": "deterministic",
+        "description": "必须登记至少一个环境。",
+        "remediation": "在 environments 中登记受治理环境名。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      },
+      {
+        "id": "RULE-SCHEMA-数据源-只能引用外部密钥位置",
+        "enforcement": "human_review",
+        "description": "只能引用外部配置位置，不得保存真实连接秘密。",
+        "remediation": "删除秘密并改用安全配置键或文档引用。"
+      },
+      {
+        "id": "RULE-SCHEMA-数据源-产品类型必须受控",
+        "enforcement": "json_schema",
+        "description": "product 必须使用受控产品枚举。",
+        "remediation": "选择匹配产品；未登记产品使用 other 并在正文说明。"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "unknown_value_policy": "不得猜测；使用 missing 或保留待确认问题。"
+    },
+    "invalid_examples": [
+      {
+        "case": "没有环境",
+        "value": {
+          "id": "DS-知识库-核心数据",
+          "environments": []
+        },
+        "expected_rule": "RULE-SCHEMA-数据源-必须声明运行环境",
+        "reason": "无法判断配置适用范围。"
+      },
+      {
+        "case": "未登记产品",
+        "value": {
+          "product": "sqlite"
+        },
+        "expected_rule": "RULE-SCHEMA-数据源-产品类型必须受控",
+        "reason": "应使用 other 并说明实际产品。"
+      }
+    ]
+  },
+  "properties": {
+    "id": {
+      "title": "数据源稳定编号",
+      "description": "以 DS- 开头的语义身份；同一连接与治理边界只建立一个数据源。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "DS-ATLAS-METADATA"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识数据源知识。",
+      "const": "data_source",
+      "examples": [
+        "data_source"
+      ]
+    },
+    "title": {
+      "title": "数据源名称",
+      "description": "表达系统和用途，不包含主机、账号或秘密。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "Context Atlas 元数据源"
+      ]
+    },
+    "status": {
+      "title": "知识状态",
+      "description": "表示内容的确认与当前权威状态，不表示系统在线或数据正确。",
+      "oneOf": [
+        {
+          "const": "missing",
+          "title": "缺失",
+          "description": "已知对象存在但知识不足",
+          "examples": [
+            "missing"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "迁移时无法安全恢复内容"
+            ]
+          }
+        },
+        {
+          "const": "proposed",
+          "title": "待确认",
+          "description": "有来源的候选尚待确认",
+          "examples": [
+            "proposed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "新建或实质修订"
+            ]
+          }
+        },
+        {
+          "const": "approved",
+          "title": "已批准",
+          "description": "当前内容已被精确确认",
+          "examples": [
+            "approved"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "责任人确认当前 Proposal"
+            ]
+          }
+        },
+        {
+          "const": "conflicted",
+          "title": "存在冲突",
+          "description": "来源给出不能并存的值",
+          "examples": [
+            "conflicted"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "至少两个来源竞争"
+            ]
+          }
+        },
+        {
+          "const": "stale",
+          "title": "可能过时",
+          "description": "来源可能不再描述当前对象",
+          "examples": [
+            "stale"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实现或外部系统变化"
+            ]
+          }
+        },
+        {
+          "const": "superseded",
+          "title": "已被替代",
+          "description": "后继项已经承接当前权威",
+          "examples": [
+            "superseded"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "后继关系和引用已迁移"
+            ]
+          }
+        },
+        {
+          "const": "archived",
+          "title": "已归档",
+          "description": "仅保留历史追溯",
+          "examples": [
+            "archived"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "归档 Proposal 已确认"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "missing"
+      ]
+    },
+    "product": {
+      "title": "数据库产品",
+      "description": "决定方言、版本和运行约束的实际数据库产品。",
+      "oneOf": [
+        {
+          "const": "oracle",
+          "title": "Oracle",
+          "description": "Oracle Database 数据源",
+          "examples": [
+            "oracle"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际产品为 Oracle Database"
+            ]
+          }
+        },
+        {
+          "const": "postgresql",
+          "title": "PostgreSQL",
+          "description": "PostgreSQL 数据源",
+          "examples": [
+            "postgresql"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际产品为 PostgreSQL"
+            ]
+          }
+        },
+        {
+          "const": "kingbasees",
+          "title": "KingbaseES",
+          "description": "人大金仓 KingbaseES 数据源",
+          "examples": [
+            "kingbasees"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际产品为 KingbaseES"
+            ]
+          }
+        },
+        {
+          "const": "mysql",
+          "title": "MySQL",
+          "description": "MySQL 数据源",
+          "examples": [
+            "mysql"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际产品为 MySQL"
+            ]
+          }
+        },
+        {
+          "const": "other",
+          "title": "其他",
+          "description": "已知产品不在受控枚举中",
+          "examples": [
+            "other"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "必须在正文明确实际产品和版本"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "oracle"
+      ]
+    },
+    "product_version": {
+      "title": "产品版本",
+      "description": "可验证的产品版本或版本范围；未知时使用 missing，不猜测。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "16.4",
+        "missing"
+      ]
+    },
+    "owner": {
+      "title": "责任方",
+      "description": "负责数据源治理和变更确认的团队或角色。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "平台团队"
+      ]
+    },
+    "config_reference": {
+      "title": "配置引用",
+      "description": "指向安全配置键或说明文档的位置，不是连接串或秘密值。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "config/database.yaml#atlas"
+      ]
+    },
+    "database": {
+      "title": "数据库名",
+      "description": "产品层面的数据库或服务数据库名称。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "atlas"
+      ]
+    },
+    "namespace": {
+      "title": "命名空间",
+      "description": "表所在 Schema、用户或等价逻辑命名空间。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "public"
+      ]
+    },
+    "environments": {
+      "title": "适用环境",
+      "description": "共享该契约的环境名，至少一个且不可重复。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "examples": [
+        [
+          "development",
+          "production"
+        ]
+      ]
+    },
+    "sources": {
+      "title": "事实来源",
+      "description": "支撑当前描述的非空来源列表；连接密钥和未脱敏个人数据不得进入来源。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {},
+      "examples": [
+        [
+          {
+            "type": "repository_file",
+            "reference": "config/database.example.yaml"
+          }
+        ]
+      ]
+    },
+    "last_updated": {
+      "title": "最后更新时间",
+      "description": "知识内容最后正式变化的日期，使用 YYYY-MM-DD。",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": [
+        "2026-09-15"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title",
+    "status",
+    "product",
+    "product_version",
+    "owner",
+    "config_reference",
+    "database",
+    "namespace",
+    "environments",
+    "sources",
+    "last_updated"
+  ],
+  "examples": [
+    {
+      "id": "DS-ATLAS-METADATA",
+      "type": "data_source",
+      "title": "元数据源",
+      "status": "proposed",
+      "product": "postgresql",
+      "product_version": "16",
+      "owner": "平台团队",
+      "config_reference": "config/db.yaml#atlas",
+      "database": "atlas",
+      "namespace": "public",
+      "environments": [
+        "development"
+      ],
+      "sources": [
+        {
+          "type": "repository_file",
+          "reference": "config/db.example.yaml"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    },
+    {
+      "id": "DS-ERP-CORE",
+      "type": "data_source",
+      "title": "ERP 核心库",
+      "status": "approved",
+      "product": "oracle",
+      "product_version": "19c",
+      "owner": "数据平台团队",
+      "config_reference": "vault-reference:erp-core",
+      "database": "ERP",
+      "namespace": "APP",
+      "environments": [
+        "production"
+      ],
+      "sources": [
+        {
+          "type": "user_statement",
+          "reference": "数据源确认"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    }
+  ],
   "enums": {
-    "type": ["data_source"],
-    "status": ["missing", "proposed", "approved", "conflicted", "stale", "superseded", "archived"],
-    "product": ["oracle", "postgresql", "kingbasees", "mysql", "other"]
+    "type": [
+      "data_source"
+    ],
+    "status": [
+      "missing",
+      "proposed",
+      "approved",
+      "conflicted",
+      "stale",
+      "superseded",
+      "archived"
+    ],
+    "product": [
+      "oracle",
+      "postgresql",
+      "kingbasees",
+      "mysql",
+      "other"
+    ]
   },
   "patterns": {
-    "id": "DS-[A-Z0-9-]+",
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
     "last_updated": "\\d{4}-\\d{2}-\\d{2}"
   },
-  "non_empty_lists": ["environments", "sources"],
-  "unique_lists": ["environments", "sources"]
+  "non_empty_lists": [
+    "environments",
+    "sources"
+  ],
+  "unique_lists": [
+    "environments",
+    "sources"
+  ]
 }

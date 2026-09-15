@@ -1,22 +1,312 @@
 {
-  "acceptance": "acceptance.schema.json",
-  "data_asset": "data-asset.schema.json",
-  "data_source": "data-source.schema.json",
-  "database_namespace": "database-namespace.schema.json",
-  "database_table": "database-table.schema.json",
-  "database_unit": "database-unit.schema.json",
-  "feature": "feature.schema.json",
-  "governance_task": "governance-task.schema.json",
-  "interface": "interface.schema.json",
-  "knowledge_index": "knowledge-index.schema.json",
-  "knowledge_proposal": "knowledge-proposal.schema.json",
-  "knowledge_item": "knowledge-item.schema.json",
-  "module": "module.schema.json",
-  "managed_source": "managed-source.schema.json",
-  "project_manifest": "project-manifest.schema.json",
-  "requirement": "requirement.schema.json",
-  "specification_change": "specification-change.schema.json",
-  "specification_delta": "specification-delta.schema.json",
-  "source": "source.schema.json",
-  "task": "task.schema.json"
+  "catalog_version": 2,
+  "title": "知识类型 Schema 目录",
+  "description": "登记当前可写知识类型及其 Schema、用途、使用边界和正文权威属性。",
+  "entries": {
+    "acceptance": {
+      "schema": "acceptance.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/acceptance.schema.json",
+      "purpose": "把验收条件、预期结果、实际状态、责任方和证据绑定到具体版本。",
+      "use_when": [
+        "需要记录功能或知识库验收场景的实际结果",
+        "结果必须与具体版本和证据绑定",
+        "需要区分未开始、部分通过、通过和不适用"
+      ],
+      "do_not_use_when": [
+        "只定义功能的验收意图而尚未执行",
+        "只记录测试命令成功",
+        "没有可定位版本或证据"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "data_asset": {
+      "schema": "data-asset.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/data-asset.schema.json",
+      "purpose": "保存业务含义、来源类型、独立建模依据、质量、安全和保存规则，不复制底层结构。",
+      "use_when": [
+        "数据集合跨功能或跨技术对象复用",
+        "具有独立所有者、质量、安全或保存策略",
+        "需要统一追踪多个来源形成的数据产品"
+      ],
+      "do_not_use_when": [
+        "只描述一张数据库表或接口载荷",
+        "没有任何独立治理依据",
+        "只记录一次性导出文件"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "data_source": {
+      "schema": "data-source.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/data-source.schema.json",
+      "purpose": "保存数据源定位和治理信息，不保存口令、Token 或真实连接密钥。",
+      "use_when": [
+        "多张表共享同一数据库连接与治理边界",
+        "需要区分产品、版本、数据库和命名空间",
+        "环境位置需要以配置引用而非秘密值表达"
+      ],
+      "do_not_use_when": [
+        "只描述单张表结构",
+        "只描述业务数据集合",
+        "需要保存真实密码或连接串"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "database_table": {
+      "schema": "database-table.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/database-table.schema.json",
+      "purpose": "保存表级技术契约，并通过正文块锚点稳定引用字段。",
+      "use_when": [
+        "项目直接读取或写入一张物理表",
+        "需要记录字段、值域、索引或逻辑外键",
+        "表结构需要与数据源建立明确归属"
+      ],
+      "do_not_use_when": [
+        "只描述数据源公共连接信息",
+        "描述跨技术对象业务数据集合",
+        "只有临时查询结果而无稳定表契约"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "feature": {
+      "schema": "feature.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/feature.schema.json",
+      "purpose": "保存功能如何满足需求、应表现出的行为、设计约束、失败边界和可验证验收场景。",
+      "use_when": [
+        "存在可独立说明和验收的用户或系统能力",
+        "需要把需求映射为规范行为和完整设计",
+        "需要长期追踪功能切片与验收状态"
+      ],
+      "do_not_use_when": [
+        "只表达业务问题和价值，此时使用 requirement",
+        "只描述代码边界，此时使用 module",
+        "只记录一次性实施步骤"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "governance_task": {
+      "schema": "governance-task.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/governance-task.schema.json",
+      "purpose": "记录知识治理计划中的可执行工作和验收关联。",
+      "use_when": [
+        "工作直接改进知识治理能力"
+      ],
+      "do_not_use_when": [
+        "普通功能实施工作"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "interface": {
+      "schema": "interface.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/interface.schema.json",
+      "purpose": "保存调用方与提供方之间的输入、输出、失败、兼容性、可见性和安全契约。",
+      "use_when": [
+        "调用方依赖稳定请求、响应或格式",
+        "事件、文件或 CLI 构成跨模块边界",
+        "Agent 操作需要版本化输入输出"
+      ],
+      "do_not_use_when": [
+        "只描述内部实现职责",
+        "只描述用户层完整行为",
+        "没有稳定调用方的临时函数"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "knowledge_index": {
+      "schema": "knowledge-index.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/knowledge-index.schema.json",
+      "purpose": "说明目录保存边界、身份规则和渐进查询方式，并通过反向分类关系发现成员。",
+      "use_when": [
+        "一个受管分类目录需要稳定入口",
+        "需要定义目录内允许保存的知识类型和查询边界",
+        "需要让 Agent 通过 children 定位直接成员"
+      ],
+      "do_not_use_when": [
+        "只为单个实体建立包装页",
+        "手工维护可能过期的完整成员表",
+        "把 Markdown 导航链接当作分类关系权威"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "knowledge_proposal": {
+      "schema": "knowledge-proposal.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/knowledge-proposal.schema.json",
+      "purpose": "在正式知识写入前固定候选内容摘要、目标、来源、提出者、操作者和确认者。",
+      "use_when": [
+        "主动采集发现具有长期价值的新知识",
+        "需要把确认绑定到不可变内容摘要",
+        "需要审计谁提出、谁操作、谁确认"
+      ],
+      "do_not_use_when": [
+        "替代完整展示的维护 Proposal",
+        "把初始任务请求当作确认",
+        "把 confirmed 状态当作代码执行或部署许可"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "knowledge_item": {
+      "schema": "knowledge-item.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/knowledge-item.schema.json",
+      "purpose": "作为升级和采集的安全兜底，保留原始语义、来源和未知项，而不伪造具体归属。",
+      "use_when": [
+        "旧知识无法安全映射到当前具体类型",
+        "稳定事实具有长期价值但暂未建立专用类型",
+        "迁移必须保留内容且需要标记缺失或冲突"
+      ],
+      "do_not_use_when": [
+        "已经能够归入 requirement、feature、module、interface 或数据类型",
+        "只是一段临时日志或排查猜测",
+        "用通用类型绕过具体类型的必填规则"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "module": {
+      "schema": "module.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/module.schema.json",
+      "purpose": "记录代码或运行时组件的职责、边界、路径、依赖和技术决策。",
+      "use_when": [
+        "存在具有长期职责的代码或运行时组件",
+        "需要把功能映射到实现边界",
+        "模块路径或依赖需跨会话复用"
+      ],
+      "do_not_use_when": [
+        "只描述用户可观察行为",
+        "只描述单个接口契约",
+        "仅记录临时目录"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "managed_source": {
+      "schema": "managed-source.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/managed-source.schema.json",
+      "purpose": "在允许和安全的前提下保存可复核来源副本，同时记录原引用、内容摘要、类型、大小和敏感级别。",
+      "use_when": [
+        "外部资料需要长期可复核且原地址可能变化",
+        "摄取事务需要固定某一内容版本",
+        "许可和敏感性允许在知识库中保存副本"
+      ],
+      "do_not_use_when": [
+        "来源只需链接且外部地址稳定",
+        "包含秘密、禁止复制内容或未脱敏个人数据",
+        "AI 推测或普通对话内容"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "project_manifest": {
+      "schema": "project-manifest.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/project-manifest.schema.json",
+      "purpose": "约束知识库机器入口、格式版本和知识修订。",
+      "use_when": [
+        "初始化、读取或升级 knowledge-base.yaml"
+      ],
+      "do_not_use_when": [
+        "保存业务需求或项目发布事实"
+      ],
+      "formal_knowledge_type": false,
+      "body_authority": true,
+      "status": "active"
+    },
+    "requirement": {
+      "schema": "requirement.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/requirement.schema.json",
+      "purpose": "保存为什么需要某项能力、其业务范围、稳定业务规则和可观察成功标准，不描述具体实现。",
+      "use_when": [
+        "存在需要长期追踪的业务问题、价值、范围或规则",
+        "多个功能可能共同满足同一个业务目标",
+        "需要在实现方式之外稳定表达业务成功标准"
+      ],
+      "do_not_use_when": [
+        "描述功能的规范行为或完整设计，此时使用 feature",
+        "描述一次性实施步骤，此时使用外部任务或 task",
+        "描述具体接口、模块、数据表或其他技术对象"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "specification_change": {
+      "schema": "specification-change.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/specification-change.schema.json",
+      "purpose": "提供从变化原因到受影响基线、实施、验证和合并的可追溯工作区。",
+      "use_when": [
+        "一个目标需要新增、修订、退役或删除稳定知识",
+        "外部 SDD 工件需要映射为当前知识变化",
+        "需要在应用前审阅影响和验收计划"
+      ],
+      "do_not_use_when": [
+        "只记录无长期价值的任务进度",
+        "把多个无关意图捆绑在同一变更",
+        "用变更状态代替执行许可或业务验收"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "specification_delta": {
+      "schema": "specification-delta.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/specification-delta.schema.json",
+      "purpose": "明确目标、操作类型、基线版本和来源，使变化可审阅、可应用和可追溯。",
+      "use_when": [
+        "变更需要逐目标表达 added、modified、removed、renamed 或 superseded",
+        "外部 SDD Delta 需要映射到当前知识身份",
+        "需要验证应用基线是否发生漂移"
+      ],
+      "do_not_use_when": [
+        "多个目标或多种操作混在一个 Delta",
+        "没有所属 specification_change",
+        "把 applied 当作业务 accepted"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    },
+    "task": {
+      "schema": "task.schema.json",
+      "schema_id": "https://context-atlas.dev/schemas/task.schema.json",
+      "purpose": "记录实现某一功能的可执行工作及其验收关联。",
+      "use_when": [
+        "需要把实施工作关联到具体功能和验收场景"
+      ],
+      "do_not_use_when": [
+        "用任务状态替代功能验收或知识确认"
+      ],
+      "formal_knowledge_type": true,
+      "body_authority": true,
+      "status": "active"
+    }
+  },
+  "x-context-atlas": {
+    "purpose": "作为知识类型到 Schema 契约的唯一机器入口。",
+    "use_when": [
+      "发现、校验或生成当前知识类型"
+    ],
+    "do_not_use_when": [
+      "登记会话报告或未进入正式知识库的临时对象"
+    ],
+    "unknown_type_policy": "reject",
+    "legacy_type_policy": "upgrade_input_only_and_convert"
+  }
 }

@@ -8,7 +8,7 @@ from typing import Iterable, Mapping
 
 from .model import DocumentRecord, Issue
 
-# context-atlas-rules: [[rules/知识治理规则#RULE-SRC-001|RULE-SRC-001]]
+# context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-正式知识和质检结果必须引用来源与目标|RULE-知识治理规则-正式知识和质检结果必须引用来源与目标]]
 
 
 ACCEPTANCE_PATTERN = re.compile(r"(?:(?:F\d{2}|KB)-AC-\d{2}|AC-[A-Z0-9]+-[0-9]{3})\Z")
@@ -233,6 +233,10 @@ def _validate_references(
     issues: list[Issue] = []
     for record in _records_with_metadata(records):
         for field in REFERENCE_FIELDS:
+            # data_source.database 是物理数据库名称或 missing，不是知识 ID；
+            # 数据库层级关系统一由 rel_belongs_to 表达。
+            if field == "database" and record.metadata.get("type") == "data_source":
+                continue
             for reference in as_list(record.metadata.get(field)):
                 if reference and reference not in ids and not (field == "supersedes" and reference in archived_ids):
                     issues.append(

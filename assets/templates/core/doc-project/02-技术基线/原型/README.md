@@ -1,9 +1,9 @@
 ---
-id: IDX-PROTOTYPES
+id: IDX-技术基线-原型
 type: knowledge_index
 title: 原型
 rel_classified_under:
-  - "[[02-技术基线/README|IDX-TECHNICAL-BASELINE]]"
+  - "[[02-技术基线/README|IDX-技术基线]]"
 ---
 # 原型与交互
 

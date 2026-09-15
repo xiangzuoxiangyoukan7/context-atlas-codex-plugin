@@ -1,9 +1,9 @@
 ---
-id: GOV-USAGE-SCENARIOS
+id: GOV-知识治理-使用场景
 type: governance_document
 title: 使用场景
 rel_classified_under:
-  - "[[05-知识治理/README|IDX-GOVERNANCE]]"
+  - "[[05-知识治理/README|IDX-知识治理]]"
 ---
 # Context Atlas 场景化使用指南
 
@@ -38,10 +38,11 @@ Context Atlas 贯穿开发前、开发中和开发后，但每个阶段沉淀的
 | 增加此前不存在的正式知识 | `$context-atlas-add` | `/context-atlas:context-atlas-add` | 确认 Proposal 后新增 |
 | 修正、同步或替代已有知识 | `$context-atlas-revise` | `/context-atlas:context-atlas-revise` | 确认 Proposal 后修订 |
 | 以明确后继项替代现有知识 | `$context-atlas-revise` | `/context-atlas:context-atlas-revise` | 确认 Proposal 后建立替代关系 |
-| 无后继撤销、归档或受控删除失效知识 | `$context-atlas-retire` | `/context-atlas:context-atlas-retire` | 确认 Proposal 后退役；删除须有确定性操作支持 |
+| 无后继撤销或归档失效知识 | `$context-atlas-retire` | `/context-atlas:context-atlas-retire` | 确认 Proposal 后退役或归档 |
+| 永久删除无审计价值的叶子知识 | `$context-atlas-delete` | `/context-atlas:context-atlas-delete` | 确认 Proposal 后删除并清理关系；README、目录与非叶子节点禁止删除 |
 | 只升级知识库结构或格式 | `$context-atlas-upgrade` | `/context-atlas:context-atlas-upgrade` | 确认 Proposal 后升级 |
 
-判断维护入口时使用以下规则：不存在的新身份使用 `add`；同一身份和含义的内容变化使用 `revise`；当前权威需要退出使用 `retire`；只改变知识库表达格式使用 `upgrade`。一个请求同时包含新增、修订和退役时，应形成一个原子复合 Proposal，不能拆成会留下半完成状态的多次写入。
+判断维护入口时使用以下规则：不存在的新身份使用 `add`；同一身份和含义的内容变化使用 `revise`；当前权威需要退出使用 `retire`；确认无审计价值的分类树叶子知识永久移除使用 `delete`；只改变知识库表达格式使用 `upgrade`。一个请求同时包含新增、修订、退役和删除时，应形成一个原子复合 Proposal，不能拆成会留下半完成状态的多次写入。
 
 Claude Code 命令面板可能把可唯一解析的命令显示成 `/context-atlas-init` 等短形式；它与表中的带命名空间命令是同一个 Skill，以当前安装后的面板补全为准。
 
@@ -150,7 +151,7 @@ Claude Code 命令面板可能把可唯一解析的命令显示成 `/context-atl
 - 新数据源或新表：使用 `add`。
 - 已有表新增字段、索引或修正说明：使用 `revise`。
 - 表或数据源退出当前权威：使用 `retire`。
-- 表通过 `rel_belongs_to` 指向数据源；功能和接口可以通过 `rel_reads`、`rel_writes` 或 `rel_depends_on` 指向表。
+- 每个数据源使用 `DS-<领域>-<名称>/README.md` 作为唯一实体和目录入口，数据库与命名空间信息也写入该 README，不再创建独立 `DS-*`、`DB-*` 或 `NS-*` 卡；表只通过 `rel_belongs_to` 直接指向该 README，不直接分类到数据库根索引。功能和接口可以通过 `rel_reads`、`rel_writes` 或 `rel_depends_on` 指向表。
 
 DDL、迁移文件、ORM 映射和数据库实际结构可以证明技术结构，但不能单独证明字段中文含义、业务值域或负责人。密码、Token、私钥和未脱敏个人数据不得进入知识库。
 
@@ -190,10 +191,10 @@ DDL 是结构来源；字段中文含义中无法从仓库确认的部分列为�
 查询使用 `navigate`，并从最小范围开始：
 
 ```text
-children → neighbors → bounded graph
+search → children（按需）→ neighbors → bounded graph
 ```
 
-先逐层发现目录，再对已定位的稳定 ID 查询一跳正反向邻居；只有确实需要多跳分析时才查询有深度和节点上限的关系图。`truncated: true` 表示结果不完整，不能推断被省略的节点。
+用户没有提供稳定 ID 或路径时，先通过 `search` 从标题、路径、摘要、章节和正文定位有限候选；已知分类时才用 `children` 逐层发现目录。对已定位的稳定 ID 查询一跳正反向邻居，只有确实需要多跳分析时才查询有深度和节点上限的关系图。默认不检索历史归档；`truncated: true` 表示结果不完整，不能推断被省略的节点。
 
 查询答案默认只存在于当前对话，不自动归档为正式知识。如果分析发现此前未记录且可能长期有效的约束，只有在用户显式调用 ingest 且来源可定位时才形成去重候选，随后仍须进入正式维护流程并由项目责任人确认。
 
@@ -211,7 +212,7 @@ children → neighbors → bounded graph
 
 修订已有知识时，稳定身份和含义不变可使用 `patch`；权威或语义改变时使用 `supersede`，保留新旧版本关系并迁移当前引用。多个来源冲突时保留竞争值、来源和所需裁决者。
 
-建立后继项并替代旧知识属于 `revise`；`retire` 只处理无后继撤销，以及已经完成替代和引用迁移后的归档。历史归档只提供背景，不能作为当前需求或完成状态来源。正式归档和删除同样需要独立 Proposal 和精确确认；没有确定性删除操作时必须保持零写入。
+建立后继项并替代旧知识属于 `revise`；`retire` 只处理无后继撤销，以及已经完成替代和引用迁移后的归档。历史归档只提供背景，不能作为当前需求或完成状态来源。正式归档和删除同样需要独立 Proposal 和精确确认。删除仅允许带稳定 ID 的分类树叶子知识；README、目录和分类父节点不可删除，所有入向关系必须在同一删除 Proposal 中按知识类型完整清理。
 
 ## Proposal 确认边界
 

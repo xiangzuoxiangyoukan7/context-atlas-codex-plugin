@@ -1,5 +1,5 @@
 ---
-id: DELTA-CHG-20000101-001-F-DOMAIN-001
+id: DELTA-{{INITIALIZED_AT_COMPACT}}-规格增量
 type: specification_delta
 title: 规格增量
 status: proposed
@@ -12,9 +12,10 @@ reason: 待确认
 migration: 待确认
 rollback: 待确认
 sources: []
+identity_created_at: {{INITIALIZED_AT}}
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[03-变更与证据/变更/README|IDX-CHANGES]]"
+  - "[[03-变更与证据/变更/README|IDX-变更与证据-变更]]"
 ---
 
 # 规格增量

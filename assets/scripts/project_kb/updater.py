@@ -61,7 +61,9 @@ def execute_update(
     format_version = 1
     for line in manifest_text.splitlines():
         if line.startswith("format_version:"):
-            format_version = int(line.split(":", maxsplit=1)[1].strip())
+            from .compatibility import format_generation, parse_format_version
+
+            format_version = format_generation(parse_format_version(line.split(":", maxsplit=1)[1].strip()))
             break
 
     def rollback() -> None:

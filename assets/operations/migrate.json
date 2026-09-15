@@ -1,1 +1,36 @@
-{"id":"migrate","name_zh":"迁移知识格式","rules":["RULE-AGENT-001","RULE-GOV-001","RULE-IMPACT-001"]}
+{
+  "contract_version": 2,
+  "id": "migrate",
+  "name_zh": "迁移知识格式",
+  "description": "把支持的旧格式等价转换为当前格式",
+  "use_when": [
+    "现有知识库格式不是当前创建格式或结构需要归一化"
+  ],
+  "do_not_use_when": [
+    "借升级改变业务事实、批准状态或来源"
+  ],
+  "execution_mode": "proposal_gated",
+  "preconditions": [
+    "目标路径位于指定项目或知识库边界内",
+    "所需输入可被确定性解析"
+  ],
+  "inputs": [
+    "兼容清单、迁移决策、源文件摘要"
+  ],
+  "outputs": [
+    "仅含新格式的知识库、迁移和验证报告"
+  ],
+  "confirmation": {
+    "required": true,
+    "rule": "正式写入仅接受与当前 proposal_revision 完全一致的 confirmed_revision"
+  },
+  "failure_modes": [
+    "输入或目标不合法时拒绝执行",
+    "验证失败时报告失败且不得声称成功"
+  ],
+  "rules": [
+    "RULE-知识治理规则-正式写入必须基于已确认提案",
+    "RULE-知识治理规则-每条正式规则只有一个中文权威来源",
+    "RULE-知识治理规则-业务影响由关系分析与验收证据共同判断"
+  ]
+}
