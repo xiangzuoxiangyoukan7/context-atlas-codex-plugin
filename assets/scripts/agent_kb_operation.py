@@ -25,7 +25,7 @@ from scripts.project_kb.migration import (
     merge_agent_migration_plan,
     preflight_migration,
 )
-from scripts.project_kb.navigation import query_children, query_graph, query_neighbors
+from scripts.project_kb.navigation import query_children, query_graph, query_neighbors, query_search
 from scripts.project_kb.updater import UpdateChange, execute_update
 from scripts.project_kb.deletion import apply_delete, build_delete_proposal
 from scripts.project_kb.archive import apply_archive, build_archive_proposal
@@ -127,6 +127,15 @@ def _parser() -> argparse.ArgumentParser:
     children = subparsers.add_parser("children")
     children.add_argument("knowledge_base_root", type=Path)
     children.add_argument("--path", default=".")
+
+    search = subparsers.add_parser("search")
+    search.add_argument("knowledge_base_root", type=Path)
+    search.add_argument("--query", required=True)
+    search.add_argument("--type", dest="node_types", action="append", default=[])
+    search.add_argument("--status", dest="statuses", action="append", default=[])
+    search.add_argument("--path")
+    search.add_argument("--limit", type=int, default=10)
+    search.add_argument("--include-archive", action="store_true")
 
     graph = subparsers.add_parser("graph")
     graph.add_argument("knowledge_base_root", type=Path)
@@ -316,6 +325,16 @@ def _execute(args: argparse.Namespace) -> tuple[object, int]:
         ), 0
     if args.operation == "children":
         return query_children(args.knowledge_base_root, path=args.path), 0
+    if args.operation == "search":
+        return query_search(
+            args.knowledge_base_root,
+            query=args.query,
+            node_types=tuple(args.node_types),
+            statuses=tuple(args.statuses),
+            path=args.path,
+            limit=args.limit,
+            include_archive=args.include_archive,
+        ), 0
     if args.operation == "graph":
         return query_graph(
             args.knowledge_base_root,

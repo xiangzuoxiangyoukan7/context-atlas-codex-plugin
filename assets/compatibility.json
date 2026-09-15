@@ -14,74 +14,80 @@
     11,
     12,
     13,
-    14
+    14,
+    "0.18.2"
   ],
-  "created_format_version": 14,
+  "created_format_version": "0.18.2",
   "conversions": [
     {
       "from": 1,
-      "to": 14,
+      "to": "0.18.2",
       "id": "embedded-sources-and-knowledge-governance"
     },
     {
       "from": 2,
-      "to": 14,
+      "to": "0.18.2",
       "id": "knowledge-governance-layout-and-embedded-sources"
     },
     {
       "from": 3,
-      "to": 14,
+      "to": "0.18.2",
       "id": "embedded-sources"
     },
     {
       "from": 4,
-      "to": 14,
+      "to": "0.18.2",
       "id": "typed-knowledge-and-simplified-contract-layout"
     },
     {
       "from": 5,
-      "to": 14,
+      "to": "0.18.2",
       "id": "changes-and-evidence-without-task-packages"
     },
     {
       "from": 6,
-      "to": 14,
+      "to": "0.18.2",
       "id": "specification-readiness-and-change-workspaces"
     },
     {
       "from": 7,
-      "to": 14,
+      "to": "0.18.2",
       "id": "unified-version-model-and-knowledge-granularity"
     },
     {
       "from": 8,
-      "to": 14,
+      "to": "0.18.2",
       "id": "embedded-acceptance-and-concrete-interfaces"
     },
     {
       "from": 9,
-      "to": 14,
+      "to": "0.18.2",
       "id": "feature-integrated-design-and-acceptance"
     },
     {
       "from": 10,
-      "to": 14,
+      "to": "0.18.2",
       "id": "readme-classification-and-current-layout"
     },
     {
       "from": 11,
-      "to": 14,
+      "to": "0.18.2",
       "id": "requirement-body-authority-and-readiness-decoupling"
     },
     {
       "from": 12,
-      "to": 14,
+      "to": "0.18.2",
       "id": "decision-content-integration-and-current-layout"
     },
     {
       "from": 13,
-      "to": 14,
+      "to": "0.18.2",
       "id": "data-asset-independence-and-obsidian-color-quality"
+    },
+    {
+      "from": 14,
+      "to": "0.18.2",
+      "id": "search-first-navigation-and-two-version-model"
     }
   ]
 }

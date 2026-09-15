@@ -14,8 +14,8 @@
     {
       "field": "rel_belongs_to",
       "name_zh": "属于该数据库层级",
-      "source_prefixes": ["DB", "NS", "TABLE"],
-      "target_prefixes": ["DS", "DB", "NS"],
+      "source_prefixes": ["TABLE"],
+      "target_prefixes": ["DS"],
       "direction": "forward_only",
       "status": "active",
       "default_impact": "review_required",
@@ -40,16 +40,6 @@
       "status": "active",
       "default_impact": "review_required",
       "impact_rules": {"rule_changed": "review_required", "rule_removed": "required", "formatting_only": "informational", "file_moved": "informational"}
-    },
-    {
-      "field": "rel_implements",
-      "name_zh": "实现该需求",
-      "source_prefixes": ["F", "FEATURE", "RULE"],
-      "target_prefixes": ["REQ"],
-      "direction": "forward_only",
-      "status": "deprecated",
-      "default_impact": "review_required",
-      "impact_rules": {"scope_removed": "required", "superseded": "required", "behavior_changed": "review_required", "formatting_only": "informational", "file_moved": "informational"}
     },
     {
       "field": "rel_satisfies",

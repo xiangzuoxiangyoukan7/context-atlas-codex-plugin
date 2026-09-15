@@ -130,7 +130,9 @@ def _format_version(path: Path) -> int:
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.startswith("format_version:"):
             try:
-                return int(line.split(":", 1)[1].strip())
+                from .compatibility import format_generation, parse_format_version
+
+                return format_generation(parse_format_version(line.split(":", 1)[1].strip()))
             except ValueError:
                 return 0
     return 1
@@ -184,6 +186,17 @@ def validate_structure(root: Path, records: Iterable[DocumentRecord]) -> list[Is
         if path.exists() and (not path.is_dir() or any(path.iterdir())):
             issues.append(Issue("KB_STRUCTURE_LEGACY", path, f"legacy fixed entry remains: {relative}"))
     format_version = _format_version(root / "knowledge-base.yaml")
+    if format_version >= 15 and any(
+        line.startswith("project_version:")
+        for line in (root / "knowledge-base.yaml").read_text(encoding="utf-8").splitlines()
+    ):
+        issues.append(
+            Issue(
+                "KB_MANIFEST_LEGACY_VERSION",
+                root / "knowledge-base.yaml",
+                "current format forbids project_version; record software releases in scoped evidence",
+            )
+        )
     if format_version >= 13 and "decisions" in _authority_keys(root / "knowledge-base.yaml"):
         issues.append(Issue("KB_AUTHORITY_LEGACY", root / "knowledge-base.yaml", "format 13 forbids authority.decisions"))
     record_list = list(records)
@@ -233,6 +246,14 @@ def validate_structure(root: Path, records: Iterable[DocumentRecord]) -> list[Is
     classification_parents: dict[str, str] = {}
     for record in record_list:
         kind = record.metadata.get("type")
+        if format_version >= 15 and kind in {"source", "database_unit", "database_namespace"}:
+            issues.append(
+                Issue(
+                    "KB_TYPE_RETIRED",
+                    record.path,
+                    f"current format forbids retired type: {kind}",
+                )
+            )
         expected = TYPE_DIRECTORIES.get(str(kind))
         if expected:
             relative = _relative_path(root, record)

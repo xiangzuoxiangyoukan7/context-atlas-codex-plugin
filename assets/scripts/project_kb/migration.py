@@ -12,9 +12,16 @@ import shutil
 import tempfile
 from typing import Iterable
 
-from .compatibility import CompatibilityPolicy
+from .compatibility import CompatibilityPolicy, FormatVersion, format_generation
 from .model import DocumentRecord
 from .obsidian import graph_text, read_graph
+
+
+CURRENT_ONLY_RUNTIME_REMOVALS = (
+    ".project-kb/schemas/database-namespace.schema.json",
+    ".project-kb/schemas/database-unit.schema.json",
+    ".project-kb/schemas/source.schema.json",
+)
 
 
 @dataclass(frozen=True)
@@ -99,8 +106,8 @@ class MigrationProposal:
     """保存只读分析产生的不可变转换范围和确认修订号。"""
 
     proposal_revision: str
-    source_version: int
-    target_version: int
+    source_version: FormatVersion
+    target_version: FormatVersion
     changes: tuple[MigrationChange, ...]
     moves: tuple[MigrationMove, ...]
     removals: tuple[MigrationRemoval, ...]
@@ -120,7 +127,7 @@ class MigrationReport:
 
     status: str
     changed_files: tuple[str, ...]
-    format_version: int
+    format_version: FormatVersion
     validation_issue_count: int = 0
     health_finding_count: int = 0
     blocking_health_finding_count: int = 0
@@ -157,8 +164,8 @@ def _source_paths(records: Iterable[DocumentRecord]) -> dict[str, list[Path]]:
 
 
 def _revision(
-    source_version: int,
-    target_version: int,
+    source_version: FormatVersion,
+    target_version: FormatVersion,
     changes: Iterable[MigrationChange],
     moves: Iterable[MigrationMove],
     removals: Iterable[MigrationRemoval],
@@ -949,13 +956,14 @@ def _format11_document(content: str, relative: str, initialized_at: str | None) 
     metadata = "".join(lines[1:closing])
     identifier_match = re.search(r"(?m)^id:\s*(\S+)", metadata)
     identifier = identifier_match.group(1) if identifier_match else None
-    type_match = re.search(
-        r"(?m)^type:\s*(contract|independent_contract|acceptance_contract)\s*$",
-        metadata,
+    retired_types = (
+        "contract|independent_contract|acceptance_contract|source|"
+        "database_unit|database_namespace"
     )
+    type_match = re.search(rf"(?m)^type:\s*(?:{retired_types})\s*$", metadata)
     if type_match:
         metadata = re.sub(
-            r"(?m)^type:\s*(?:contract|independent_contract|acceptance_contract)\s*$",
+            rf"(?m)^type:\s*(?:{retired_types})\s*$",
             "type: knowledge_item",
             metadata,
         )
@@ -1160,7 +1168,7 @@ def build_migration_proposal(
     changes: list[MigrationChange] = []
     unresolved: list[MigrationUnresolved] = []
     referenced_source_ids: set[str] = set()
-    for record in record_list if result.format_version <= 3 else ():
+    for record in record_list if format_generation(result.format_version) <= 3 else ():
         if record.metadata.get("type") == "source":
             continue
         raw_sources = record.metadata.get("sources")
@@ -1202,12 +1210,12 @@ def build_migration_proposal(
             )
     ordered_changes = tuple(sorted(changes, key=lambda item: str(item.path)))
     moves, removals, rewrites, layout_unresolved = _governance_layout(resolved_root)
-    if result.creates_format_version >= 11:
+    if format_generation(result.creates_format_version) >= 11:
         format_moves, format_removals, format_unresolved = _format11_layout(resolved_root)
         moves += format_moves
         removals += format_removals
         layout_unresolved += format_unresolved
-    if result.creates_format_version >= 13:
+    if format_generation(result.creates_format_version) >= 13:
         format_moves, format_removals, format_unresolved = _format13_layout(resolved_root)
         moves += format_moves
         removals += format_removals
@@ -1223,22 +1231,14 @@ def build_migration_proposal(
             destinations.add(move.target)
     for source_id, record in source_records.items():
         try:
-            relative = record.path.resolve().relative_to(resolved_root)
+            record.path.resolve().relative_to(resolved_root)
         except ValueError:
             unresolved.append(MigrationUnresolved(record.path.resolve(), source_id, "公共来源路径逃逸知识库"))
-            continue
-        already_common = relative.as_posix().startswith("05-知识治理/公共来源/")
-        if source_id not in referenced_source_ids and not already_common:
-            unresolved.append(MigrationUnresolved(record.path.resolve(), source_id, "来源未被任何知识项引用，不能安全删除"))
-        if relative.parts and relative.parts[0] == "00-项目总览":
-            destination = resolved_root / "05-知识治理" / "公共来源" / record.path.name
-            if destination.exists():
-                unresolved.append(MigrationUnresolved(record.path.resolve(), source_id, "公共来源新旧位置同时存在"))
-            else:
-                moves += (MigrationMove(record.path.resolve(), destination, _digest(record.path.read_bytes())),)
+        # 当前格式不保留独立 source 类型。引用已嵌入使用方；源卡本身作为
+        # knowledge_item 无损保留，避免因无法判断其业务归属而阻断升级。
     initialized_at = _initialized_at(resolved_root)
     moved_sources = {move.source.resolve() for move in moves}
-    if result.creates_format_version >= 11:
+    if format_generation(result.creates_format_version) >= 11:
         for path in sorted(resolved_root.rglob("*.md")):
             if path.resolve() in moved_sources:
                 continue
@@ -1248,7 +1248,7 @@ def build_migration_proposal(
                 path.resolve().relative_to(resolved_root).as_posix(),
                 initialized_at,
             )
-            if result.creates_format_version >= 12:
+            if format_generation(result.creates_format_version) >= 12:
                 try:
                     normalized = _format12_requirement(normalized)
                 except ValueError as error:
@@ -1256,9 +1256,9 @@ def build_migration_proposal(
                         MigrationUnresolved(path.resolve(), path.name, str(error)),
                     )
                     continue
-            if result.creates_format_version >= 13:
+            if format_generation(result.creates_format_version) >= 13:
                 normalized = _format13_document(normalized)
-            if result.creates_format_version >= 14:
+            if format_generation(result.creates_format_version) >= 14:
                 normalized = _format14_document(normalized)
             if normalized == original:
                 continue
@@ -1274,6 +1274,12 @@ def build_migration_proposal(
         resolved_root, record_list, rewrites
     )
     rewrites = _current_template_frontmatter_rewrites(resolved_root, rewrites)
+    removal_paths = {item.path.resolve() for item in removals}
+    for relative in CURRENT_ONLY_RUNTIME_REMOVALS:
+        stale = (resolved_root / relative).resolve()
+        if stale.is_file() and stale not in removal_paths:
+            removals += (MigrationRemoval(stale, _digest(stale.read_bytes())),)
+            removal_paths.add(stale)
     unresolved.extend(layout_unresolved)
     ordered_unresolved = tuple(sorted(
         (
@@ -1379,8 +1385,8 @@ def _add_supported_by(content: str, links: tuple[str, ...]) -> str:
     return "".join([lines[0], *retained, *addition, lines[closing]]) + "".join(lines[closing + 1:])
 
 
-def _set_format_version(content: str, target_version: int) -> str:
-    """升级根清单版本模型，同时保持项目业务版本原值。"""
+def _set_format_version(content: str, target_version: FormatVersion) -> str:
+    """升级根清单并移除当前格式不再支持的旧版本字段。"""
 
     lines = content.splitlines(keepends=True)
     normalized: list[str] = []
@@ -1388,7 +1394,7 @@ def _set_format_version(content: str, target_version: int) -> str:
     has_revision = False
     has_created_by = any(line.startswith("created_by:") for line in lines)
     for line in lines:
-        if line.startswith(("protocol_version:", "schema_version:")):
+        if line.startswith(("project_version:", "protocol_version:", "schema_version:")):
             continue
         if line.startswith("format_version:"):
             normalized.append(f"format_version: {target_version}\n")
@@ -1405,7 +1411,7 @@ def _set_format_version(content: str, target_version: int) -> str:
         normalized.append(line)
     lines = normalized
     insertion = next(
-        (index + 1 for index, line in enumerate(lines) if line.startswith("project_version:")),
+        (index + 1 for index, line in enumerate(lines) if line.startswith("knowledge_base_name:")),
         len(lines),
     )
     if not has_format:
@@ -1525,7 +1531,7 @@ def apply_migration(
         manifest.read_text(encoding="utf-8"), proposal.target_version
     )
     manifest_content = _rewrite_governance_paths(manifest_content)
-    if proposal.target_version >= 13:
+    if format_generation(proposal.target_version) >= 13:
         manifest_content = _format13_manifest(manifest_content)
     manifest_content = (
         manifest_content
@@ -1580,13 +1586,13 @@ def apply_migration(
                             projected_template.read_text(encoding="utf-8"),
                         ),
                     )
-                if proposal.target_version >= 12:
+                if format_generation(proposal.target_version) >= 12:
                     normalized = _format12_requirement(normalized)
-                if proposal.target_version >= 13 and move.source.parent.name == "04-决策记录":
+                if format_generation(proposal.target_version) >= 13 and move.source.parent.name == "04-决策记录":
                     normalized = _format13_decision_item(normalized)
-                if proposal.target_version >= 13:
+                if format_generation(proposal.target_version) >= 13:
                     normalized = _format13_document(normalized)
-                if proposal.target_version >= 14:
+                if format_generation(proposal.target_version) >= 14:
                     normalized = _format14_document(normalized)
                 if move.target.name == "README.md":
                     normalized = _rewrite_governance_paths(normalized, governance_readme=True)

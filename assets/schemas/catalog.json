@@ -2,9 +2,7 @@
   "acceptance": "acceptance.schema.json",
   "data_asset": "data-asset.schema.json",
   "data_source": "data-source.schema.json",
-  "database_namespace": "database-namespace.schema.json",
   "database_table": "database-table.schema.json",
-  "database_unit": "database-unit.schema.json",
   "feature": "feature.schema.json",
   "governance_task": "governance-task.schema.json",
   "interface": "interface.schema.json",
@@ -17,6 +15,5 @@
   "requirement": "requirement.schema.json",
   "specification_change": "specification-change.schema.json",
   "specification_delta": "specification-delta.schema.json",
-  "source": "source.schema.json",
   "task": "task.schema.json"
 }
