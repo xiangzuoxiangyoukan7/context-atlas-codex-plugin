@@ -1,1 +1,37 @@
-{"id":"impact-analysis","name_zh":"分析业务影响","rules":["RULE-IMPACT-001","RULE-IMPACT-002","RULE-REL-001","RULE-REL-002"]}
+{
+  "contract_version": 2,
+  "id": "impact-analysis",
+  "name_zh": "分析业务影响",
+  "description": "只读计算知识变化的直接和间接影响",
+  "use_when": [
+    "准备变更、删除、归档或评估差异"
+  ],
+  "do_not_use_when": [
+    "把计算结果当作业务结论"
+  ],
+  "execution_mode": "read_only",
+  "preconditions": [
+    "目标路径位于指定项目或知识库边界内",
+    "所需输入可被确定性解析"
+  ],
+  "inputs": [
+    "变化对象、变化类型、关系图边界"
+  ],
+  "outputs": [
+    "required、review_required、informational 三级影响"
+  ],
+  "confirmation": {
+    "required": false,
+    "rule": "正式写入仅接受与当前 proposal_revision 完全一致的 confirmed_revision"
+  },
+  "failure_modes": [
+    "输入或目标不合法时拒绝执行",
+    "验证失败时报告失败且不得声称成功"
+  ],
+  "rules": [
+    "RULE-知识治理规则-业务影响由关系分析与验收证据共同判断",
+    "RULE-知识治理规则-影响分析只提供三级人工决策输入",
+    "RULE-知识治理规则-关系必须同时引用目标文件和稳定知识编号",
+    "RULE-知识治理规则-关系只保存统一的权威正向链接"
+  ]
+}

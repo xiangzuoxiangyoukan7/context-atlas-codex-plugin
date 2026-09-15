@@ -1,17 +1,17 @@
 ---
-id: IDX-DATABASE
+id: IDX-技术基线-数据库
 type: knowledge_index
 title: 数据库
 rel_classified_under:
-  - "[[02-技术基线/README|IDX-TECHNICAL-BASELINE]]"
+  - "[[02-技术基线/README|IDX-技术基线]]"
 ---
 # 数据库知识
 
 ## 目录契约
 
-本目录只保存数据库层级和表结构知识，不保存连接密钥或执行日志。数据库根 README 是 `IDX-DATABASE` 分类索引；每个 `DS-*` 子目录的 README 则是该数据源唯一的 `data_source` 实体和目录入口，不再额外创建同名数据源卡。使用 `children` 查看目录内容、`neighbors` 查询直接关系、`graph` 分析有界影响。
+本目录只保存数据库层级和表结构知识，不保存连接密钥或执行日志。数据库根 README 是 `IDX-技术基线-数据库` 分类索引；每个 `DS-*` 子目录的 README 则是该数据源唯一的 `data_source` 实体和目录入口，不再额外创建同名数据源卡。使用 `children` 查看目录内容、`neighbors` 查询直接关系、`graph` 分析有界影响。
 
-<!-- context-atlas-rules: [[rules/知识治理规则#RULE-DB-001|RULE-DB-001]] -->
+<!-- context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-数据库表字段必须记录值域和逻辑外键|RULE-知识治理规则-数据库表字段必须记录值域和逻辑外键]] -->
 
 默认按数据源隔离：每个数据源创建 `DS-<领域>-<名称>/` 目录，并用 `.project-kb/templates/knowledge/data-source.md` 直接生成该目录的 `README.md`。这个 README 使用 `DS-*` 稳定身份并保存连接位置、产品、版本、Database、Schema/Namespace、安全和治理信息。项目依赖的每张表在同一目录下一表一文件，不创建重复的 `DS-*.md`。
 

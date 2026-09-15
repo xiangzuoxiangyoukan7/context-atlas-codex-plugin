@@ -15,79 +15,120 @@
     12,
     13,
     14,
-    "0.18.2"
+    "0.18.2",
+    "0.19.0"
   ],
-  "created_format_version": "0.18.2",
+  "created_format_version": "0.19.0",
   "conversions": [
     {
       "from": 1,
-      "to": "0.18.2",
-      "id": "embedded-sources-and-knowledge-governance"
+      "to": "0.19.0",
+      "id": "embedded-sources-and-knowledge-governance",
+      "description": "把格式 1 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 2,
-      "to": "0.18.2",
-      "id": "knowledge-governance-layout-and-embedded-sources"
+      "to": "0.19.0",
+      "id": "knowledge-governance-layout-and-embedded-sources",
+      "description": "把格式 2 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 3,
-      "to": "0.18.2",
-      "id": "embedded-sources"
+      "to": "0.19.0",
+      "id": "embedded-sources",
+      "description": "把格式 3 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 4,
-      "to": "0.18.2",
-      "id": "typed-knowledge-and-simplified-contract-layout"
+      "to": "0.19.0",
+      "id": "typed-knowledge-and-simplified-contract-layout",
+      "description": "把格式 4 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 5,
-      "to": "0.18.2",
-      "id": "changes-and-evidence-without-task-packages"
+      "to": "0.19.0",
+      "id": "changes-and-evidence-without-task-packages",
+      "description": "把格式 5 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 6,
-      "to": "0.18.2",
-      "id": "specification-readiness-and-change-workspaces"
+      "to": "0.19.0",
+      "id": "specification-readiness-and-change-workspaces",
+      "description": "把格式 6 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 7,
-      "to": "0.18.2",
-      "id": "unified-version-model-and-knowledge-granularity"
+      "to": "0.19.0",
+      "id": "unified-version-model-and-knowledge-granularity",
+      "description": "把格式 7 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 8,
-      "to": "0.18.2",
-      "id": "embedded-acceptance-and-concrete-interfaces"
+      "to": "0.19.0",
+      "id": "embedded-acceptance-and-concrete-interfaces",
+      "description": "把格式 8 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 9,
-      "to": "0.18.2",
-      "id": "feature-integrated-design-and-acceptance"
+      "to": "0.19.0",
+      "id": "feature-integrated-design-and-acceptance",
+      "description": "把格式 9 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 10,
-      "to": "0.18.2",
-      "id": "readme-classification-and-current-layout"
+      "to": "0.19.0",
+      "id": "readme-classification-and-current-layout",
+      "description": "把格式 10 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 11,
-      "to": "0.18.2",
-      "id": "requirement-body-authority-and-readiness-decoupling"
+      "to": "0.19.0",
+      "id": "requirement-body-authority-and-readiness-decoupling",
+      "description": "把格式 11 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 12,
-      "to": "0.18.2",
-      "id": "decision-content-integration-and-current-layout"
+      "to": "0.19.0",
+      "id": "decision-content-integration-and-current-layout",
+      "description": "把格式 12 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 13,
-      "to": "0.18.2",
-      "id": "data-asset-independence-and-obsidian-color-quality"
+      "to": "0.19.0",
+      "id": "data-asset-independence-and-obsidian-color-quality",
+      "description": "把格式 13 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     },
     {
       "from": 14,
-      "to": "0.18.2",
-      "id": "search-first-navigation-and-two-version-model"
+      "to": "0.19.0",
+      "id": "search-first-navigation-and-two-version-model",
+      "description": "把格式 14 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
+    },
+    {
+      "from": "0.18.2",
+      "to": "0.19.0",
+      "id": "semantic-requirement-identities-and-self-describing-schemas",
+      "description": "把格式 0.18.2 的知识库等价转换为 0.19.0，不改变业务事实与批准状态。",
+      "output_policy": "convert_only_no_legacy_coexistence"
     }
-  ]
+  ],
+  "title": "知识库格式兼容与转换清单",
+  "description": "声明本版本能够读取的输入格式、唯一创建格式以及每条确定性转换路径。",
+  "read_policy": "supported_format_versions 只表示可作为升级输入读取，不表示允许继续写入旧格式。",
+  "write_policy": "所有初始化和升级输出只能使用 created_format_version。",
+  "unknown_version_policy": "reject"
 }

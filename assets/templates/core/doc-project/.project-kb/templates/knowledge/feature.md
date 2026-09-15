@@ -19,7 +19,7 @@ rel_primary_module: []
 rel_participating_modules: []
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[01-功能基线/功能/README|IDX-FEATURES]]"
+  - "[[01-功能基线/功能/README|IDX-功能基线-功能]]"
 ---
 # F-DOMAIN-001：功能名称
 

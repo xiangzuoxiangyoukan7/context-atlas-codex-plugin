@@ -1,11 +1,613 @@
 {
-  "required": ["id", "type", "title", "status", "intent", "source_system", "affected_ids", "delta_paths", "acceptance", "sources", "last_updated"],
-  "enums": {
-    "type": ["specification_change"],
-    "status": ["draft", "clarifying", "proposed", "approved", "implementing", "verifying", "accepted", "merged", "archived", "rejected", "cancelled", "superseded"],
-    "source_system": ["context_atlas", "openspec", "spec_kit", "issue", "other"]
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/specification-change.schema.json",
+  "title": "规格变更",
+  "description": "围绕单一意图组织的规格变化、影响、Delta 和验收计划。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "specification_change",
+    "purpose": "提供从变化原因到受影响基线、实施、验证和合并的可追溯工作区。",
+    "use_when": [
+      "一个目标需要新增、修订、退役或删除稳定知识",
+      "外部 SDD 工件需要映射为当前知识变化",
+      "需要在应用前审阅影响和验收计划"
+    ],
+    "do_not_use_when": [
+      "只记录无长期价值的任务进度",
+      "把多个无关意图捆绑在同一变更",
+      "用变更状态代替执行许可或业务验收"
+    ],
+    "canonical_location": "03-变更与证据/变更/CHG-<领域>-<YYYYMMDD>-<名称>/README.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 128,
+      "rename_policy": "标题变化不改变稳定 ID；身份级变化建立后继项并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": [
+        "Why",
+        "What Changes",
+        "影响",
+        "迁移与回滚",
+        "验收计划"
+      ],
+      "required_sections": [
+        "Why",
+        "What Changes"
+      ],
+      "forbidden_content": [
+        "把测试通过直接写成业务接受",
+        "把外部任务状态当作知识确认"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "draft",
+        "clarifying",
+        "proposed"
+      ],
+      "terminal_states": [
+        "archived",
+        "rejected",
+        "cancelled",
+        "superseded"
+      ],
+      "transitions": [
+        {
+          "from": "draft",
+          "to": "clarifying",
+          "when": "已形成候选且存在关键问题"
+        },
+        {
+          "from": "clarifying",
+          "to": "proposed",
+          "when": "范围、影响和验证计划完整"
+        },
+        {
+          "from": "proposed",
+          "to": "approved",
+          "when": "责任人确认当前 Proposal 修订"
+        },
+        {
+          "from": "approved",
+          "to": "implementing",
+          "when": "开始可定位实施"
+        },
+        {
+          "from": "implementing",
+          "to": "verifying",
+          "when": "实现完成并执行验证"
+        },
+        {
+          "from": "verifying",
+          "to": "accepted",
+          "when": "证据可定位且业务确认"
+        },
+        {
+          "from": "accepted",
+          "to": "merged",
+          "when": "稳定内容回归当前基线"
+        },
+        {
+          "from": "merged",
+          "to": "archived",
+          "when": "审计保留且当前引用已迁移"
+        }
+      ],
+      "invalid_inferences": [
+        "approved 不授予外部执行权限",
+        "verifying 不等于 accepted",
+        "merged 不表示历史来源成为当前权威"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-规格变更-必须只表达一个主意图",
+        "enforcement": "human_review",
+        "description": "一个变更必须只有一个可清楚概括的意图。",
+        "remediation": "拆分无依赖的变化。"
+      },
+      {
+        "id": "RULE-SCHEMA-规格变更-必须包含来源",
+        "enforcement": "deterministic",
+        "description": "变更必须具有至少一个来源。",
+        "remediation": "登记内嵌来源。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      },
+      {
+        "id": "RULE-SCHEMA-规格变更-接受状态必须具有版本证据与业务确认",
+        "enforcement": "human_review",
+        "description": "accepted 必须具有对应版本的可定位证据和业务确认。",
+        "remediation": "补齐证据或保持 verifying。"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "authority_boundary": "记录知识变化及确认，不授予代码执行、部署或外部副作用权限。"
+    },
+    "invalid_examples": [
+      {
+        "case": "没有来源",
+        "value": {
+          "id": "CHG-知识治理-20260915-Schema语义身份",
+          "sources": []
+        },
+        "expected_rule": "RULE-SCHEMA-规格变更-必须包含来源",
+        "reason": "变化意图不可追溯。"
+      },
+      {
+        "case": "多个无关意图",
+        "value": {
+          "intent": "改身份并新增无关功能"
+        },
+        "expected_rule": "RULE-SCHEMA-规格变更-必须只表达一个主意图",
+        "reason": "无法原子审阅影响。"
+      }
+    ]
   },
-  "patterns": {"id": "CHG-[0-9]{8}-[0-9]{3}", "last_updated": "\\d{4}-\\d{2}-\\d{2}"},
-  "non_empty_lists": ["sources"],
-  "unique_lists": ["affected_ids", "delta_paths", "acceptance", "sources"]
+  "properties": {
+    "id": {
+      "title": "变更稳定编号",
+      "description": "使用 CHG-、领域、创建日期和语义名称组成的目录作用域身份。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "CHG-知识治理-20260915-Schema语义身份"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识规格变更。",
+      "const": "specification_change",
+      "examples": [
+        "specification_change"
+      ]
+    },
+    "title": {
+      "title": "变更名称",
+      "description": "简洁表达单一变化意图。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "Schema 自描述改造"
+      ]
+    },
+    "status": {
+      "title": "状态",
+      "description": "表示该对象在治理流程中的阶段，不自动证明实现或业务结果。",
+      "oneOf": [
+        {
+          "const": "draft",
+          "title": "草拟中",
+          "description": "意图已出现但范围尚未形成候选",
+          "examples": [
+            "draft"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "仍在收集基本范围"
+            ]
+          }
+        },
+        {
+          "const": "clarifying",
+          "title": "澄清中",
+          "description": "候选已形成但关键问题未收敛",
+          "examples": [
+            "clarifying"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "问题会影响范围或方案"
+            ]
+          }
+        },
+        {
+          "const": "proposed",
+          "title": "待确认",
+          "description": "完整变更候选等待责任人确认",
+          "examples": [
+            "proposed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "目标、影响和验证计划已可审阅"
+            ]
+          }
+        },
+        {
+          "const": "approved",
+          "title": "已批准",
+          "description": "当前变更 Proposal 已精确确认",
+          "examples": [
+            "approved"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "confirmed_revision 与当前修订一致"
+            ]
+          }
+        },
+        {
+          "const": "implementing",
+          "title": "实施中",
+          "description": "已批准变化正在实现",
+          "examples": [
+            "implementing"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "存在可定位实施活动"
+            ]
+          }
+        },
+        {
+          "const": "verifying",
+          "title": "验证中",
+          "description": "实现完成并正在收集验证证据",
+          "examples": [
+            "verifying"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "正在执行结构或实现验证"
+            ]
+          }
+        },
+        {
+          "const": "accepted",
+          "title": "已验收",
+          "description": "对应版本已有证据并获业务确认",
+          "examples": [
+            "accepted"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "结构、实现和业务结果分别记录"
+            ]
+          }
+        },
+        {
+          "const": "merged",
+          "title": "已合并",
+          "description": "稳定变化已回归当前知识基线",
+          "examples": [
+            "merged"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "Delta 已应用且基线引用一致"
+            ]
+          }
+        },
+        {
+          "const": "archived",
+          "title": "已归档",
+          "description": "仅保留历史追溯",
+          "examples": [
+            "archived"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "当前引用迁移且归档确认"
+            ]
+          }
+        },
+        {
+          "const": "rejected",
+          "title": "已拒绝",
+          "description": "责任人明确不接受当前候选",
+          "examples": [
+            "rejected"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "当前 Proposal 被拒绝"
+            ]
+          }
+        },
+        {
+          "const": "cancelled",
+          "title": "已取消",
+          "description": "已批准或实施中的变化被明确撤销",
+          "examples": [
+            "cancelled"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "责任人确认取消及影响"
+            ]
+          }
+        },
+        {
+          "const": "superseded",
+          "title": "已被替代",
+          "description": "后继变更承接当前意图",
+          "examples": [
+            "superseded"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "已建立替代关系"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "draft"
+      ]
+    },
+    "intent": {
+      "title": "变化意图",
+      "description": "一句话说明本变更要达成的稳定结果。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "完善全部 Schema 的自描述语义"
+      ]
+    },
+    "source_system": {
+      "title": "来源系统",
+      "description": "指出变化候选最初由哪个系统产生。",
+      "oneOf": [
+        {
+          "const": "context_atlas",
+          "title": "Context Atlas",
+          "description": "由本知识库原生流程提出",
+          "examples": [
+            "context_atlas"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "变化在 Context Atlas 中形成"
+            ]
+          }
+        },
+        {
+          "const": "openspec",
+          "title": "OpenSpec",
+          "description": "由 OpenSpec 工作区映射",
+          "examples": [
+            "openspec"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "存在可定位 OpenSpec 来源"
+            ]
+          }
+        },
+        {
+          "const": "spec_kit",
+          "title": "Spec Kit",
+          "description": "由 Spec Kit 工件映射",
+          "examples": [
+            "spec_kit"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "存在可定位 Spec Kit 来源"
+            ]
+          }
+        },
+        {
+          "const": "issue",
+          "title": "Issue 系统",
+          "description": "由外部 Issue 映射",
+          "examples": [
+            "issue"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "存在可定位 Issue 引用"
+            ]
+          }
+        },
+        {
+          "const": "other",
+          "title": "其他",
+          "description": "来自未登记的外部系统",
+          "examples": [
+            "other"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "正文明确系统和引用"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "context_atlas"
+      ]
+    },
+    "affected_ids": {
+      "title": "受影响身份",
+      "description": "直接受影响的当前稳定知识 ID；未知时保留空数组并在正文说明。",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        [
+          "FEATURE-功能基线-功能-从数据库模型生成知识模板",
+          "FEATURE-功能基线-功能-知识校验"
+        ]
+      ]
+    },
+    "delta_paths": {
+      "title": "Delta 路径",
+      "description": "属于本变更的规格增量文件路径；没有独立 Delta 时为空数组。",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        [
+          "03-变更与证据/变更/CHG-知识治理-20260915-Schema语义身份/DELTA-01.md"
+        ]
+      ]
+    },
+    "acceptance": {
+      "title": "验收场景",
+      "description": "用于判断变化结果的稳定场景 ID。",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        [
+          "AC-规格变更-Schema语义身份-验证迁移结果"
+        ]
+      ]
+    },
+    "sources": {
+      "title": "事实来源",
+      "description": "支撑当前变化描述的非空内嵌来源列表。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "embedded-source.schema.json"
+      },
+      "examples": [
+        [
+          {
+            "type": "user_statement",
+            "reference": "当前会话",
+            "observed_at": "2026-09-15T00:00:00+08:00",
+            "confirmation_status": "confirmed",
+            "confirmed_at": "2026-09-15T00:00:00+08:00"
+          }
+        ]
+      ]
+    },
+    "last_updated": {
+      "title": "最后更新时间",
+      "description": "内容最后正式变化日期，使用 YYYY-MM-DD。",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": [
+        "2026-09-15"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title",
+    "status",
+    "intent",
+    "source_system",
+    "affected_ids",
+    "delta_paths",
+    "acceptance",
+    "sources",
+    "last_updated"
+  ],
+  "examples": [
+    {
+      "id": "CHG-知识治理-20260915-Schema语义身份",
+      "type": "specification_change",
+      "title": "Schema 自描述改造",
+      "status": "approved",
+      "intent": "完善 Schema 语义",
+      "source_system": "context_atlas",
+      "affected_ids": [
+        "FEATURE-功能基线-功能-从数据库模型生成知识模板"
+      ],
+      "delta_paths": [],
+      "acceptance": [
+        "AC-规格变更-Schema语义身份-验证迁移结果"
+      ],
+      "sources": [
+        {
+          "type": "user_statement",
+          "reference": "当前会话",
+          "observed_at": "2026-09-15T00:00:00+08:00",
+          "confirmation_status": "confirmed",
+          "confirmed_at": "2026-09-15T00:00:00+08:00"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    },
+    {
+      "id": "CHG-接口-20260915-兼容调整",
+      "type": "specification_change",
+      "title": "接口兼容调整",
+      "status": "proposed",
+      "intent": "增加接口版本兼容策略",
+      "source_system": "issue",
+      "affected_ids": [
+        "INTERFACE-技术基线-接口-知识库API"
+      ],
+      "delta_paths": [
+        "changes/delta.md"
+      ],
+      "acceptance": [],
+      "sources": [
+        {
+          "type": "external_document",
+          "reference": "ISSUE-42",
+          "observed_at": "2026-09-15T00:00:00+08:00",
+          "confirmation_status": "observed"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    }
+  ],
+  "enums": {
+    "type": [
+      "specification_change"
+    ],
+    "status": [
+      "draft",
+      "clarifying",
+      "proposed",
+      "approved",
+      "implementing",
+      "verifying",
+      "accepted",
+      "merged",
+      "archived",
+      "rejected",
+      "cancelled",
+      "superseded"
+    ],
+    "source_system": [
+      "context_atlas",
+      "openspec",
+      "spec_kit",
+      "issue",
+      "other"
+    ]
+  },
+  "patterns": {
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
+    "last_updated": "\\d{4}-\\d{2}-\\d{2}"
+  },
+  "non_empty_lists": [
+    "sources"
+  ],
+  "unique_lists": [
+    "affected_ids",
+    "delta_paths",
+    "acceptance",
+    "sources"
+  ]
 }

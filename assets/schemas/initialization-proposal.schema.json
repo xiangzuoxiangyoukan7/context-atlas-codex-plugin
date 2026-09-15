@@ -4,103 +4,511 @@
   "title": "Context Atlas Initialization Proposal",
   "type": "object",
   "additionalProperties": false,
-  "required": ["operation", "proposal_revision", "project", "facts", "unknowns", "conflicts"],
+  "required": [
+    "operation",
+    "proposal_revision",
+    "project",
+    "facts",
+    "unknowns",
+    "conflicts"
+  ],
   "properties": {
-    "operation": {"const": "initialize"},
-    "proposal_revision": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "operation": {
+      "const": "initialize",
+      "title": "operation",
+      "description": "operation 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "initialize"
+      ]
+    },
+    "proposal_revision": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "proposal_revision",
+      "description": "proposal_revision 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
     "project": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["root", "id", "name", "knowledge_base_name"],
+      "required": [
+        "root",
+        "id",
+        "name",
+        "knowledge_base_name"
+      ],
       "properties": {
-        "root": {"type": "string", "minLength": 1},
-        "id": {"type": "string", "pattern": "^[^./\\\\][^/\\\\]*$"},
-        "name": {"type": "string", "minLength": 1},
-        "knowledge_base_name": {"type": "string", "pattern": "^doc-[^/\\\\]+$"},
-        "workspace_profile": {"enum": ["standard", "obsidian"]}
-      }
+        "root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "knowledge_base_name": {
+          "type": "string",
+          "pattern": "^doc-[^/\\\\]+$"
+        },
+        "workspace_profile": {
+          "enum": [
+            "standard",
+            "obsidian"
+          ]
+        }
+      },
+      "title": "project",
+      "description": "project 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
     },
     "facts": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["goals", "boundaries_in", "boundaries_out", "technology_stacks", "terms", "capabilities", "features", "modules", "interfaces", "databases", "external_dependencies", "tests"],
+      "required": [
+        "goals",
+        "boundaries_in",
+        "boundaries_out",
+        "technology_stacks",
+        "terms",
+        "capabilities",
+        "features",
+        "modules",
+        "interfaces",
+        "databases",
+        "external_dependencies",
+        "tests"
+      ],
       "properties": {
-        "goals": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
-        "boundaries_in": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
-        "boundaries_out": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
-        "technology_stacks": {"type": "array", "items": {"$ref": "#/$defs/technology"}},
-        "terms": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
-        "capabilities": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
-        "features": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
-        "modules": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
-        "interfaces": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
-        "databases": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
-        "external_dependencies": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
-        "tests": {"type": "array", "items": {"$ref": "#/$defs/fact"}}
-      }
+        "goals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "boundaries_in": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "boundaries_out": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "technology_stacks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/technology"
+          }
+        },
+        "terms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "interfaces": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "databases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "external_dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        },
+        "tests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact"
+          }
+        }
+      },
+      "title": "facts",
+      "description": "facts 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
     },
-    "unknowns": {"type": "array", "items": {"$ref": "#/$defs/open_item"}},
-    "conflicts": {"type": "array", "items": {"$ref": "#/$defs/open_item"}}
-    ,"agent_entry": {
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/open_item"
+      },
+      "title": "unknowns",
+      "description": "unknowns 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/open_item"
+      },
+      "title": "conflicts",
+      "description": "conflicts 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "agent_entry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["host", "filename"],
+      "required": [
+        "host",
+        "filename"
+      ],
       "properties": {
-        "host": {"enum": ["codex", "claude", "qoder", "trae"]},
-        "filename": {"enum": ["AGENTS.md", "CLAUDE.md"]}
-      }
+        "host": {
+          "enum": [
+            "codex",
+            "claude",
+            "qoder",
+            "trae"
+          ]
+        },
+        "filename": {
+          "enum": [
+            "AGENTS.md",
+            "CLAUDE.md"
+          ]
+        }
+      },
+      "title": "agent_entry",
+      "description": "agent_entry 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
     }
   },
   "$defs": {
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "reference", "observed_at", "confirmation_status"],
+      "required": [
+        "type",
+        "reference",
+        "observed_at",
+        "confirmation_status"
+      ],
       "properties": {
-        "type": {"enum": ["repository_file", "user_statement", "existing_document", "command_output", "ai_inference"]},
-        "reference": {"type": "string", "minLength": 1},
-        "observed_at": {"type": "string", "format": "date-time"},
-        "confirmation_status": {"enum": ["observed", "confirmed"]},
-        "confirmed_at": {"type": "string", "format": "date-time"}
+        "type": {
+          "enum": [
+            "repository_file",
+            "user_statement",
+            "existing_document",
+            "command_output",
+            "ai_inference"
+          ]
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "confirmation_status": {
+          "enum": [
+            "observed",
+            "confirmed"
+          ]
+        },
+        "confirmed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     },
     "fact": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "value", "status", "source"],
+      "required": [
+        "id",
+        "value",
+        "status",
+        "source"
+      ],
       "properties": {
-        "id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"},
-        "value": {"type": "string", "minLength": 1},
-        "status": {"enum": ["confirmed", "proposed"]},
-        "source": {"$ref": "#/$defs/source"}
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "proposed"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
       }
     },
     "technology": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "value", "status", "source", "name", "version", "location", "purpose", "commands", "configuration"],
+      "required": [
+        "id",
+        "value",
+        "status",
+        "source",
+        "name",
+        "version",
+        "location",
+        "purpose",
+        "commands",
+        "configuration"
+      ],
       "properties": {
-        "id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"},
-        "value": {"type": "string", "minLength": 1},
-        "status": {"enum": ["confirmed", "proposed"]},
-        "source": {"$ref": "#/$defs/source"},
-        "name": {"type": "string", "minLength": 1},
-        "version": {"type": "string", "minLength": 1},
-        "location": {"type": "string", "minLength": 1},
-        "purpose": {"type": "string", "minLength": 1},
-        "commands": {"type": "array", "items": {"type": "string"}},
-        "configuration": {"type": "string", "minLength": 1}
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "proposed"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "configuration": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "open_item": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "question", "owner_action"],
+      "required": [
+        "id",
+        "question",
+        "owner_action"
+      ],
       "properties": {
-        "id": {"type": "string", "pattern": "^(UNKNOWN|CONFLICT)-[0-9]{3}$"},
-        "question": {"type": "string", "minLength": 1},
-        "owner_action": {"type": "string", "minLength": 1}
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_action": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     }
-  }
+  },
+  "description": "描述初始化前供责任人完整审阅的不可变候选。",
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "initialization_proposal",
+    "purpose": "描述初始化前供责任人完整审阅的不可变候选。",
+    "use_when": [
+      "对应运行时操作需要产生机器可读候选或报告"
+    ],
+    "do_not_use_when": [
+      "作为正式知识事实或用户确认的替代品"
+    ],
+    "canonical_location": "会话临时 Proposal；不写入正式知识",
+    "identity_contract": {
+      "id_field": "operation",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "operation",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 160,
+      "rename_policy": "稳定身份变化必须通过受控事务迁移全部引用。",
+      "collision_policy": "目标身份或路径冲突时阻塞。"
+    },
+    "body_contract": {
+      "format": "json_or_front_matter",
+      "authoritative_for": [
+        "描述初始化前供责任人完整审阅的不可变候选。"
+      ],
+      "required_sections": [],
+      "forbidden_content": [
+        "秘密、私钥、Token 和未脱敏个人数据"
+      ]
+    },
+    "lifecycle": {
+      "field": "operation",
+      "initial_states": [
+        "initialize"
+      ],
+      "terminal_states": [
+        "initialize"
+      ],
+      "transitions": [],
+      "invalid_inferences": [
+        "结构合法不表示业务正确或已经批准"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-初始化提案-结构必须完整",
+        "enforcement": "json_schema",
+        "description": "所有必填字段、枚举和模式必须满足当前 Schema。",
+        "remediation": "按字段说明修正输入。"
+      }
+    ],
+    "compatibility": {
+      "standard": "JSON Schema Draft 2020-12",
+      "deprecated": false,
+      "unknown_value_policy": "不得猜测"
+    },
+    "invalid_examples": [
+      {
+        "case": "缺少必填字段",
+        "value": {
+          "invalid": true
+        },
+        "expected_rule": "RULE-SCHEMA-初始化提案-结构必须完整",
+        "reason": "无法形成完整且可执行的契约。"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "operation": "initialize",
+      "proposal_revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "project": {
+        "root": "D:/workspace/example",
+        "id": "example",
+        "name": "示例项目",
+        "knowledge_base_name": "doc-example",
+        "workspace_profile": "standard"
+      },
+      "facts": {
+        "goals": [],
+        "boundaries_in": [],
+        "boundaries_out": [],
+        "technology_stacks": [],
+        "terms": [],
+        "capabilities": [],
+        "features": [],
+        "modules": [],
+        "interfaces": [],
+        "databases": [],
+        "external_dependencies": [],
+        "tests": []
+      },
+      "unknowns": [],
+      "conflicts": []
+    },
+    {
+      "operation": "initialize",
+      "proposal_revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "project": {
+        "root": "D:/workspace/example",
+        "id": "example",
+        "name": "示例项目",
+        "knowledge_base_name": "doc-example",
+        "workspace_profile": "standard"
+      },
+      "facts": {
+        "goals": [
+          {
+            "id": "GOAL-初始化提案-提供可验证知识库",
+            "value": "建立可追溯知识库",
+            "status": "proposed",
+            "source": {
+              "type": "repository_file",
+              "reference": "README.md",
+              "observed_at": "2026-09-15T00:00:00+08:00",
+              "confirmation_status": "observed"
+            }
+          }
+        ],
+        "boundaries_in": [],
+        "boundaries_out": [],
+        "technology_stacks": [],
+        "terms": [],
+        "capabilities": [],
+        "features": [],
+        "modules": [],
+        "interfaces": [],
+        "databases": [],
+        "external_dependencies": [],
+        "tests": []
+      },
+      "unknowns": [],
+      "conflicts": []
+    }
+  ]
 }

@@ -1,9 +1,9 @@
 ---
-id: IDX-FUNCTIONAL-BASELINE
+id: IDX-功能基线
 type: knowledge_index
 title: 功能基线
 rel_classified_under:
-  - "[[README|IDX-ROOT]]"
+  - "[[README|IDX-知识库]]"
 ---
 # 功能基线
 

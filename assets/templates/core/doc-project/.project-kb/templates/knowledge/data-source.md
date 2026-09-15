@@ -13,7 +13,7 @@ environments: [development]
 sources: []
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[02-技术基线/数据库/README|IDX-DATABASE]]"
+  - "[[02-技术基线/数据库/README|IDX-技术基线-数据库]]"
 ---
 # DS-DOMAIN-NAME：数据源名称
 

@@ -1,9 +1,9 @@
 ---
-id: GLOSSARY
+id: OVERVIEW-项目总览-术语表
 type: overview_document
 title: 术语表
 rel_classified_under:
-  - "[[00-项目总览/README|IDX-OVERVIEW]]"
+  - "[[00-项目总览/README|IDX-项目总览]]"
 ---
 # 术语表
 

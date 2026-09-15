@@ -1,1 +1,37 @@
-{"id":"create","name_zh":"创建知识","rules":["RULE-AGENT-001","RULE-DB-001","RULE-REL-001","RULE-SRC-001"]}
+{
+  "contract_version": 2,
+  "id": "create",
+  "name_zh": "创建知识",
+  "description": "创建此前不存在的稳定知识身份",
+  "use_when": [
+    "已确认需要新增稳定知识对象"
+  ],
+  "do_not_use_when": [
+    "目标稳定身份已经存在"
+  ],
+  "execution_mode": "proposal_gated",
+  "preconditions": [
+    "目标路径位于指定项目或知识库边界内",
+    "所需输入可被确定性解析"
+  ],
+  "inputs": [
+    "完整事实、来源、关系、目标路径"
+  ],
+  "outputs": [
+    "新知识文件、验证报告"
+  ],
+  "confirmation": {
+    "required": true,
+    "rule": "正式写入仅接受与当前 proposal_revision 完全一致的 confirmed_revision"
+  },
+  "failure_modes": [
+    "输入或目标不合法时拒绝执行",
+    "验证失败时报告失败且不得声称成功"
+  ],
+  "rules": [
+    "RULE-知识治理规则-正式写入必须基于已确认提案",
+    "RULE-知识治理规则-数据库表字段必须记录值域和逻辑外键",
+    "RULE-知识治理规则-关系必须同时引用目标文件和稳定知识编号",
+    "RULE-知识治理规则-正式知识和质检结果必须引用来源与目标"
+  ]
+}

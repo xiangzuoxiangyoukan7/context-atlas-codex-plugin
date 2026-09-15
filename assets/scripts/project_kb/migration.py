@@ -15,6 +15,7 @@ from typing import Iterable
 from .compatibility import CompatibilityPolicy, FormatVersion, format_generation
 from .model import DocumentRecord
 from .obsidian import graph_text, read_graph
+from .semantic_identity import SEMANTIC_ID_PREFIXES, build_semantic_id, normalize_semantic_name
 
 
 CURRENT_ONLY_RUNTIME_REMOVALS = (
@@ -413,6 +414,7 @@ def _current_format_creations(root: Path) -> tuple[MigrationCreation, ...]:
         Path("03-变更与证据/变更/README.md"),
         Path("03-变更与证据/验收证据/README.md"),
         Path("03-变更与证据/待确认知识/README.md"),
+        Path("05-知识治理/GOV-知识治理-使用场景.md"),
     )
     creations: list[MigrationCreation] = []
     for relative in relatives:
@@ -564,7 +566,7 @@ def _current_database_table_rewrites(
         relations = record.metadata.get("rel_classified_under")
         if not isinstance(relations, list) or len(relations) != 1:
             continue
-        if not any("|IDX-DATABASE]]" in str(relation) for relation in relations):
+        if not any("|IDX-技术基线-数据库]]" in str(relation) for relation in relations):
             continue
         path = record.path.resolve()
         original = record.path.read_text(encoding="utf-8")
@@ -716,7 +718,12 @@ def _governance_layout(root: Path) -> tuple[tuple[MigrationMove, ...], tuple[Mig
     unresolved: list[MigrationUnresolved] = []
     for name in ("README.md", "AI知识采集协议.md"):
         source = legacy / name
-        destination = target / name
+        destination_name = (
+            "GOV-知识治理-AI-知识采集协议.md"
+            if name == "AI知识采集协议.md"
+            else name
+        )
+        destination = target / destination_name
         if source.is_file():
             if destination.exists():
                 unresolved.append(MigrationUnresolved(source, name, "新旧治理路径同时存在"))
@@ -782,7 +789,7 @@ def _format13_decision_item(content: str) -> str:
     content = re.sub(r"(?m)^status:\s*accepted\s*$", "status: missing", content)
     content = re.sub(
         r'(?ms)^rel_classified_under:\s*\n(?:\s+-.*\n)+',
-        'rel_classified_under:\n  - "[[03-变更与证据/待确认知识/README|IDX-PROPOSALS]]"\n',
+        'rel_classified_under:\n  - "[[03-变更与证据/待确认知识/README|IDX-变更与证据-待确认知识]]"\n',
         content,
     )
     return content
@@ -817,29 +824,29 @@ def _format13_layout(root: Path) -> tuple[tuple[MigrationMove, ...], tuple[Migra
     return tuple(moves), tuple(removals), tuple(unresolved)
 
 FORMAT11_CLASSIFICATION_INDEXES = {
-    "00-项目总览": "IDX-OVERVIEW",
-    "01-功能基线": "IDX-FUNCTIONAL-BASELINE",
-    "01-功能基线/需求": "IDX-REQUIREMENTS",
-    "01-功能基线/功能": "IDX-FEATURES",
-    "02-技术基线/模块": "IDX-MODULES",
-    "02-技术基线/接口": "IDX-INTERFACES",
-    "02-技术基线/数据库": "IDX-DATABASE",
-    "02-技术基线/数据库/数据源": "IDX-DATA-SOURCES",
-    "02-技术基线/数据库/数据库单元": "IDX-DATABASE-UNITS",
-    "02-技术基线/数据库/数据命名空间": "IDX-DATABASE-NAMESPACES",
-    "02-技术基线/数据库/数据表": "IDX-DATABASE-TABLES",
-    "02-技术基线/数据资产": "IDX-DATA-ASSETS",
-    "02-技术基线/外部依赖": "IDX-DEPENDENCIES",
-    "02-技术基线/原型": "IDX-PROTOTYPES",
-    "02-技术基线": "IDX-TECHNICAL-BASELINE",
-    "03-变更与证据/变更": "IDX-CHANGES",
-    "03-变更与证据/验收证据": "IDX-EVIDENCE",
-    "03-变更与证据/待确认知识": "IDX-PROPOSALS",
-    "03-变更与证据": "IDX-CHANGES-EVIDENCE",
+    "00-项目总览": "IDX-项目总览",
+    "01-功能基线": "IDX-功能基线",
+    "01-功能基线/需求": "IDX-功能基线-需求",
+    "01-功能基线/功能": "IDX-功能基线-功能",
+    "02-技术基线/模块": "IDX-技术基线-模块",
+    "02-技术基线/接口": "IDX-技术基线-接口",
+    "02-技术基线/数据库": "IDX-技术基线-数据库",
+    "02-技术基线/数据库/数据源": "IDX-技术基线-数据库-数据源",
+    "02-技术基线/数据库/数据库单元": "IDX-技术基线-数据库-数据库单元",
+    "02-技术基线/数据库/数据命名空间": "IDX-技术基线-数据库-数据命名空间",
+    "02-技术基线/数据库/数据表": "IDX-技术基线-数据库-数据表",
+    "02-技术基线/数据资产": "IDX-技术基线-数据资产",
+    "02-技术基线/外部依赖": "IDX-技术基线-外部依赖",
+    "02-技术基线/原型": "IDX-技术基线-原型",
+    "02-技术基线": "IDX-技术基线",
+    "03-变更与证据/变更": "IDX-变更与证据-变更",
+    "03-变更与证据/验收证据": "IDX-变更与证据-验收证据",
+    "03-变更与证据/待确认知识": "IDX-变更与证据-待确认知识",
+    "03-变更与证据": "IDX-变更与证据",
     "04-决策记录": "IDX-DECISIONS",
-    "05-知识治理/来源资料": "IDX-SOURCES",
-    "05-知识治理/公共来源": "IDX-COMMON-SOURCES",
-    "05-知识治理": "IDX-GOVERNANCE",
+    "05-知识治理/来源资料": "IDX-知识治理-来源资料",
+    "05-知识治理/公共来源": "IDX-知识治理-公共来源",
+    "05-知识治理": "IDX-知识治理",
     "Clippings": "IDX-CLIPPINGS",
 }
 
@@ -924,13 +931,22 @@ def _format11_layout(root: Path) -> tuple[tuple[MigrationMove, ...], tuple[Migra
 def _format11_classification(relative: str, identifier: str | None) -> str | None:
     """根据最终路径生成格式 11 的唯一分类关系。"""
 
-    if identifier == "IDX-ROOT":
+    if identifier == "IDX-知识库":
         return "rel_classified_under: []"
     directory = relative.rsplit("/", 1)[0] if "/" in relative else ""
     if relative.endswith("/README.md") and identifier and identifier.startswith("IDX-"):
         if "/" not in directory:
-            return 'rel_classified_under:\n  - "[[README|IDX-ROOT]]"'
+            return 'rel_classified_under:\n  - "[[README|IDX-知识库]]"'
         directory = directory.rsplit("/", 1)[0]
+    # 单一变更目录拥有自己的 README 分类节点，目录内文档必须直接指向它，
+    # 不能退化为上一级“变更”总索引。
+    if directory.startswith("03-变更与证据/变更/"):
+        scope = "-".join(
+            normalize_semantic_name(re.sub(r"^\d+-", "", part))
+            for part in directory.split("/")
+        )
+        index = f"IDX-{scope}"
+        return f'rel_classified_under:\n  - "[[{directory}/README|{index}]]"'
     matches = [
         (prefix, value) for prefix, value in FORMAT11_CLASSIFICATION_INDEXES.items()
         if directory == prefix or directory.startswith(prefix + "/")
@@ -988,7 +1004,17 @@ def _format11_document(content: str, relative: str, initialized_at: str | None) 
                 metadata = metadata[:owner_match.end()] + insertion + metadata[owner_match.end():]
             else:
                 metadata += insertion.lstrip("\n") + "\n"
-    classification = _format11_classification(relative, identifier)
+    is_nested_database_table = (
+        re.search(r"(?m)^type:\s*database_table\s*$", metadata) is not None
+        and re.search(r"(?m)^rel_belongs_to:", metadata) is not None
+    )
+    if is_nested_database_table:
+        metadata = re.sub(
+            r"(?ms)^rel_classified_under:.*?(?=^[A-Za-z_][A-Za-z0-9_]*:|\Z)",
+            "",
+            metadata,
+        )
+    classification = None if is_nested_database_table else _format11_classification(relative, identifier)
     if classification:
         metadata = re.sub(r"(?ms)^rel_classified_under:.*?(?=^[A-Za-z_][A-Za-z0-9_]*:|\Z)", "", metadata)
         metadata = re.sub(r"(?m)^type:.*$", lambda match: match.group(0) + "\n" + classification, metadata, count=1)
@@ -1143,6 +1169,171 @@ def _format14_document(content: str) -> str:
     return content[:match.start()] + "independence_basis: [missing]\n" + content[match.start():]
 
 
+def _replace_moved_link_targets(content: str, replacements: dict[str, str]) -> str:
+    """只在 Markdown/Wiki 链接目标中替换移动后的文件名。
+
+    文件名（例如“变更”）也可能是普通正文词语。对整篇文档做裸字符串替换会
+    把目录名、标题和业务描述一并扩展，最终产生重复路径和超长身份。
+    """
+
+    if not replacements:
+        return content
+
+    def replace_target(target: str) -> str:
+        """只替换链接路径的末级文件名，并保留锚点。"""
+
+        path_part, marker, fragment = target.partition("#")
+        for old, new in sorted(replacements.items(), key=lambda item: len(item[0]), reverse=True):
+            if path_part == old or path_part.endswith("/" + old):
+                path_part = path_part[:-len(old)] + new
+                break
+        return path_part + (marker + fragment if marker else "")
+
+    content = re.sub(
+        r"(?P<open>\]\()(?P<target>[^)]+)(?P<close>\))",
+        lambda match: match.group("open") + replace_target(match.group("target")) + match.group("close"),
+        content,
+    )
+    return re.sub(
+        r"(?P<open>\[\[)(?P<target>[^\]|#]+)(?P<suffix>(?:#[^\]|]*)?(?:\|[^\]]*)?\]\])",
+        lambda match: match.group("open") + replace_target(match.group("target")) + match.group("suffix"),
+        content,
+    )
+
+
+def _replace_semantic_references(
+    content: str,
+    identifiers: dict[str, str],
+    filenames: dict[str, str],
+) -> str:
+    """更新正文身份与链接，同时避免新文件名中的旧 ID 被二次展开。"""
+
+    links: list[str] = []
+    combined_link = re.compile(r"\]\([^)]+\)|\[\[[^\]]+\]\]")
+
+    def protect(match: re.Match[str]) -> str:
+        """先规范单个链接，再以占位符隔离其目标路径。"""
+
+        link = _replace_moved_link_targets(match.group(0), filenames)
+        # Wiki 链接别名保存稳定 ID，需要更新；链接目标路径保持文件迁移结果。
+        if link.startswith("[[") and "|" in link:
+            target, alias = link.rsplit("|", 1)
+            for old, new in sorted(identifiers.items(), key=lambda item: len(item[0]), reverse=True):
+                alias = alias.replace(old, new)
+            link = target + "|" + alias
+        token = f"\x00CONTEXT_ATLAS_LINK_{len(links)}\x00"
+        links.append(link)
+        return token
+
+    protected = combined_link.sub(protect, content)
+    if identifiers:
+        pattern = re.compile(
+            "|".join(re.escape(value) for value in sorted(identifiers, key=len, reverse=True))
+        )
+        protected = pattern.sub(lambda match: identifiers[match.group(0)], protected)
+    for index, link in enumerate(links):
+        protected = protected.replace(f"\x00CONTEXT_ATLAS_LINK_{index}\x00", link)
+    return protected
+
+
+def _format16_semantic_identities(
+    root: Path,
+    records: Iterable[DocumentRecord],
+    moves: tuple[MigrationMove, ...],
+    rewrites: tuple[MigrationRewrite, ...],
+) -> tuple[tuple[MigrationMove, ...], tuple[MigrationRewrite, ...], tuple[MigrationUnresolved, ...]]:
+    """把所有正式知识迁移为由类型、文件用途或目录作用域组成的语义身份。"""
+
+    replacements: dict[str, str] = {}
+    filename_replacements: dict[str, str] = {}
+    added_moves: list[MigrationMove] = []
+    unresolved: list[MigrationUnresolved] = []
+    for record in records:
+        try:
+            relative_parts = record.path.resolve().relative_to(root.resolve()).parts
+        except ValueError:
+            continue
+        if any(part in {".project-kb", ".obsidian", "Clippings"} for part in relative_parts):
+            continue
+        knowledge_type = record.metadata.get("type")
+        identifier = record.metadata.get("id")
+        title = record.metadata.get("title")
+        if (
+            not isinstance(identifier, str)
+            or not isinstance(knowledge_type, str)
+            or knowledge_type not in SEMANTIC_ID_PREFIXES
+        ):
+            continue
+        if not isinstance(title, str):
+            continue
+        try:
+            last_updated = record.metadata.get("last_updated")
+            new_identifier = build_semantic_id(
+                knowledge_type,
+                title,
+                record.path,
+                root,
+                current_id=identifier,
+                last_updated=last_updated if isinstance(last_updated, str) else None,
+            )
+        except ValueError as error:
+            unresolved.append(MigrationUnresolved(record.path, identifier, str(error)))
+            continue
+        if identifier == new_identifier:
+            continue
+        target = record.path if record.path.name.lower() == "readme.md" else record.path.with_name(new_identifier + ".md")
+        if target.exists() and target.resolve() != record.path.resolve():
+            unresolved.append(MigrationUnresolved(record.path, identifier, "语义身份目标文件已经存在"))
+            continue
+        if new_identifier in replacements.values():
+            unresolved.append(MigrationUnresolved(record.path, identifier, "语义身份与其他知识冲突"))
+            continue
+        replacements[identifier] = new_identifier
+        if target.resolve() != record.path.resolve():
+            filename_replacements[record.path.name] = target.name
+            filename_replacements[record.path.stem] = target.stem
+            added_moves.append(MigrationMove(record.path.resolve(), target.resolve(), _digest(record.path.read_bytes())))
+
+    rewrite_map = {item.path.resolve(): item for item in rewrites}
+    rewrite_candidates = [*root.rglob("*.md")]
+    manifest = root / "knowledge-base.yaml"
+    if manifest.is_file():
+        rewrite_candidates.append(manifest)
+    for path in sorted(rewrite_candidates):
+        current = rewrite_map.get(path.resolve())
+        content = current.content if current is not None and current.content is not None else path.read_text(encoding="utf-8")
+        if path.suffix.lower() == ".md":
+            updated = _replace_semantic_references(content, replacements, filename_replacements)
+        else:
+            updated = content
+            for old, new in sorted(filename_replacements.items(), key=lambda item: len(item[0]), reverse=True):
+                if old.endswith(".md"):
+                    updated = updated.replace(old, new)
+        if updated != content:
+            rewrite_map[path.resolve()] = MigrationRewrite(path.resolve(), _digest(path.read_bytes()), updated)
+    return moves + tuple(added_moves), tuple(rewrite_map.values()), tuple(unresolved)
+
+
+def _format16_requirement_identities(
+    root: Path,
+    records: Iterable[DocumentRecord],
+    moves: tuple[MigrationMove, ...],
+    rewrites: tuple[MigrationRewrite, ...],
+) -> tuple[tuple[MigrationMove, ...], tuple[MigrationRewrite, ...], tuple[MigrationUnresolved, ...]]:
+    """兼容旧内部调用名称，并委托统一语义身份迁移。"""
+
+    return _format16_semantic_identities(root, records, moves, rewrites)
+
+
+def _format16_document(content: str) -> str:
+    """移除知识库对插件源码目录的外部链接，保持治理说明可独立读取。"""
+
+    return content.replace(
+        "[知识采集与确认](../../references/知识采集与确认.md)",
+        "已安装插件随附的 `references/知识采集与确认.md`",
+    )
+
+
 def build_migration_proposal(
     root: Path,
     records: Iterable[DocumentRecord],
@@ -1260,6 +1451,8 @@ def build_migration_proposal(
                 normalized = _format13_document(normalized)
             if format_generation(result.creates_format_version) >= 14:
                 normalized = _format14_document(normalized)
+            if format_generation(result.creates_format_version) >= 16:
+                normalized = _format16_document(normalized)
             if normalized == original:
                 continue
             rewrites = tuple(
@@ -1274,6 +1467,14 @@ def build_migration_proposal(
         resolved_root, record_list, rewrites
     )
     rewrites = _current_template_frontmatter_rewrites(resolved_root, rewrites)
+    if (
+        format_generation(result.creates_format_version) >= 16
+        and result.format_version != result.creates_format_version
+    ):
+        moves, rewrites, identity_unresolved = _format16_semantic_identities(
+            resolved_root, record_list, moves, rewrites
+        )
+        layout_unresolved += identity_unresolved
     removal_paths = {item.path.resolve() for item in removals}
     for relative in CURRENT_ONLY_RUNTIME_REMOVALS:
         stale = (resolved_root / relative).resolve()
@@ -1302,16 +1503,16 @@ def build_migration_proposal(
     common_readme = common_sources / "README.md"
     if common_sources.is_dir() and not common_readme.exists():
         content = (
-            "---\nid: IDX-COMMON-SOURCES\ntype: knowledge_index\ntitle: 公共来源\n"
-            "rel_classified_under:\n  - \"[[05-知识治理/README|IDX-GOVERNANCE]]\"\n---\n"
+            "---\nid: IDX-知识治理-公共来源\ntype: knowledge_index\ntitle: 公共来源\n"
+            "rel_classified_under:\n  - \"[[05-知识治理/README|IDX-知识治理]]\"\n---\n"
             "# 公共来源\n\n本目录只保存多个知识项共同引用的去重来源；单项知识仍须自带可定位来源。\n"
         )
         creations += (MigrationCreation(common_readme.resolve(), content, _digest(content.encode("utf-8"))),)
     nested_indexes = {
-        "02-技术基线/数据库/数据源": ("IDX-DATA-SOURCES", "数据源"),
-        "02-技术基线/数据库/数据库单元": ("IDX-DATABASE-UNITS", "数据库单元"),
-        "02-技术基线/数据库/数据命名空间": ("IDX-DATABASE-NAMESPACES", "数据命名空间"),
-        "02-技术基线/数据库/数据表": ("IDX-DATABASE-TABLES", "数据表"),
+        "02-技术基线/数据库/数据源": ("IDX-技术基线-数据库-数据源", "数据源"),
+        "02-技术基线/数据库/数据库单元": ("IDX-技术基线-数据库-数据库单元", "数据库单元"),
+        "02-技术基线/数据库/数据命名空间": ("IDX-技术基线-数据库-数据命名空间", "数据命名空间"),
+        "02-技术基线/数据库/数据表": ("IDX-技术基线-数据库-数据表", "数据表"),
     }
     for relative, (identifier, title) in nested_indexes.items():
         directory = resolved_root / relative
@@ -1320,11 +1521,17 @@ def build_migration_proposal(
             continue
         content = (
             f"---\nid: {identifier}\ntype: knowledge_index\ntitle: {title}\n"
-            "rel_classified_under:\n  - \"[[02-技术基线/数据库/README|IDX-DATABASE]]\"\n---\n"
+            "rel_classified_under:\n  - \"[[02-技术基线/数据库/README|IDX-技术基线-数据库]]\"\n---\n"
             f"# {title}\n\n本目录按稳定身份保存{title}知识。\n"
         )
         creations += (MigrationCreation(readme.resolve(), content, _digest(content.encode("utf-8"))),)
     assets = _current_format_assets(resolved_root)
+    asset_paths = {item.path.resolve() for item in assets}
+    # 当前运行资产以发布清单为唯一权威；旧知识库内同名 Markdown 不得在资产更新后
+    # 再作为普通文档 rewrite 覆盖新版本（例如自动生成的 Schema 字段说明）。
+    rewrites = tuple(
+        item for item in rewrites if item.path.resolve() not in asset_paths
+    )
     return MigrationProposal(
         proposal_revision=_revision(
             result.format_version,
@@ -1500,6 +1707,7 @@ def apply_migration(
         rewrite = rewrite_by_path.get(change.path.resolve())
         base_content = rewrite.content if rewrite is not None and rewrite.content is not None else data.decode("utf-8")
         prepared.append((change.path, _add_supported_by(base_content, change.links)))
+    prepared_by_path = {path.resolve(): content for path, content in prepared}
     for move in proposal.moves:
         if _digest(move.source.read_bytes()) != move.original_digest:
             raise ValueError(f"migration target changed after proposal: {move.source.name}")
@@ -1527,9 +1735,13 @@ def apply_migration(
         if _digest(asset.content) != asset.content_digest:
             raise ValueError(f"migration asset content changed: {asset.path}")
     manifest = resolved_root / "knowledge-base.yaml"
-    manifest_content = _set_format_version(
-        manifest.read_text(encoding="utf-8"), proposal.target_version
+    manifest_rewrite = rewrite_by_path.get(manifest.resolve())
+    manifest_source = (
+        manifest_rewrite.content
+        if manifest_rewrite is not None and manifest_rewrite.content is not None
+        else manifest.read_text(encoding="utf-8")
     )
+    manifest_content = _set_format_version(manifest_source, proposal.target_version)
     manifest_content = _rewrite_governance_paths(manifest_content)
     if format_generation(proposal.target_version) >= 13:
         manifest_content = _format13_manifest(manifest_content)
@@ -1558,11 +1770,13 @@ def apply_migration(
             move.source.replace(move.target)
             if move.target.suffix.lower() == ".md":
                 source_rewrite = rewrite_by_path.get(move.source.resolve())
-                projected_content = (
-                    source_rewrite.content
-                    if source_rewrite is not None and source_rewrite.content is not None
-                    else move.target.read_text(encoding="utf-8")
-                )
+                projected_content = prepared_by_path.get(move.source.resolve())
+                if projected_content is None:
+                    projected_content = (
+                        source_rewrite.content
+                        if source_rewrite is not None and source_rewrite.content is not None
+                        else move.target.read_text(encoding="utf-8")
+                    )
                 normalized = _format11_document(
                     projected_content,
                     move.target.resolve().relative_to(resolved_root).as_posix(),

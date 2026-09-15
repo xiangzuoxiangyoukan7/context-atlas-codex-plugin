@@ -1,17 +1,432 @@
 {
-  "required": ["id", "type", "title", "status", "content_revision", "original_reference", "managed_path", "sha256", "mime_type", "size_bytes", "sensitivity", "sources", "last_updated"],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/managed-source.schema.json",
+  "title": "托管外部来源",
+  "description": "被复制进知识库受管区域、通过摘要保证完整性的外部原始资料。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "managed_source",
+    "purpose": "在允许和安全的前提下保存可复核来源副本，同时记录原引用、内容摘要、类型、大小和敏感级别。",
+    "use_when": [
+      "外部资料需要长期可复核且原地址可能变化",
+      "摄取事务需要固定某一内容版本",
+      "许可和敏感性允许在知识库中保存副本"
+    ],
+    "do_not_use_when": [
+      "来源只需链接且外部地址稳定",
+      "包含秘密、禁止复制内容或未脱敏个人数据",
+      "AI 推测或普通对话内容"
+    ],
+    "canonical_location": "Clippings/<managed_path> 对应的来源记录",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 96,
+      "rename_policy": "语义未发生身份级变化时保持稳定 ID；身份级变化建立后继项并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "managed_binary_or_text",
+      "authoritative_for": [
+        "摄取时的原始来源副本"
+      ],
+      "required_sections": [],
+      "forbidden_content": [
+        "密码",
+        "Token",
+        "私钥",
+        "无复制许可的内容"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "approved"
+      ],
+      "terminal_states": [
+        "archived"
+      ],
+      "transitions": [
+        {
+          "from": "approved",
+          "to": "superseded",
+          "when": "同一来源的新内容副本已确认"
+        },
+        {
+          "from": "superseded",
+          "to": "archived",
+          "when": "当前引用迁移且归档确认"
+        }
+      ],
+      "invalid_inferences": [
+        "sha256 匹配不证明来源内容真实",
+        "approved 不等于业务事实被批准",
+        "归档来源不能覆盖当前来源"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-受管来源-摘要必须匹配文件内容",
+        "enforcement": "deterministic",
+        "description": "sha256 必须是托管文件内容的小写 SHA-256。",
+        "remediation": "重新计算摘要并核对 managed_path。",
+        "diagnostic_code": "KB_SCHEMA_PATTERN"
+      },
+      {
+        "id": "RULE-SCHEMA-受管来源-路径必须位于受管范围",
+        "enforcement": "human_review",
+        "description": "managed_path 必须位于受管 Clippings 范围且不包含秘密。",
+        "remediation": "移动到允许路径或只保留外部引用。"
+      },
+      {
+        "id": "RULE-SCHEMA-受管来源-内容修订必须单调递增",
+        "enforcement": "deterministic",
+        "description": "content_revision 必须是正整数文本。",
+        "remediation": "从 1 开始并在内容变化时递增。",
+        "diagnostic_code": "KB_SCHEMA_PATTERN"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "unknown_value_policy": "不得猜测；缺失或竞争事实必须显式保留。"
+    },
+    "invalid_examples": [
+      {
+        "case": "摘要长度错误",
+        "value": {
+          "sha256": "abc"
+        },
+        "expected_rule": "RULE-SCHEMA-受管来源-摘要必须匹配文件内容",
+        "reason": "无法验证托管副本完整性。"
+      },
+      {
+        "case": "修订号不是整数",
+        "value": {
+          "content_revision": "v2"
+        },
+        "expected_rule": "RULE-SCHEMA-受管来源-内容修订必须单调递增",
+        "reason": "无法确定性排序来源版本。"
+      }
+    ]
+  },
+  "properties": {
+    "id": {
+      "title": "来源稳定编号",
+      "description": "由治理层级、来源资料作用域和原始资料名称组成的语义身份。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "SOURCE-知识治理-来源资料-接口规范"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识托管来源。",
+      "const": "managed_source",
+      "examples": [
+        "managed_source"
+      ]
+    },
+    "title": {
+      "title": "来源名称",
+      "description": "便于识别资料内容的名称，不替代原始引用。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "产品接口规范"
+      ]
+    },
+    "status": {
+      "title": "来源状态",
+      "description": "托管副本的当前生命周期。",
+      "oneOf": [
+        {
+          "const": "approved",
+          "title": "已批准",
+          "description": "托管副本已由确定性摄取事务确认",
+          "examples": [
+            "approved"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "内容摘要和来源与确认修订一致"
+            ]
+          }
+        },
+        {
+          "const": "superseded",
+          "title": "已被替代",
+          "description": "更新副本已建立并保留替代链",
+          "examples": [
+            "superseded"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "新摘要由后继来源承接"
+            ]
+          }
+        },
+        {
+          "const": "archived",
+          "title": "已归档",
+          "description": "只作为历史证据保留",
+          "examples": [
+            "archived"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "当前引用已迁移且归档确认"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "approved"
+      ]
+    },
+    "content_revision": {
+      "title": "内容修订号",
+      "description": "同一来源副本的正整数修订号文本。",
+      "type": "string",
+      "pattern": "^[1-9]\\d*$",
+      "examples": [
+        "1"
+      ]
+    },
+    "original_reference": {
+      "title": "原始引用",
+      "description": "摄取前的网页、文件或文档位置。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "https://example.org/spec"
+      ]
+    },
+    "managed_path": {
+      "title": "托管路径",
+      "description": "知识库 Clippings 范围内副本的相对路径。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "Clippings/SOURCE-知识治理-来源资料-接口规范/spec.pdf"
+      ]
+    },
+    "sha256": {
+      "title": "内容摘要",
+      "description": "托管文件内容的小写 SHA-256 十六进制摘要。",
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "examples": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "mime_type": {
+      "title": "媒体类型",
+      "description": "托管内容的 MIME 类型。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "application/pdf"
+      ]
+    },
+    "size_bytes": {
+      "title": "字节大小",
+      "description": "托管文件的非负字节数，以十进制文本保存。",
+      "type": "string",
+      "pattern": "^\\d+$",
+      "examples": [
+        "2048"
+      ]
+    },
+    "sensitivity": {
+      "title": "敏感级别",
+      "description": "决定托管、访问和展示边界。",
+      "oneOf": [
+        {
+          "const": "public",
+          "title": "公开",
+          "description": "允许公开披露",
+          "examples": [
+            "public"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "来源明确允许公开"
+            ]
+          }
+        },
+        {
+          "const": "internal",
+          "title": "内部",
+          "description": "仅限组织内部使用",
+          "examples": [
+            "internal"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "不面向公众但不含高敏信息"
+            ]
+          }
+        },
+        {
+          "const": "sensitive",
+          "title": "敏感",
+          "description": "泄露会造成业务或个人风险",
+          "examples": [
+            "sensitive"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "需要受控访问或脱敏"
+            ]
+          }
+        },
+        {
+          "const": "restricted",
+          "title": "严格限制",
+          "description": "仅限明确授权主体",
+          "examples": [
+            "restricted"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "法律、安全或合同要求最小授权"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "public"
+      ]
+    },
+    "sources": {
+      "title": "事实来源",
+      "description": "至少一个内嵌来源对象，用于区分陈述、观察、文档和推测。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "embedded-source.schema.json"
+      },
+      "examples": [
+        [
+          {
+            "type": "repository_file",
+            "reference": "README.md",
+            "observed_at": "2026-09-15T00:00:00+08:00",
+            "confirmation_status": "observed"
+          }
+        ]
+      ]
+    },
+    "last_updated": {
+      "title": "最后更新时间",
+      "description": "内容最后正式变化日期，使用 YYYY-MM-DD。",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": [
+        "2026-09-15"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title",
+    "status",
+    "content_revision",
+    "original_reference",
+    "managed_path",
+    "sha256",
+    "mime_type",
+    "size_bytes",
+    "sensitivity",
+    "sources",
+    "last_updated"
+  ],
+  "examples": [
+    {
+      "id": "SOURCE-知识治理-来源资料-接口规范",
+      "type": "managed_source",
+      "title": "接口规范",
+      "status": "approved",
+      "content_revision": "1",
+      "original_reference": "https://example.org/spec",
+      "managed_path": "Clippings/SOURCE-知识治理-来源资料-接口规范/spec.pdf",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "mime_type": "application/pdf",
+      "size_bytes": "2048",
+      "sensitivity": "internal",
+      "sources": [
+        {
+          "type": "external_document",
+          "reference": "https://example.org/spec",
+          "observed_at": "2026-09-15T00:00:00+08:00",
+          "confirmation_status": "confirmed",
+          "confirmed_at": "2026-09-15T00:00:00+08:00"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    },
+    {
+      "id": "SOURCE-知识治理-来源资料-架构说明",
+      "type": "managed_source",
+      "title": "架构说明",
+      "status": "superseded",
+      "content_revision": "2",
+      "original_reference": "docs/architecture.pdf",
+      "managed_path": "Clippings/SOURCE-知识治理-来源资料-架构说明/architecture.pdf",
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "mime_type": "application/pdf",
+      "size_bytes": "4096",
+      "sensitivity": "public",
+      "sources": [
+        {
+          "type": "existing_document",
+          "reference": "docs/architecture.pdf",
+          "observed_at": "2026-09-15T00:00:00+08:00",
+          "confirmation_status": "observed"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    }
+  ],
   "enums": {
-    "type": ["managed_source"],
-    "status": ["approved", "superseded", "archived"],
-    "sensitivity": ["public", "internal", "sensitive", "restricted"]
+    "type": [
+      "managed_source"
+    ],
+    "status": [
+      "approved",
+      "superseded",
+      "archived"
+    ],
+    "sensitivity": [
+      "public",
+      "internal",
+      "sensitive",
+      "restricted"
+    ]
   },
   "patterns": {
-    "id": "SRC-EXT-[A-F0-9]{12}",
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
     "content_revision": "\\d+",
     "sha256": "[a-f0-9]{64}",
     "size_bytes": "\\d+",
     "last_updated": "\\d{4}-\\d{2}-\\d{2}"
   },
-  "non_empty_lists": ["sources"],
-  "unique_lists": ["sources"]
+  "non_empty_lists": [
+    "sources"
+  ],
+  "unique_lists": [
+    "sources"
+  ]
 }

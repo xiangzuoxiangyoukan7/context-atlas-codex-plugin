@@ -1,1 +1,38 @@
-{"id":"update","name_zh":"更新知识","rules":["RULE-AGENT-001","RULE-DB-001","RULE-IMPACT-001","RULE-REL-001","RULE-SRC-001"]}
+{
+  "contract_version": 2,
+  "id": "update",
+  "name_zh": "更新知识",
+  "description": "修订现有稳定身份或建立明确后继项",
+  "use_when": [
+    "现有知识事实、关系或状态需要变更"
+  ],
+  "do_not_use_when": [
+    "创建无既有身份的新知识"
+  ],
+  "execution_mode": "proposal_gated",
+  "preconditions": [
+    "目标路径位于指定项目或知识库边界内",
+    "所需输入可被确定性解析"
+  ],
+  "inputs": [
+    "目标身份、新完整内容、来源、影响"
+  ],
+  "outputs": [
+    "修订知识、必要的后继关系、验证报告"
+  ],
+  "confirmation": {
+    "required": true,
+    "rule": "正式写入仅接受与当前 proposal_revision 完全一致的 confirmed_revision"
+  },
+  "failure_modes": [
+    "输入或目标不合法时拒绝执行",
+    "验证失败时报告失败且不得声称成功"
+  ],
+  "rules": [
+    "RULE-知识治理规则-正式写入必须基于已确认提案",
+    "RULE-知识治理规则-数据库表字段必须记录值域和逻辑外键",
+    "RULE-知识治理规则-业务影响由关系分析与验收证据共同判断",
+    "RULE-知识治理规则-关系必须同时引用目标文件和稳定知识编号",
+    "RULE-知识治理规则-正式知识和质检结果必须引用来源与目标"
+  ]
+}

@@ -13,7 +13,7 @@ rel_calls: []
 rel_depends_on: []
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[02-技术基线/模块/README|IDX-MODULES]]"
+  - "[[02-技术基线/模块/README|IDX-技术基线-模块]]"
 ---
 # MOD-DOMAIN-NAME：模块名称
 

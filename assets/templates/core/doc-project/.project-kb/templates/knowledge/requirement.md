@@ -1,5 +1,5 @@
 ---
-id: REQ-DOMAIN-001
+id: REQ-DOMAIN-{{INITIALIZED_AT_COMPACT}}-需求名称
 type: requirement
 title: 需求名称
 status: proposed
@@ -7,10 +7,10 @@ readiness: draft
 priority: P1
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[01-功能基线/需求/README|IDX-REQUIREMENTS]]"
+  - "[[01-功能基线/需求/README|IDX-功能基线-需求]]"
 ---
-<!-- context-atlas-rules: [[rules/知识治理规则#RULE-SPEC-001|RULE-SPEC-001]] -->
-# REQ-DOMAIN-001：需求名称
+<!-- context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-需求正文唯一权威且就绪度独立|RULE-知识治理规则-需求正文唯一权威且就绪度独立]] -->
+# REQ-DOMAIN-{{INITIALIZED_AT_COMPACT}}-需求名称：需求名称
 
 ## 问题与价值
 

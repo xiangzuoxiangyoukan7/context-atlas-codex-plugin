@@ -1,10 +1,190 @@
 {
-  "required": ["id", "type", "title", "rel_classified_under"],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/knowledge-index.schema.json",
+  "title": "知识分类索引",
+  "description": "目录级分类节点和人工导航入口，不保存成员的重复权威清单。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "knowledge_index",
+    "purpose": "说明目录保存边界、身份规则和渐进查询方式，并通过反向分类关系发现成员。",
+    "use_when": [
+      "一个受管分类目录需要稳定入口",
+      "需要定义目录内允许保存的知识类型和查询边界",
+      "需要让 Agent 通过 children 定位直接成员"
+    ],
+    "do_not_use_when": [
+      "只为单个实体建立包装页",
+      "手工维护可能过期的完整成员表",
+      "把 Markdown 导航链接当作分类关系权威"
+    ],
+    "canonical_location": "每个受管分类目录的 README.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 96,
+      "rename_policy": "语义未发生身份级变化时保持稳定 ID；身份级变化建立后继项并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": [
+        "目录契约",
+        "保存边界",
+        "身份规则",
+        "查询方式"
+      ],
+      "required_sections": [
+        "目录契约"
+      ],
+      "forbidden_content": [
+        "声称导航表是完整成员权威",
+        "复制子项状态作为当前事实"
+      ]
+    },
+    "lifecycle": {
+      "field": "type",
+      "initial_states": [
+        "knowledge_index"
+      ],
+      "terminal_states": [
+        "knowledge_index"
+      ],
+      "transitions": [],
+      "invalid_inferences": [
+        "README 中出现链接不推出分类成员关系",
+        "索引存在不推出目录内知识完整",
+        "空目录不表示能力不存在"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-知识索引-身份必须表达目录作用域",
+        "enforcement": "json_schema",
+        "description": "索引 ID 必须使用 IDX- 前缀。",
+        "remediation": "分配稳定 IDX- 身份。"
+      },
+      {
+        "id": "RULE-SCHEMA-知识索引-必须指向直接父目录",
+        "enforcement": "deterministic",
+        "description": "除根索引外必须通过 rel_classified_under 指向直接父索引。",
+        "remediation": "添加唯一直接父分类关系。",
+          "diagnostic_code": "KB_CLASSIFICATION_REQUIRED"
+      },
+      {
+        "id": "RULE-SCHEMA-知识索引-正文必须说明边界与查询方式",
+        "enforcement": "human_review",
+        "description": "正文必须说明保存边界和渐进查询方式。",
+        "remediation": "补齐目录契约，不维护重复完整清单。"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "unknown_value_policy": "不得猜测；缺失或竞争事实必须显式保留。"
+    },
+    "invalid_examples": [
+      {
+        "case": "普通实体 ID",
+        "value": {
+          "id": "FEATURE-功能基线-功能-从数据库模型生成知识模板",
+          "type": "knowledge_index"
+        },
+        "expected_rule": "RULE-SCHEMA-知识索引-身份必须表达目录作用域",
+        "reason": "不能识别为分类节点。"
+      },
+      {
+        "case": "非根索引缺少父分类",
+        "value": {
+          "id": "IDX-技术基线-模块",
+          "rel_classified_under": []
+        },
+        "expected_rule": "RULE-SCHEMA-知识索引-必须指向直接父目录",
+        "reason": "分类树发生断裂。"
+      }
+    ]
+  },
+  "properties": {
+    "id": {
+      "title": "索引稳定编号",
+      "description": "使用 IDX- 前缀的全库唯一分类身份。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "IDX-技术基线-模块"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识分类索引。",
+      "const": "knowledge_index",
+      "examples": [
+        "knowledge_index"
+      ]
+    },
+    "title": {
+      "title": "索引名称",
+      "description": "表达目录分类含义。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "模块"
+      ]
+    },
+    "rel_classified_under": {
+      "title": "父分类关系",
+      "description": "根索引使用空数组，其他索引只指向一个直接父索引。",
+      "type": "array",
+      "maxItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^\\[\\[[^|]+\\|IDX-[0-9A-Za-z\\u4e00-\\u9fff-]+\\]\\]$"
+      },
+      "examples": [
+        [
+          "[[02-技术基线/README|IDX-技术基线]]"
+        ]
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title",
+    "rel_classified_under"
+  ],
+  "examples": [
+    {
+      "id": "IDX-知识库",
+      "type": "knowledge_index",
+      "title": "知识库",
+      "rel_classified_under": []
+    },
+    {
+      "id": "IDX-技术基线-模块",
+      "type": "knowledge_index",
+      "title": "模块",
+      "rel_classified_under": [
+        "[[02-技术基线/README|IDX-技术基线]]"
+      ]
+    }
+  ],
   "enums": {
-    "type": ["knowledge_index"]
+    "type": [
+      "knowledge_index"
+    ]
   },
   "patterns": {
-    "id": "IDX-[A-Z0-9_-]+"
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*"
   },
-  "unique_lists": ["rel_classified_under"]
+  "unique_lists": [
+    "rel_classified_under"
+  ]
 }

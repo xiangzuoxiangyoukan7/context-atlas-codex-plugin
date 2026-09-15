@@ -17,7 +17,7 @@ rel_depends_on: []
 rel_verified_by: []
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[02-技术基线/接口/README|IDX-INTERFACES]]"
+  - "[[02-技术基线/接口/README|IDX-技术基线-接口]]"
 ---
 # API-DOMAIN-001：接口名称
 

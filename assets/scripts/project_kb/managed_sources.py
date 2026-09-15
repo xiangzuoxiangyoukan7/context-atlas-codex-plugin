@@ -12,6 +12,7 @@ import re
 import shutil
 
 from .ingest_enhancements import SENSITIVE_ASSIGNMENT
+from .semantic_identity import normalize_semantic_name
 from .validator import ValidationConfig, validate
 from .temporary_workspace import operation_workspace
 
@@ -122,7 +123,8 @@ def build_source_import_proposal(knowledge_base_root: Path) -> SourceImportPropo
             if SENSITIVE_ASSIGNMENT.search(text):
                 blocked = "text contains a possible secret assignment"
         status = "blocked" if blocked else "duplicate" if digest in existing_digests else "eligible"
-        source_id = "SRC-EXT-" + digest[:12].upper()
+        source_name = normalize_semantic_name(_safe_name(path.name))
+        source_id = f"SOURCE-知识治理-来源资料-{source_name}"
         filename = f"{digest[:12]}-{_safe_name(path.name)}"
         items.append(SourceImportItem(
             source_path=relative,
@@ -166,7 +168,7 @@ def _card(item: SourceImportItem, imported_at: datetime) -> str:
         "    confirmation_status: confirmed\n"
         f"    confirmed_at: {timestamp}\n"
         "rel_classified_under:\n"
-        "  - \"[[05-知识治理/来源资料/README|IDX-SOURCES]]\"\n"
+        "  - \"[[05-知识治理/来源资料/README|IDX-知识治理-来源资料]]\"\n"
         f"last_updated: {date_text}\n"
         "---\n"
         f"# {item.source_id}\n\n此文件是受管来源证据；保存不表示批准其中的业务内容。\n"

@@ -2,14 +2,17 @@
 
 Schema 可以理解为“机器可执行的表格填写规则”：它不保存项目知识，而是规定某类文件必须有哪些字段、字段允许填什么、格式必须怎样。
 
+Schema 还是自描述契约：除结构外，逐项说明知识类型何时使用、字段与枚举值如何选择、生命周期如何变化，以及哪些规则由标准 JSON Schema、Context Atlas 检查器或人工审查负责。完整规范见[自描述规范](./自描述规范.md)，机器元契约见 [`schema-meta.schema.json`](./schema-meta.schema.json)。0.19.0 发布的全部现行 Schema 均采用 `self_describing/v1`，不再输出兼容期轻量 Schema。
+
 本目录有两类 Schema：
 
-1. `catalog.json` 登记的轻量 Schema，约束知识库 Markdown 顶部的 YAML Front Matter。
+1. `catalog.json` 以 `catalog_version: 2` 登记当前知识类型、适用边界、正文权威属性及其自描述 Schema；这些 Schema 约束知识库 Markdown 顶部的 YAML Front Matter。
 2. `initialization-*.schema.json`、`ingest-report.schema.json` 和 `batch-ingest-report.schema.json` 使用标准 JSON Schema 约束会话 Proposal 或报告；`embedded-source.schema.json` 定义格式 4 及后续格式中知识项就地携带的来源对象。这些都不登记进知识类型 `catalog.json`。
 
 完整的逐文件、逐字段中文解释见[字段说明](./字段说明.md)。
 
 - [目录](./catalog.json)
+- [自描述 Schema 元契约](./schema-meta.schema.json)
 - [项目清单](./project-manifest.schema.json)
 - [通用知识项](./knowledge-item.schema.json)
 - [数据资产](./data-asset.schema.json)
@@ -17,14 +20,11 @@ Schema 可以理解为“机器可执行的表格填写规则”：它不保存�
 - [功能](./feature.schema.json)
 - [模块](./module.schema.json)
 - [接口](./interface.schema.json)
-- `legacy/contract.schema.json`：格式 1 至 9 遗留独立契约兼容资产，不在格式 11 Catalog 中登记，也不复制到当前知识库
 - [产品任务](./task.schema.json)
 - [治理任务](./governance-task.schema.json)
 - [验收](./acceptance.schema.json)
-- `legacy/acceptance-contract.schema.json`：格式 1 至 9 遗留验收契约兼容资产，不在格式 11 Catalog 中登记，也不复制到当前知识库
 - [规格变更](./specification-change.schema.json)
 - [规格增量](./specification-delta.schema.json)
-- [知识来源](./source.schema.json)
 - [内嵌来源](./embedded-source.schema.json)
 - [初始化 Proposal](./initialization-proposal.schema.json)
 - [初始化报告](./initialization-report.schema.json)
@@ -32,6 +32,8 @@ Schema 可以理解为“机器可执行的表格填写规则”：它不保存�
 - [批量摄取报告](./batch-ingest-report.schema.json)
 
 技术栈记录只增加项目事实，不能改变核心状态、权威来源、确认规则或验收结果。
+
+旧格式只作为升级器的输入被识别并转换；0.19.0 的 Schema 目录、初始化结果和升级结果均只保留新格式，不提供旧格式继续写入或并存的契约。
 
 除 `required`、`enums`、`patterns`、`non_empty_lists`、`unique_lists` 外，Schema 还支持 `list_enums`，用于约束字符串列表中的每个成员必须来自预定义枚举。
 

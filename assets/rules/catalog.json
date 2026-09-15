@@ -1,89 +1,306 @@
 {
-  "format_version": 1,
+  "catalog_version": 2,
+  "title": "知识治理规则目录",
+  "description": "登记规则身份、权威来源、触发条件、执行层与人工复核边界。",
   "rules": [
     {
-      "id": "RULE-CODE-001",
+      "id": "RULE-知识治理规则-Python-代码必须具有说明和类型标注",
       "name_zh": "Python 代码必须具有说明和类型标注",
-      "authority": "[[rules/知识治理规则#RULE-CODE-001|RULE-CODE-001]]",
-      "enforced_by": ["acceptance", "validator"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-Python-代码必须具有说明和类型标注|RULE-知识治理规则-Python-代码必须具有说明和类型标注]]",
+      "enforced_by": [
+        "acceptance",
+        "validator"
+      ],
+      "description": "Python 代码必须具有说明和类型标注",
+      "use_when": [
+        "执行或审查涉及 Python 代码必须具有说明和类型标注 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "validator"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-CODE-002",
+      "id": "RULE-知识治理规则-Python-说明必须覆盖用途-场景和关键逻辑",
       "name_zh": "Python 说明必须覆盖用途、场景和关键逻辑",
-      "authority": "[[rules/知识治理规则#RULE-CODE-002|RULE-CODE-002]]",
-      "enforced_by": ["acceptance", "validator"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-Python-说明必须覆盖用途-场景和关键逻辑|RULE-知识治理规则-Python-说明必须覆盖用途-场景和关键逻辑]]",
+      "enforced_by": [
+        "acceptance",
+        "validator"
+      ],
+      "description": "Python 说明必须覆盖用途、场景和关键逻辑",
+      "use_when": [
+        "执行或审查涉及 Python 说明必须覆盖用途、场景和关键逻辑 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "validator"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-AGENT-001",
+      "id": "RULE-知识治理规则-正式写入必须基于已确认提案",
       "name_zh": "正式写入必须基于已确认提案",
-      "authority": "[[rules/知识治理规则#RULE-AGENT-001|RULE-AGENT-001]]",
-      "enforced_by": ["acceptance", "operation", "skill"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-正式写入必须基于已确认提案|RULE-知识治理规则-正式写入必须基于已确认提案]]",
+      "enforced_by": [
+        "acceptance",
+        "operation",
+        "skill"
+      ],
+      "description": "正式写入必须基于已确认提案",
+      "use_when": [
+        "执行或审查涉及 正式写入必须基于已确认提案 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "operation",
+        "skill"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-ARCHIVE-001",
+      "id": "RULE-知识治理规则-归档必须在替代和引用迁移后确认执行",
       "name_zh": "归档必须在替代和引用迁移后确认执行",
-      "authority": "[[rules/知识治理规则#RULE-ARCHIVE-001|RULE-ARCHIVE-001]]",
-      "enforced_by": ["acceptance", "operation", "template", "validator"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-归档必须在替代和引用迁移后确认执行|RULE-知识治理规则-归档必须在替代和引用迁移后确认执行]]",
+      "enforced_by": [
+        "acceptance",
+        "operation",
+        "template",
+        "validator"
+      ],
+      "description": "归档必须在替代和引用迁移后确认执行",
+      "use_when": [
+        "执行或审查涉及 归档必须在替代和引用迁移后确认执行 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "operation",
+        "template",
+        "validator"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-DB-001",
+      "id": "RULE-知识治理规则-数据库表字段必须记录值域和逻辑外键",
       "name_zh": "数据库表字段必须记录值域和逻辑外键",
-      "authority": "[[rules/知识治理规则#RULE-DB-001|RULE-DB-001]]",
-      "enforced_by": ["acceptance", "operation", "template"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-数据库表字段必须记录值域和逻辑外键|RULE-知识治理规则-数据库表字段必须记录值域和逻辑外键]]",
+      "enforced_by": [
+        "acceptance",
+        "operation",
+        "template"
+      ],
+      "description": "数据库表字段必须记录值域和逻辑外键",
+      "use_when": [
+        "执行或审查涉及 数据库表字段必须记录值域和逻辑外键 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "operation",
+        "template"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-GOV-001",
+      "id": "RULE-知识治理规则-每条正式规则只有一个中文权威来源",
       "name_zh": "每条正式规则只有一个中文权威来源",
-      "authority": "[[rules/知识治理规则#RULE-GOV-001|RULE-GOV-001]]",
-      "enforced_by": ["acceptance", "validator"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-每条正式规则只有一个中文权威来源|RULE-知识治理规则-每条正式规则只有一个中文权威来源]]",
+      "enforced_by": [
+        "acceptance",
+        "validator"
+      ],
+      "description": "每条正式规则只有一个中文权威来源",
+      "use_when": [
+        "执行或审查涉及 每条正式规则只有一个中文权威来源 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "validator"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-GOV-002",
+      "id": "RULE-知识治理规则-规则使用方主动引用并接受覆盖检查",
       "name_zh": "规则使用方主动引用并接受覆盖检查",
-      "authority": "[[rules/知识治理规则#RULE-GOV-002|RULE-GOV-002]]",
-      "enforced_by": ["acceptance", "validator"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-规则使用方主动引用并接受覆盖检查|RULE-知识治理规则-规则使用方主动引用并接受覆盖检查]]",
+      "enforced_by": [
+        "acceptance",
+        "validator"
+      ],
+      "description": "规则使用方主动引用并接受覆盖检查",
+      "use_when": [
+        "执行或审查涉及 规则使用方主动引用并接受覆盖检查 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "validator"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-GOV-003",
+      "id": "RULE-知识治理规则-当前变更是可选知识而不是任务执行门禁",
       "name_zh": "当前变更是可选知识而不是任务执行门禁",
-      "authority": "[[rules/知识治理规则#RULE-GOV-003|RULE-GOV-003]]",
-      "enforced_by": ["acceptance", "template", "validator"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-当前变更是可选知识而不是任务执行门禁|RULE-知识治理规则-当前变更是可选知识而不是任务执行门禁]]",
+      "enforced_by": [
+        "acceptance",
+        "template",
+        "validator"
+      ],
+      "description": "当前变更是可选知识而不是任务执行门禁",
+      "use_when": [
+        "执行或审查涉及 当前变更是可选知识而不是任务执行门禁 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "template",
+        "validator"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-IMPACT-001",
+      "id": "RULE-知识治理规则-业务影响由关系分析与验收证据共同判断",
       "name_zh": "业务影响由关系分析与验收证据共同判断",
-      "authority": "[[rules/知识治理规则#RULE-IMPACT-001|RULE-IMPACT-001]]",
-      "enforced_by": ["acceptance", "operation", "skill"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-业务影响由关系分析与验收证据共同判断|RULE-知识治理规则-业务影响由关系分析与验收证据共同判断]]",
+      "enforced_by": [
+        "acceptance",
+        "operation",
+        "skill"
+      ],
+      "description": "业务影响由关系分析与验收证据共同判断",
+      "use_when": [
+        "执行或审查涉及 业务影响由关系分析与验收证据共同判断 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "operation",
+        "skill"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-IMPACT-002",
+      "id": "RULE-知识治理规则-影响分析只提供三级人工决策输入",
       "name_zh": "影响分析只提供三级人工决策输入",
-      "authority": "[[rules/知识治理规则#RULE-IMPACT-002|RULE-IMPACT-002]]",
-      "enforced_by": ["acceptance", "operation", "skill", "template", "validator"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-影响分析只提供三级人工决策输入|RULE-知识治理规则-影响分析只提供三级人工决策输入]]",
+      "enforced_by": [
+        "acceptance",
+        "operation",
+        "skill",
+        "template",
+        "validator"
+      ],
+      "description": "影响分析只提供三级人工决策输入",
+      "use_when": [
+        "执行或审查涉及 影响分析只提供三级人工决策输入 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "operation",
+        "skill",
+        "template",
+        "validator"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-REL-001",
+      "id": "RULE-知识治理规则-关系必须同时引用目标文件和稳定知识编号",
       "name_zh": "关系必须同时引用目标文件和稳定知识编号",
-      "authority": "[[rules/知识治理规则#RULE-REL-001|RULE-REL-001]]",
-      "enforced_by": ["acceptance", "operation"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-关系必须同时引用目标文件和稳定知识编号|RULE-知识治理规则-关系必须同时引用目标文件和稳定知识编号]]",
+      "enforced_by": [
+        "acceptance",
+        "operation"
+      ],
+      "description": "关系必须同时引用目标文件和稳定知识编号",
+      "use_when": [
+        "执行或审查涉及 关系必须同时引用目标文件和稳定知识编号 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "operation"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-REL-002",
+      "id": "RULE-知识治理规则-关系只保存统一的权威正向链接",
       "name_zh": "关系只保存统一的权威正向链接",
-      "authority": "[[rules/知识治理规则#RULE-REL-002|RULE-REL-002]]",
-      "enforced_by": ["acceptance", "operation", "skill", "template", "validator"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-关系只保存统一的权威正向链接|RULE-知识治理规则-关系只保存统一的权威正向链接]]",
+      "enforced_by": [
+        "acceptance",
+        "operation",
+        "skill",
+        "template",
+        "validator"
+      ],
+      "description": "关系只保存统一的权威正向链接",
+      "use_when": [
+        "执行或审查涉及 关系只保存统一的权威正向链接 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "operation",
+        "skill",
+        "template",
+        "validator"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-SPEC-001",
+      "id": "RULE-知识治理规则-需求正文唯一权威且就绪度独立",
       "name_zh": "需求正文唯一权威且就绪度独立",
-      "authority": "[[rules/知识治理规则#RULE-SPEC-001|RULE-SPEC-001]]",
-      "enforced_by": ["schema", "template", "validator"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-需求正文唯一权威且就绪度独立|RULE-知识治理规则-需求正文唯一权威且就绪度独立]]",
+      "enforced_by": [
+        "schema",
+        "template",
+        "validator"
+      ],
+      "description": "需求正文唯一权威且就绪度独立",
+      "use_when": [
+        "执行或审查涉及 需求正文唯一权威且就绪度独立 的行为"
+      ],
+      "enforcement_layers": [
+        "schema",
+        "template",
+        "validator"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
-      "id": "RULE-SRC-001",
+      "id": "RULE-知识治理规则-正式知识和质检结果必须引用来源与目标",
       "name_zh": "正式知识和质检结果必须引用来源与目标",
-      "authority": "[[rules/知识治理规则#RULE-SRC-001|RULE-SRC-001]]",
-      "enforced_by": ["acceptance", "schema", "validator"]
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-正式知识和质检结果必须引用来源与目标|RULE-知识治理规则-正式知识和质检结果必须引用来源与目标]]",
+      "enforced_by": [
+        "acceptance",
+        "schema",
+        "validator"
+      ],
+      "description": "正式知识和质检结果必须引用来源与目标",
+      "use_when": [
+        "执行或审查涉及 正式知识和质检结果必须引用来源与目标 的行为"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "schema",
+        "validator"
+      ],
+      "diagnostic_codes": [],
+      "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     }
-  ]
+  ],
+  "x-context-atlas": {
+    "unknown_rule_policy": "reject",
+    "authority_policy": "每条规则必须指向唯一中文权威锚点",
+    "coverage_policy": "声明的执行层必须存在主动消费者"
+  }
 }

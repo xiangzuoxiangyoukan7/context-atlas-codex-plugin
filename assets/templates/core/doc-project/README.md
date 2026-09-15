@@ -1,13 +1,13 @@
 ---
-id: IDX-ROOT
+id: IDX-知识库
 type: knowledge_index
 title: 知识库
 rel_classified_under: []
 ---
-<!-- context-atlas-rules: [[rules/知识治理规则#RULE-GOV-003|RULE-GOV-003]] [[rules/知识治理规则#RULE-REL-002|RULE-REL-002]] -->
+<!-- context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-当前变更是可选知识而不是任务执行门禁|RULE-知识治理规则-当前变更是可选知识而不是任务执行门禁]] [[rules/知识治理规则#RULE-知识治理规则-关系只保存统一的权威正向链接|RULE-知识治理规则-关系只保存统一的权威正向链接]] -->
 # {{PROJECT_NAME}} 项目知识库
 
-本目录是 `{{KNOWLEDGE_BASE_NAME}}`，由 AI Agent 与项目责任人协作维护。先读本页，再读 [AI 知识采集协议](./05-知识治理/AI知识采集协议.md)。机器入口为 `knowledge-base.yaml`。
+本目录是 `{{KNOWLEDGE_BASE_NAME}}`，由 AI Agent 与项目责任人协作维护。先读本页，再读 [AI 知识采集协议](./05-知识治理/GOV-知识治理-AI-知识采集协议.md)。机器入口为 `knowledge-base.yaml`。
 
 本知识库只保存经过治理的当前项目知识、可追溯证据和历史归档；不保存无长期价值的日志、秘密或未确认猜测。每个知识项和子分类通过 `rel_classified_under` 主动指向直接分类 README，查询器通过反向索引发现成员；README 中的 Markdown 链接只提供阅读入口，不是完整成员清单。
 
@@ -33,7 +33,7 @@ rel_classified_under: []
 - [变更与证据](./03-变更与证据/README.md)
 - 影响记录模板位于 `.project-kb/templates/knowledge/impact-record.md`，仅按需保存需审计的人工结论。
 - [知识治理](./05-知识治理/README.md)
-- [使用场景](./05-知识治理/使用场景.md)：初始化、需求、数据库、摄取、查询和维护入口
+- [使用场景](./05-知识治理/GOV-知识治理-使用场景.md)：初始化、需求、数据库、摄取、查询和维护入口
 - [历史归档](./90-历史归档/README.md)
 
 未知内容不得猜测为事实：登记为 `missing` 或 Proposal，附来源，等待责任人确认。自动检查只证明结构和引用有效，不代表内容已获批准。
@@ -69,7 +69,7 @@ rel_classified_under: []
 
 ## 格式要求
 
-本知识库当前磁盘格式为 `format_version: 0.18.2`，与 Context Atlas 发布版本一致，并由 `knowledge-base.yaml` 声明。正式知识项采用 Markdown 正文和 YAML Front Matter，字段以 `.project-kb/schemas/` 中当前 Schema 为机器权威。需求的业务内容以正文为唯一权威，决策依据归入所属需求、功能、技术或治理文档。`knowledge_revision` 由执行器在正式知识事务成功后递增；新知识库不再生成容易与知识修订混淆的全局 `project_version`。
+本知识库当前磁盘格式为 `format_version: 0.19.0`，与 Context Atlas 发布版本一致，并由 `knowledge-base.yaml` 声明。正式知识项采用 Markdown 正文和 YAML Front Matter，字段以 `.project-kb/schemas/` 中当前 Schema 为机器权威。需求的业务内容以正文为唯一权威，决策依据归入所属需求、功能、技术或治理文档。`knowledge_revision` 由执行器在正式知识事务成功后递增；新知识库不再生成容易与知识修订混淆的全局 `project_version`。
 
 通用格式示例：
 

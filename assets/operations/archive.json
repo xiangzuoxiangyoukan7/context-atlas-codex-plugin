@@ -1,1 +1,37 @@
-{"id":"archive","name_zh":"归档知识","rules":["RULE-AGENT-001","RULE-ARCHIVE-001","RULE-IMPACT-001","RULE-REL-001"]}
+{
+  "contract_version": 2,
+  "id": "archive",
+  "name_zh": "归档知识",
+  "description": "归档仍有审计价值但已退出当前权威的知识",
+  "use_when": [
+    "知识已被后继项替代或明确退出当前权威"
+  ],
+  "do_not_use_when": [
+    "知识没有后继且应永久删除"
+  ],
+  "execution_mode": "proposal_gated",
+  "preconditions": [
+    "目标路径位于指定项目或知识库边界内",
+    "所需输入可被确定性解析"
+  ],
+  "inputs": [
+    "目标知识、替代关系、引用影响"
+  ],
+  "outputs": [
+    "归档文件、引用迁移、验证报告"
+  ],
+  "confirmation": {
+    "required": true,
+    "rule": "正式写入仅接受与当前 proposal_revision 完全一致的 confirmed_revision"
+  },
+  "failure_modes": [
+    "输入或目标不合法时拒绝执行",
+    "验证失败时报告失败且不得声称成功"
+  ],
+  "rules": [
+    "RULE-知识治理规则-正式写入必须基于已确认提案",
+    "RULE-知识治理规则-归档必须在替代和引用迁移后确认执行",
+    "RULE-知识治理规则-业务影响由关系分析与验收证据共同判断",
+    "RULE-知识治理规则-关系必须同时引用目标文件和稳定知识编号"
+  ]
+}

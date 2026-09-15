@@ -10,7 +10,7 @@ sources:
     confirmation_status: observed
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[03-变更与证据/验收证据/README|IDX-EVIDENCE]]"
+  - "[[03-变更与证据/验收证据/README|IDX-变更与证据-验收证据]]"
 ---
 # 验收证据：编号与标题
 

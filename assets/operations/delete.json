@@ -1,1 +1,37 @@
-{"id":"delete","name_zh":"删除知识","rules":["RULE-AGENT-001","RULE-IMPACT-001","RULE-REL-001","RULE-SRC-001"]}
+{
+  "contract_version": 2,
+  "id": "delete",
+  "name_zh": "删除知识",
+  "description": "永久删除没有审计价值的叶子知识",
+  "use_when": [
+    "用户确认目标无审计价值且不存在有效下游引用"
+  ],
+  "do_not_use_when": [
+    "目标仍有历史、证据或替代价值"
+  ],
+  "execution_mode": "proposal_gated",
+  "preconditions": [
+    "目标路径位于指定项目或知识库边界内",
+    "所需输入可被确定性解析"
+  ],
+  "inputs": [
+    "删除目标、影响分析、引用清理方案"
+  ],
+  "outputs": [
+    "删除结果、引用清理、验证报告"
+  ],
+  "confirmation": {
+    "required": true,
+    "rule": "正式写入仅接受与当前 proposal_revision 完全一致的 confirmed_revision"
+  },
+  "failure_modes": [
+    "输入或目标不合法时拒绝执行",
+    "验证失败时报告失败且不得声称成功"
+  ],
+  "rules": [
+    "RULE-知识治理规则-正式写入必须基于已确认提案",
+    "RULE-知识治理规则-业务影响由关系分析与验收证据共同判断",
+    "RULE-知识治理规则-关系必须同时引用目标文件和稳定知识编号",
+    "RULE-知识治理规则-正式知识和质检结果必须引用来源与目标"
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://context-atlas.local/schemas/ingest-report.schema.json",
+  "$id": "https://context-atlas.dev/schemas/ingest-report.schema.json",
   "title": "Context Atlas Ingest Report",
   "type": "object",
   "additionalProperties": false,
@@ -19,37 +19,148 @@
     "next_action"
   ],
   "properties": {
-    "operation": {"const": "ingest"},
-    "status": {"enum": ["analyzed", "blocked"]},
+    "operation": {
+      "const": "ingest",
+      "title": "operation",
+      "description": "operation 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "ingest"
+      ]
+    },
+    "status": {
+      "enum": [
+        "analyzed",
+        "blocked"
+      ],
+      "title": "status",
+      "description": "status 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
     "source_identity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "reference"],
+      "required": [
+        "type",
+        "reference"
+      ],
       "properties": {
         "type": {
-          "enum": ["user_statement", "repository_file", "command_output", "existing_document", "external_document"]
+          "enum": [
+            "user_statement",
+            "repository_file",
+            "command_output",
+            "existing_document",
+            "external_document"
+          ]
         },
-        "reference": {"type": "string", "minLength": 1}
-      }
+        "reference": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "title": "source_identity",
+      "description": "source_identity 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
     },
-    "observed_at": {"type": "string", "minLength": 1},
-    "source_digest_or_version": {"type": "string", "minLength": 1},
-    "scope": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "observed_at": {
+      "type": "string",
+      "minLength": 1,
+      "title": "observed_at",
+      "description": "observed_at 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "source_digest_or_version": {
+      "type": "string",
+      "minLength": 1,
+      "title": "source_digest_or_version",
+      "description": "source_digest_or_version 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "title": "scope",
+      "description": "scope 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
     "candidates": {
       "type": "array",
-      "items": {"$ref": "#/$defs/candidate"}
+      "items": {
+        "$ref": "#/$defs/candidate"
+      },
+      "title": "candidates",
+      "description": "candidates 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
     },
     "route_plan": {
       "type": "array",
       "items": {
-        "enum": ["context-atlas-add", "context-atlas-revise", "context-atlas-retire", "context-atlas-init", "context-atlas-upgrade"]
+        "enum": [
+          "context-atlas-add",
+          "context-atlas-revise",
+          "context-atlas-retire",
+          "context-atlas-init",
+          "context-atlas-upgrade"
+        ]
       },
-      "uniqueItems": true
+      "uniqueItems": true,
+      "title": "route_plan",
+      "description": "route_plan 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
     },
-    "blocked_reasons": {"type": "array", "items": {"type": "string"}},
-    "writes_performed": {"const": false},
-    "confirmation_state": {"const": "not_applicable"},
-    "next_action": {"type": "string", "minLength": 1}
+    "blocked_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "blocked_reasons",
+      "description": "blocked_reasons 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "writes_performed": {
+      "const": false,
+      "title": "writes_performed",
+      "description": "writes_performed 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        false
+      ]
+    },
+    "confirmation_state": {
+      "const": "not_applicable",
+      "title": "confirmation_state",
+      "description": "confirmation_state 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "not_applicable"
+      ]
+    },
+    "next_action": {
+      "type": "string",
+      "minLength": 1,
+      "title": "next_action",
+      "description": "next_action 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    }
   },
   "$defs": {
     "candidate": {
@@ -69,18 +180,184 @@
         "rationale"
       ],
       "properties": {
-        "candidate_id": {"type": "string", "pattern": "^INGEST-CAND-[0-9]{3}$"},
-        "candidate_action": {"enum": ["add", "revise", "retire", "conflict", "ignore"]},
-        "target_id_or_path": {"type": "string"},
-        "facts": {"type": "array", "items": {"type": "string"}},
-        "inferences": {"type": "array", "items": {"type": "string"}},
-        "unknowns": {"type": "array", "items": {"type": "string"}},
-        "conflicts": {"type": "array", "items": {"type": "string"}},
-        "relation_candidates": {"type": "array", "items": {"type": "string"}},
-        "impact_candidates": {"type": "array", "items": {"type": "string"}},
-        "route_skill": {"enum": ["context-atlas-add", "context-atlas-revise", "context-atlas-retire", "none"]},
-        "rationale": {"type": "string", "minLength": 1}
+        "candidate_id": {
+          "type": "string",
+          "pattern": "^INGEST-CAND-[0-9]{3}$"
+        },
+        "candidate_action": {
+          "enum": [
+            "add",
+            "revise",
+            "retire",
+            "conflict",
+            "ignore"
+          ]
+        },
+        "target_id_or_path": {
+          "type": "string"
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inferences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unknowns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relation_candidates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "impact_candidates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "route_skill": {
+          "enum": [
+            "context-atlas-add",
+            "context-atlas-revise",
+            "context-atlas-retire",
+            "none"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     }
-  }
+  },
+  "description": "报告单个来源的只读分析、候选路由和阻塞原因。",
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "ingest_report",
+    "purpose": "报告单个来源的只读分析、候选路由和阻塞原因。",
+    "use_when": [
+      "对应运行时操作需要产生机器可读候选或报告"
+    ],
+    "do_not_use_when": [
+      "作为正式知识事实或用户确认的替代品"
+    ],
+    "canonical_location": "摄取操作结果 JSON",
+    "identity_contract": {
+      "id_field": "status",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "status",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 160,
+      "rename_policy": "稳定身份变化必须通过受控事务迁移全部引用。",
+      "collision_policy": "目标身份或路径冲突时阻塞。"
+    },
+    "body_contract": {
+      "format": "json_or_front_matter",
+      "authoritative_for": [
+        "报告单个来源的只读分析、候选路由和阻塞原因。"
+      ],
+      "required_sections": [],
+      "forbidden_content": [
+        "秘密、私钥、Token 和未脱敏个人数据"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "analyzed"
+      ],
+      "terminal_states": [
+        "blocked"
+      ],
+      "transitions": [],
+      "invalid_inferences": [
+        "结构合法不表示业务正确或已经批准"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-摄取报告-结构必须完整",
+        "enforcement": "json_schema",
+        "description": "所有必填字段、枚举和模式必须满足当前 Schema。",
+        "remediation": "按字段说明修正输入。"
+      }
+    ],
+    "compatibility": {
+      "standard": "JSON Schema Draft 2020-12",
+      "deprecated": false,
+      "unknown_value_policy": "不得猜测"
+    },
+    "invalid_examples": [
+      {
+        "case": "缺少必填字段",
+        "value": {
+          "invalid": true
+        },
+        "expected_rule": "RULE-SCHEMA-摄取报告-结构必须完整",
+        "reason": "无法形成完整且可执行的契约。"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "operation": "ingest",
+      "status": "analyzed",
+      "source_identity": {
+        "type": "repository_file",
+        "reference": "README.md"
+      },
+      "observed_at": "2026-09-15T00:00:00+08:00",
+      "source_digest_or_version": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "scope": [
+        "README.md"
+      ],
+      "candidates": [],
+      "route_plan": [],
+      "blocked_reasons": [],
+      "writes_performed": false,
+      "confirmation_state": "not_applicable",
+      "next_action": "none"
+    },
+    {
+      "operation": "ingest",
+      "status": "blocked",
+      "source_identity": {
+        "type": "repository_file",
+        "reference": "README.md"
+      },
+      "observed_at": "2026-09-15T00:00:00+08:00",
+      "source_digest_or_version": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "scope": [
+        "README.md"
+      ],
+      "candidates": [],
+      "route_plan": [],
+      "blocked_reasons": [
+        "来源包含敏感信息"
+      ],
+      "writes_performed": false,
+      "confirmation_state": "not_applicable",
+      "next_action": "none"
+    }
+  ]
 }

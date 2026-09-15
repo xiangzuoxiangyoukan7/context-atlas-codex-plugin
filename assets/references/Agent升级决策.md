@@ -36,7 +36,7 @@ Agent 不得通过决策文件修改 `.project-kb/`、`.obsidian/` 或 `knowledg
 
 确定性执行器必须先把移动、删除、重写和创建组合为同一个最终状态投影：移动文件的重写内容应用到目标路径，已移动或删除的源路径不得被后续重写重新创建，模板元数据和目录契约按最终路径选择。Agent 只处理最终状态预检后仍需理解正文语义的问题，不得用 Agent 决策补偿执行器的操作顺序缺陷。
 
-数据库结构归一化时，旧 `database_unit`、`database_namespace` 不是当前目标实体。Agent 必须读取旧文件和所在 `DS-*/README.md`，把可证明归属的数据库名、命名空间、正文事实和来源等价合并进数据源 README，再删除已完整吸收的旧文件；不能证明归属时转换为当前 `knowledge_item` 并标记待确认。具体表删除指向 `IDX-DATABASE` 的 `rel_classified_under`，并保留或修正指向所在数据源 README 的 `rel_belongs_to`。不得用表到数据源的分类边替代归属边。
+数据库结构归一化时，旧 `database_unit`、`database_namespace` 不是当前目标实体。Agent 必须读取旧文件和所在 `DS-*/README.md`，把可证明归属的数据库名、命名空间、正文事实和来源等价合并进数据源 README，再删除已完整吸收的旧文件；不能证明归属时转换为当前 `knowledge_item` 并标记待确认。具体表删除指向 `IDX-技术基线-数据库` 的 `rel_classified_under`，并保留或修正指向所在数据源 README 的 `rel_belongs_to`。不得用表到数据源的分类边替代归属边。
 
 每次生成决策后运行：
 

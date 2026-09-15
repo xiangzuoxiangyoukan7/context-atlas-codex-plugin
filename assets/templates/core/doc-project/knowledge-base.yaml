@@ -2,7 +2,7 @@ project_id: {{PROJECT_ID}}
 project_name: {{PROJECT_NAME}}
 knowledge_base_name: {{KNOWLEDGE_BASE_NAME}}
 workspace_profile: {{WORKSPACE_PROFILE}}
-format_version: 0.18.2
+format_version: 0.19.0
 knowledge_revision: 1
 created_by:
   product: context-atlas
@@ -12,4 +12,4 @@ authority:
   features: 01-功能基线/README.md
   technical_baseline: 02-技术基线/README.md
   evidence: 03-变更与证据/README.md
-  collaboration: 05-知识治理/AI知识采集协议.md
+  collaboration: 05-知识治理/GOV-知识治理-AI-知识采集协议.md

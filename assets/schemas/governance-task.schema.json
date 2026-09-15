@@ -1,13 +1,276 @@
 {
-  "required": ["id", "type", "title", "plan", "status", "acceptance", "last_updated"],
+  "required": [
+    "id",
+    "type",
+    "title",
+    "plan",
+    "status",
+    "acceptance",
+    "last_updated"
+  ],
   "enums": {
-    "type": ["governance_task"],
-    "status": ["draft", "ready", "in_progress", "blocked", "acceptance", "completed"]
+    "type": [
+      "governance_task"
+    ],
+    "status": [
+      "draft",
+      "ready",
+      "in_progress",
+      "blocked",
+      "acceptance",
+      "completed"
+    ]
   },
   "patterns": {
-    "id": "TASK-KB-\\d{3}",
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
     "last_updated": "\\d{4}-\\d{2}-\\d{2}"
   },
-  "non_empty_lists": ["acceptance"],
-  "unique_lists": ["acceptance"]
+  "non_empty_lists": [
+    "acceptance"
+  ],
+  "unique_lists": [
+    "acceptance"
+  ],
+  "properties": {
+    "id": {
+      "title": "id",
+      "description": "id 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "type": {
+      "title": "type",
+      "description": "type 的受控取值；必须根据实际状态或场景选择。",
+      "oneOf": [
+        {
+          "const": "governance_task",
+          "title": "governance_task",
+          "description": "当实际语义为 governance_task 时使用。",
+          "examples": [
+            "governance_task"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际语义明确为 governance_task"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "governance_task"
+      ]
+    },
+    "title": {
+      "title": "title",
+      "description": "title 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "plan": {
+      "title": "plan",
+      "description": "plan 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "status": {
+      "title": "status",
+      "description": "status 的受控取值；必须根据实际状态或场景选择。",
+      "oneOf": [
+        {
+          "const": "draft",
+          "title": "draft",
+          "description": "当实际语义为 draft 时使用。",
+          "examples": [
+            "draft"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际语义明确为 draft"
+            ]
+          }
+        },
+        {
+          "const": "ready",
+          "title": "ready",
+          "description": "当实际语义为 ready 时使用。",
+          "examples": [
+            "ready"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际语义明确为 ready"
+            ]
+          }
+        },
+        {
+          "const": "in_progress",
+          "title": "in_progress",
+          "description": "当实际语义为 in_progress 时使用。",
+          "examples": [
+            "in_progress"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际语义明确为 in_progress"
+            ]
+          }
+        },
+        {
+          "const": "blocked",
+          "title": "blocked",
+          "description": "当实际语义为 blocked 时使用。",
+          "examples": [
+            "blocked"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际语义明确为 blocked"
+            ]
+          }
+        },
+        {
+          "const": "acceptance",
+          "title": "acceptance",
+          "description": "当实际语义为 acceptance 时使用。",
+          "examples": [
+            "acceptance"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际语义明确为 acceptance"
+            ]
+          }
+        },
+        {
+          "const": "completed",
+          "title": "completed",
+          "description": "当实际语义为 completed 时使用。",
+          "examples": [
+            "completed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际语义明确为 completed"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "draft"
+      ]
+    },
+    "acceptance": {
+      "title": "acceptance",
+      "description": "acceptance 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "last_updated": {
+      "title": "last_updated",
+      "description": "last_updated 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/governance-task.schema.json",
+  "title": "governance_task",
+  "type": "object",
+  "additionalProperties": true,
+  "description": "记录知识治理计划中的可执行工作和验收关联。",
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "governance_task",
+    "purpose": "记录知识治理计划中的可执行工作和验收关联。",
+    "use_when": [
+      "工作直接改进知识治理能力"
+    ],
+    "do_not_use_when": [
+      "普通功能实施工作"
+    ],
+    "canonical_location": "90-历史归档/实施任务包/TASK-知识治理-<名称>.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 160,
+      "rename_policy": "稳定身份变化必须通过受控事务迁移全部引用。",
+      "collision_policy": "目标身份或路径冲突时阻塞。"
+    },
+    "body_contract": {
+      "format": "json_or_front_matter",
+      "authoritative_for": [
+        "记录知识治理计划中的可执行工作和验收关联。"
+      ],
+      "required_sections": [],
+      "forbidden_content": [
+        "秘密、私钥、Token 和未脱敏个人数据"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "draft"
+      ],
+      "terminal_states": [
+        "completed"
+      ],
+      "transitions": [],
+      "invalid_inferences": [
+        "结构合法不表示业务正确或已经批准"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-治理任务-结构必须完整",
+        "enforcement": "json_schema",
+        "description": "所有必填字段、枚举和模式必须满足当前 Schema。",
+        "remediation": "按字段说明修正输入。"
+      }
+    ],
+    "compatibility": {
+      "standard": "JSON Schema Draft 2020-12",
+      "deprecated": false,
+      "unknown_value_policy": "不得猜测"
+    },
+    "invalid_examples": [
+      {
+        "case": "缺少必填字段",
+        "value": {
+          "invalid": true
+        },
+        "expected_rule": "RULE-SCHEMA-治理任务-结构必须完整",
+        "reason": "无法形成完整且可执行的契约。"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "id": "TASK-知识治理-执行规则覆盖检查",
+      "type": "governance_task",
+      "title": "执行规则覆盖检查",
+      "plan": "运行规则覆盖检查并保存结果",
+      "status": "draft",
+      "acceptance": "AC-知识治理-规则覆盖-全部规则可追溯",
+      "last_updated": "2026-09-15"
+    },
+    {
+      "id": "TASK-知识治理-验证语义身份迁移",
+      "type": "governance_task",
+      "title": "验证语义身份迁移",
+      "plan": "迁移 ID、文件名和引用后执行全量校验",
+      "status": "completed",
+      "acceptance": "AC-知识治理-语义身份迁移-全量校验通过",
+      "last_updated": "2026-09-15"
+    }
+  ]
 }

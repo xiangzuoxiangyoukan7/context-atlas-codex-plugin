@@ -1,1 +1,36 @@
-{"id":"validate","name_zh":"验证知识库","rules":["RULE-GOV-002","RULE-REL-001","RULE-SRC-001"]}
+{
+  "contract_version": 2,
+  "id": "validate",
+  "name_zh": "验证知识库",
+  "description": "确定性验证知识库结构、关系和引用",
+  "use_when": [
+    "初始化、维护、升级之后或健康检查之前"
+  ],
+  "do_not_use_when": [
+    "用结构通过代替实现验证或业务确认"
+  ],
+  "execution_mode": "read_only",
+  "preconditions": [
+    "目标路径位于指定项目或知识库边界内",
+    "所需输入可被确定性解析"
+  ],
+  "inputs": [
+    "知识库根、Schema 根、验证级别"
+  ],
+  "outputs": [
+    "稳定诊断代码、退出码、问题列表"
+  ],
+  "confirmation": {
+    "required": false,
+    "rule": "正式写入仅接受与当前 proposal_revision 完全一致的 confirmed_revision"
+  },
+  "failure_modes": [
+    "输入或目标不合法时拒绝执行",
+    "验证失败时报告失败且不得声称成功"
+  ],
+  "rules": [
+    "RULE-知识治理规则-规则使用方主动引用并接受覆盖检查",
+    "RULE-知识治理规则-关系必须同时引用目标文件和稳定知识编号",
+    "RULE-知识治理规则-正式知识和质检结果必须引用来源与目标"
+  ]
+}

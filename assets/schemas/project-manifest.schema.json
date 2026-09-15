@@ -1,11 +1,176 @@
 {
-  "required": ["project_id", "project_name", "knowledge_base_name", "format_version", "knowledge_revision", "created_by"],
+  "required": [
+    "project_id",
+    "project_name",
+    "knowledge_base_name",
+    "format_version",
+    "knowledge_revision",
+    "created_by"
+  ],
   "patterns": {
     "project_id": "[a-zA-Z0-9][a-zA-Z0-9_-]*",
     "knowledge_base_name": "doc-[a-zA-Z0-9][a-zA-Z0-9_-]*",
-    "format_version": "0\\.18\\.2",
+    "format_version": "0\\.19\\.0",
     "knowledge_revision": "\\d+",
     "workspace_profile": "standard|obsidian"
   },
-  "unique_lists": []
+  "unique_lists": [],
+  "properties": {
+    "project_id": {
+      "title": "project_id",
+      "description": "project_id 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "project_name": {
+      "title": "project_name",
+      "description": "project_name 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "knowledge_base_name": {
+      "title": "knowledge_base_name",
+      "description": "knowledge_base_name 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "format_version": {
+      "title": "format_version",
+      "description": "format_version 的受控取值；必须根据实际状态或场景选择。",
+      "oneOf": [
+        {
+          "const": "0.19.0",
+          "title": "0.19.0",
+          "description": "当实际语义为 0.19.0 时使用。",
+          "examples": [
+            "0.19.0"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实际语义明确为 0.19.0"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "0.19.0"
+      ]
+    },
+    "knowledge_revision": {
+      "title": "knowledge_revision",
+      "description": "knowledge_revision 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    },
+    "created_by": {
+      "title": "created_by",
+      "description": "created_by 的结构化值；按本 Schema 约束和产生该记录的实际证据填写。",
+      "examples": [
+        "example"
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/project-manifest.schema.json",
+  "title": "project_manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "description": "约束知识库机器入口、格式版本和知识修订。",
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "project_manifest",
+    "purpose": "约束知识库机器入口、格式版本和知识修订。",
+    "use_when": [
+      "初始化、读取或升级 knowledge-base.yaml"
+    ],
+    "do_not_use_when": [
+      "保存业务需求或项目发布事实"
+    ],
+    "canonical_location": "knowledge-base.yaml",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 160,
+      "rename_policy": "稳定身份变化必须通过受控事务迁移全部引用。",
+      "collision_policy": "目标身份或路径冲突时阻塞。"
+    },
+    "body_contract": {
+      "format": "json_or_front_matter",
+      "authoritative_for": [
+        "约束知识库机器入口、格式版本和知识修订。"
+      ],
+      "required_sections": [],
+      "forbidden_content": [
+        "秘密、私钥、Token 和未脱敏个人数据"
+      ]
+    },
+    "lifecycle": {
+      "field": "format_version",
+      "initial_states": [
+        "0.19.0"
+      ],
+      "terminal_states": [
+        "0.19.0"
+      ],
+      "transitions": [],
+      "invalid_inferences": [
+        "结构合法不表示业务正确或已经批准"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-项目清单-结构必须完整",
+        "enforcement": "json_schema",
+        "description": "所有必填字段、枚举和模式必须满足当前 Schema。",
+        "remediation": "按字段说明修正输入。"
+      }
+    ],
+    "compatibility": {
+      "standard": "JSON Schema Draft 2020-12",
+      "deprecated": false,
+      "unknown_value_policy": "不得猜测"
+    },
+    "invalid_examples": [
+      {
+        "case": "缺少必填字段",
+        "value": {
+          "invalid": true
+        },
+        "expected_rule": "RULE-SCHEMA-项目清单-结构必须完整",
+        "reason": "无法形成完整且可执行的契约。"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "project_id": "example",
+      "project_name": "example",
+      "knowledge_base_name": "example",
+      "format_version": "0.19.0",
+      "knowledge_revision": "example",
+      "created_by": "example"
+    },
+    {
+      "project_id": "recommended",
+      "project_name": "recommended",
+      "knowledge_base_name": "recommended",
+      "format_version": "0.19.0",
+      "knowledge_revision": "recommended",
+      "created_by": "recommended"
+    }
+  ],
+  "enums": {
+    "format_version": [
+      "0.19.0"
+    ]
+  }
 }

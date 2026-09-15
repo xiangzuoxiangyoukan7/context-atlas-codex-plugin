@@ -1,9 +1,9 @@
 ---
-id: GOV-USAGE-SCENARIOS
+id: GOV-知识治理-使用场景
 type: governance_document
 title: 使用场景
 rel_classified_under:
-  - "[[05-知识治理/README|IDX-GOVERNANCE]]"
+  - "[[05-知识治理/README|IDX-知识治理]]"
 ---
 # Context Atlas 场景化使用指南
 

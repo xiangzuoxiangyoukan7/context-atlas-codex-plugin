@@ -1,18 +1,606 @@
 {
-  "required": ["id", "type", "title", "status", "checkpoint", "content_digest", "target_ids", "source_type", "source_reference", "proposed_by", "operated_by", "confirmed_by", "git_commit", "project_version", "captured_at"],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/knowledge-proposal.schema.json",
+  "title": "知识维护候选",
+  "description": "主动采集检查点形成的去重知识候选及其摘要、目标和操作审计。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "knowledge_proposal",
+    "purpose": "在正式知识写入前固定候选内容摘要、目标、来源、提出者、操作者和确认者。",
+    "use_when": [
+      "主动采集发现具有长期价值的新知识",
+      "需要把确认绑定到不可变内容摘要",
+      "需要审计谁提出、谁操作、谁确认"
+    ],
+    "do_not_use_when": [
+      "替代完整展示的维护 Proposal",
+      "把初始任务请求当作确认",
+      "把 confirmed 状态当作代码执行或部署许可"
+    ],
+    "canonical_location": "03-变更与证据/待确认知识/PROP-<领域>-<YYYYMMDD>-<名称>.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 128,
+      "rename_policy": "标题变化不改变稳定 ID；身份级变化建立后继项并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": [
+        "候选摘要",
+        "目标知识",
+        "来源与确认审计"
+      ],
+      "required_sections": [
+        "候选内容",
+        "来源",
+        "影响"
+      ],
+      "forbidden_content": [
+        "秘密",
+        "把摘要当作完整 Proposal 展示"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "proposed"
+      ],
+      "terminal_states": [
+        "rejected",
+        "applied"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "confirmed",
+          "when": "责任人确认当前不可变修订"
+        },
+        {
+          "from": "confirmed",
+          "to": "applied",
+          "when": "执行器核对摘要、漂移和确认后原子应用"
+        },
+        {
+          "from": "proposed",
+          "to": "rejected",
+          "when": "责任人明确拒绝候选"
+        }
+      ],
+      "invalid_inferences": [
+        "初始请求不等于 confirmed",
+        "content_digest 相同不自动批准",
+        "applied 不表示实现或业务验收完成"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-知识提案-内容摘要必须匹配候选内容",
+        "enforcement": "deterministic",
+        "description": "content_digest 必须匹配规范化候选内容的小写 SHA-256。",
+        "remediation": "重新规范化并生成新修订。",
+        "diagnostic_code": "KB_SCHEMA_PATTERN"
+      },
+      {
+        "id": "RULE-SCHEMA-知识提案-确认必须匹配当前修订",
+        "enforcement": "human_review",
+        "description": "只有当前完整 Proposal 被明确确认时才能进入 confirmed。",
+        "remediation": "展示全部目标、事实、影响和验证后请求精确确认。"
+      },
+      {
+        "id": "RULE-SCHEMA-知识提案-目标身份必须非空且唯一",
+        "enforcement": "deterministic",
+        "description": "target_ids 必须非空且不可重复。",
+        "remediation": "登记全部正式写入目标。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "authority_boundary": "记录知识变化及确认，不授予代码执行、部署或外部副作用权限。"
+    },
+    "invalid_examples": [
+      {
+        "case": "没有目标",
+        "value": {
+          "target_ids": []
+        },
+        "expected_rule": "RULE-SCHEMA-知识提案-目标身份必须非空且唯一",
+        "reason": "无法确定正式写入范围。"
+      },
+      {
+        "case": "只展示摘要即确认",
+        "value": {
+          "status": "confirmed",
+          "content_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "expected_rule": "RULE-SCHEMA-知识提案-确认必须匹配当前修订",
+        "reason": "责任人未看到完整待确认内容。"
+      }
+    ]
+  },
+  "properties": {
+    "id": {
+      "title": "候选稳定编号",
+      "description": "使用日期和内容摘要前八位形成去重身份。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "PROP-知识治理-20260915-Schema候选"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识知识维护候选。",
+      "const": "knowledge_proposal",
+      "examples": [
+        "knowledge_proposal"
+      ]
+    },
+    "title": {
+      "title": "候选名称",
+      "description": "概括待维护知识，不替代完整候选正文。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "Schema 自描述候选"
+      ]
+    },
+    "status": {
+      "title": "状态",
+      "description": "表示该对象在治理流程中的阶段，不自动证明实现或业务结果。",
+      "oneOf": [
+        {
+          "const": "proposed",
+          "title": "待确认",
+          "description": "规范化候选等待精确确认",
+          "examples": [
+            "proposed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "完整条目已经展示"
+            ]
+          }
+        },
+        {
+          "const": "confirmed",
+          "title": "已确认",
+          "description": "责任人确认的修订与内容摘要一致",
+          "examples": [
+            "confirmed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "confirmed_revision 等于 proposal_revision"
+            ]
+          }
+        },
+        {
+          "const": "rejected",
+          "title": "已拒绝",
+          "description": "责任人明确拒绝当前候选",
+          "examples": [
+            "rejected"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "当前修订不应应用"
+            ]
+          }
+        },
+        {
+          "const": "applied",
+          "title": "已应用",
+          "description": "确定性执行器完成原子写入和完整验证",
+          "examples": [
+            "applied"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "确认匹配、无漂移且验证通过"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "proposed"
+      ]
+    },
+    "checkpoint": {
+      "title": "采集检查点",
+      "description": "说明为什么此时检查是否产生长期知识。",
+      "oneOf": [
+        {
+          "const": "user_decision",
+          "title": "用户决策后",
+          "description": "用户作出会长期影响项目的决定",
+          "examples": [
+            "user_decision"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "出现范围、规则或设计裁决"
+            ]
+          }
+        },
+        {
+          "const": "requirement_change",
+          "title": "需求变化",
+          "description": "需求范围、规则或成功标准改变",
+          "examples": [
+            "requirement_change"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "需求契约发生实质变化"
+            ]
+          }
+        },
+        {
+          "const": "contract_change",
+          "title": "契约变化",
+          "description": "接口、数据或技术契约改变",
+          "examples": [
+            "contract_change"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "调用方或数据消费者受影响"
+            ]
+          }
+        },
+        {
+          "const": "before_plan",
+          "title": "计划之前",
+          "description": "实施计划需要稳定约束",
+          "examples": [
+            "before_plan"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "计划依赖尚未入库的事实"
+            ]
+          }
+        },
+        {
+          "const": "before_delivery",
+          "title": "交付之前",
+          "description": "交付前核对实现与基线",
+          "examples": [
+            "before_delivery"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "发现值得长期保留的差异"
+            ]
+          }
+        },
+        {
+          "const": "after_acceptance",
+          "title": "验收之后",
+          "description": "需要登记验收结果和证据",
+          "examples": [
+            "after_acceptance"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "业务确认已经真实发生"
+            ]
+          }
+        },
+        {
+          "const": "before_release",
+          "title": "发布之前",
+          "description": "发布前需要固定可追溯事实",
+          "examples": [
+            "before_release"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "版本事实与知识需核对"
+            ]
+          }
+        },
+        {
+          "const": "session_end",
+          "title": "会话结束",
+          "description": "会话产生了尚未处理的长期知识",
+          "examples": [
+            "session_end"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "需要留下去重候选"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "user_decision"
+      ]
+    },
+    "content_digest": {
+      "title": "内容摘要",
+      "description": "规范化候选内容的小写 SHA-256，用于发现确认后漂移。",
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "examples": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "target_ids": {
+      "title": "目标身份",
+      "description": "候选拟新增或修改的稳定知识 ID，至少一个。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        [
+          "FEATURE-功能基线-功能-从数据库模型生成知识模板"
+        ]
+      ]
+    },
+    "source_type": {
+      "title": "主要来源类型",
+      "description": "候选的主要证据产生方式；完整来源仍在正文或目标知识中登记。",
+      "oneOf": [
+        {
+          "const": "user_statement",
+          "title": "用户陈述",
+          "description": "来自用户明确表达",
+          "examples": [
+            "user_statement"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "引用可定位会话"
+            ]
+          }
+        },
+        {
+          "const": "repository_file",
+          "title": "仓库文件",
+          "description": "来自仓库观察",
+          "examples": [
+            "repository_file"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "引用项目相对路径"
+            ]
+          }
+        },
+        {
+          "const": "command_output",
+          "title": "命令输出",
+          "description": "来自可复现命令",
+          "examples": [
+            "command_output"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "引用命令和结果"
+            ]
+          }
+        },
+        {
+          "const": "existing_document",
+          "title": "现有文档",
+          "description": "来自项目已有文档",
+          "examples": [
+            "existing_document"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "引用文件位置"
+            ]
+          }
+        },
+        {
+          "const": "external_document",
+          "title": "外部文档",
+          "description": "来自外部资料",
+          "examples": [
+            "external_document"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "引用稳定地址"
+            ]
+          }
+        },
+        {
+          "const": "ai_inference",
+          "title": "AI 推测",
+          "description": "由证据推导但未批准",
+          "examples": [
+            "ai_inference"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "必须保持候选并显式标记"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "user_statement"
+      ]
+    },
+    "source_reference": {
+      "title": "主要来源引用",
+      "description": "足以重新定位主要证据的位置。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "schemas/feature.schema.json"
+      ]
+    },
+    "proposed_by": {
+      "title": "提出者",
+      "description": "形成候选的人员或 Agent 身份。",
+      "type": "string",
+      "pattern": "^(?:PERSON|AGENT)-[A-Z0-9-]+$",
+      "examples": [
+        "AGENT-CODEX"
+      ]
+    },
+    "operated_by": {
+      "title": "操作者",
+      "description": "执行确定性维护事务的 Agent 身份；未执行时使用明确占位值。",
+      "type": "string",
+      "pattern": "^AGENT-[A-Z0-9-]+$",
+      "examples": [
+        "AGENT-CODEX"
+      ]
+    },
+    "confirmed_by": {
+      "title": "确认者",
+      "description": "确认当前候选修订的人员身份；未确认时使用空字符串。",
+      "type": "string",
+      "examples": [
+        "PERSON-OWNER",
+        ""
+      ]
+    },
+    "git_commit": {
+      "title": "提交证据",
+      "description": "关联提交哈希；尚未提交时使用空字符串。",
+      "type": "string",
+      "examples": [
+        "abc1234",
+        ""
+      ]
+    },
+    "project_version": {
+      "title": "项目版本",
+      "description": "候选形成时对应的语义版本。",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": [
+        "0.19.0"
+      ]
+    },
+    "captured_at": {
+      "title": "采集时间",
+      "description": "形成候选的带时区时间。",
+      "type": "string",
+      "format": "date-time",
+      "examples": [
+        "2026-09-15T12:00:00+08:00"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title",
+    "status",
+    "checkpoint",
+    "content_digest",
+    "target_ids",
+    "source_type",
+    "source_reference",
+    "proposed_by",
+    "operated_by",
+    "confirmed_by",
+    "git_commit",
+    "project_version",
+    "captured_at"
+  ],
+  "examples": [
+    {
+      "id": "PROP-知识治理-20260915-Schema候选",
+      "type": "knowledge_proposal",
+      "title": "Schema 候选",
+      "status": "proposed",
+      "checkpoint": "before_delivery",
+      "content_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "target_ids": [
+        "FEATURE-功能基线-功能-从数据库模型生成知识模板"
+      ],
+      "source_type": "repository_file",
+      "source_reference": "schemas/feature.schema.json",
+      "proposed_by": "AGENT-CODEX",
+      "operated_by": "AGENT-CODEX",
+      "confirmed_by": "",
+      "git_commit": "",
+      "project_version": "0.19.0",
+      "captured_at": "2026-09-15T12:00:00+08:00"
+    },
+    {
+      "id": "PROP-知识治理-20260915-数据库确认",
+      "type": "knowledge_proposal",
+      "title": "需求身份确认",
+      "status": "confirmed",
+      "checkpoint": "user_decision",
+      "content_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "target_ids": [
+        "REQ-ATLAS-20260915-知识库README层级导航"
+      ],
+      "source_type": "user_statement",
+      "source_reference": "当前会话",
+      "proposed_by": "AGENT-CODEX",
+      "operated_by": "AGENT-CODEX",
+      "confirmed_by": "PERSON-OWNER",
+      "git_commit": "",
+      "project_version": "0.19.0",
+      "captured_at": "2026-09-15T12:05:00+08:00"
+    }
+  ],
   "enums": {
-    "type": ["knowledge_proposal"],
-    "status": ["proposed", "confirmed", "rejected", "applied"],
-    "checkpoint": ["user_decision", "requirement_change", "contract_change", "before_plan", "before_delivery", "after_acceptance", "before_release", "session_end"],
-    "source_type": ["user_statement", "repository_file", "command_output", "existing_document", "external_document", "ai_inference"]
+    "type": [
+      "knowledge_proposal"
+    ],
+    "status": [
+      "proposed",
+      "confirmed",
+      "rejected",
+      "applied"
+    ],
+    "checkpoint": [
+      "user_decision",
+      "requirement_change",
+      "contract_change",
+      "before_plan",
+      "before_delivery",
+      "after_acceptance",
+      "before_release",
+      "session_end"
+    ],
+    "source_type": [
+      "user_statement",
+      "repository_file",
+      "command_output",
+      "existing_document",
+      "external_document",
+      "ai_inference"
+    ]
   },
   "patterns": {
-    "id": "PROP-\\d{8}-[A-F0-9]{8}",
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
     "content_digest": "[a-f0-9]{64}",
     "proposed_by": "(?:PERSON|AGENT)-[A-Z0-9-]+",
     "operated_by": "AGENT-[A-Z0-9-]+",
     "project_version": "\\d+\\.\\d+\\.\\d+"
   },
-  "non_empty_lists": ["target_ids"],
-  "unique_lists": ["target_ids"]
+  "non_empty_lists": [
+    "target_ids"
+  ],
+  "unique_lists": [
+    "target_ids"
+  ]
 }

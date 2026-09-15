@@ -1,1 +1,537 @@
-{"required":["id","type","title","status","interface_kind","visibility","sources","last_updated"],"enums":{"type":["interface"],"status":["missing","proposed","approved","conflicted","stale","superseded","archived"],"approval_status":["proposed","approved","rejected"],"lifecycle_status":["candidate","active","deprecated","retired"],"spec_readiness":["draft","clarifying","ready","blocked"],"interface_kind":["http","rpc","event","webhook","file","file_format","function","cli","agent_operation"],"visibility":["internal","external"]},"patterns":{"id":"(?:API|RPC|EVENT|WEBHOOK|FILE|CLI|AGENT)(?:-[A-Z0-9]+)?-[0-9]{3}","content_revision":"\\d+","last_updated":"\\d{4}-\\d{2}-\\d{2}"},"non_empty_lists":["sources"],"unique_lists":["sources","blocking_questions"]}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/interface.schema.json",
+  "title": "接口知识",
+  "description": "系统边界上的稳定调用或交换契约。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "interface",
+    "purpose": "保存调用方与提供方之间的输入、输出、失败、兼容性、可见性和安全契约。",
+    "use_when": [
+      "调用方依赖稳定请求、响应或格式",
+      "事件、文件或 CLI 构成跨模块边界",
+      "Agent 操作需要版本化输入输出"
+    ],
+    "do_not_use_when": [
+      "只描述内部实现职责",
+      "只描述用户层完整行为",
+      "没有稳定调用方的临时函数"
+    ],
+    "canonical_location": "02-技术基线/接口/INTERFACE-技术基线-接口-<名称>.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 96,
+      "rename_policy": "职责或兼容性不变时保持 ID；身份级变化建立后继项并迁移关系。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": [
+        "调用方与提供方",
+        "输入",
+        "输出",
+        "失败语义",
+        "兼容性",
+        "安全与权限"
+      ],
+      "required_sections": [
+        "契约",
+        "失败语义"
+      ],
+      "forbidden_content": [
+        "仅给实现代码而不说明外部契约"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "missing",
+        "proposed"
+      ],
+      "terminal_states": [
+        "archived"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "approved",
+          "when": "内容通过当前 Proposal 确认"
+        },
+        {
+          "from": "approved",
+          "to": "stale",
+          "when": "实现变化使描述可能过时"
+        },
+        {
+          "from": "approved",
+          "to": "superseded",
+          "when": "后继项和迁移关系已建立"
+        },
+        {
+          "from": "superseded",
+          "to": "archived",
+          "when": "归档 Proposal 已确认"
+        }
+      ],
+      "invalid_inferences": [
+        "实现存在不推出 approved",
+        "测试通过不自动批准知识",
+        "stale 不等于 archived"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-接口-交换机制必须准确",
+        "enforcement": "json_schema",
+        "description": "interface_kind 必须准确表达交换机制。",
+        "remediation": "根据实际边界选择已登记类别。"
+      },
+      {
+        "id": "RULE-SCHEMA-接口-必须包含可定位来源",
+        "enforcement": "deterministic",
+        "description": "必须具有至少一个可定位来源。",
+        "remediation": "登记实现、协议或已确认陈述。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      },
+      {
+        "id": "RULE-SCHEMA-接口-正文必须覆盖完整契约边界",
+        "enforcement": "human_review",
+        "description": "正文应覆盖输入、输出、失败、兼容和权限边界。",
+        "remediation": "补齐影响调用方实现和验收的信息。"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "unknown_value_policy": "不得猜测；影响契约的未知项必须保留并进入人工复核。"
+    },
+    "invalid_examples": [
+      {
+        "case": "未知类别",
+        "value": {
+          "id": "INTERFACE-技术基线-接口-待确认业务用途",
+          "interface_kind": "socket"
+        },
+        "expected_rule": "RULE-SCHEMA-接口-交换机制必须准确",
+        "reason": "类别未登记。"
+      },
+      {
+        "case": "没有来源",
+        "value": {
+          "id": "INTERFACE-技术基线-接口-待确认业务用途",
+          "sources": []
+        },
+        "expected_rule": "RULE-SCHEMA-接口-必须包含可定位来源",
+        "reason": "无法定位契约来源。"
+      }
+    ]
+  },
+  "properties": {
+    "id": {
+      "title": "接口知识稳定编号",
+      "description": "全库稳定机器身份。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "INTERFACE-技术基线-接口-知识库验证命令"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识接口知识。",
+      "const": "interface",
+      "examples": [
+        "interface"
+      ]
+    },
+    "title": {
+      "title": "接口知识名称",
+      "description": "清楚表达职责或契约目的的阅读名称。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "系统边界上的稳定调用或交"
+      ]
+    },
+    "status": {
+      "title": "知识状态",
+      "description": "内容的确认和当前权威状态，不表示运行健康。",
+      "oneOf": [
+        {
+          "const": "missing",
+          "title": "缺失",
+          "description": "已知对象存在但内容不足",
+          "examples": [
+            "missing"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "迁移时只能确认对象身份"
+            ]
+          }
+        },
+        {
+          "const": "proposed",
+          "title": "待确认",
+          "description": "已有来源的候选等待确认",
+          "examples": [
+            "proposed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "新建或实质修订知识"
+            ]
+          }
+        },
+        {
+          "const": "approved",
+          "title": "已批准",
+          "description": "内容已通过当前 Proposal 精确确认",
+          "examples": [
+            "approved"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "责任人确认当前 Proposal 修订"
+            ]
+          }
+        },
+        {
+          "const": "conflicted",
+          "title": "存在冲突",
+          "description": "至少两个来源给出不能同时成立的值",
+          "examples": [
+            "conflicted"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "竞争来源不能由现有证据消解"
+            ]
+          }
+        },
+        {
+          "const": "stale",
+          "title": "可能过时",
+          "description": "现有来源可能不再描述当前项目",
+          "examples": [
+            "stale"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实现或依赖变化后尚未核验"
+            ]
+          }
+        },
+        {
+          "const": "superseded",
+          "title": "已被替代",
+          "description": "已有明确后继项承接当前权威",
+          "examples": [
+            "superseded"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "后继关系和引用迁移已经建立"
+            ]
+          }
+        },
+        {
+          "const": "archived",
+          "title": "已归档",
+          "description": "仅保留历史背景，不再构成当前权威",
+          "examples": [
+            "archived"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "归档 Proposal 已确认"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "missing",
+        "archived"
+      ]
+    },
+    "interface_kind": {
+      "title": "接口类别",
+      "description": "决定契约重点的调用或交换机制。",
+      "oneOf": [
+        {
+          "const": "http",
+          "title": "HTTP 接口",
+          "description": "HTTP 方法、路径、状态码和消息体",
+          "examples": [
+            "http"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "通过 HTTP 请求响应"
+            ]
+          }
+        },
+        {
+          "const": "rpc",
+          "title": "RPC 接口",
+          "description": "服务方法和序列化协议",
+          "examples": [
+            "rpc"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "依赖 RPC 服务定义"
+            ]
+          }
+        },
+        {
+          "const": "event",
+          "title": "事件",
+          "description": "发布者异步发出、订阅者消费",
+          "examples": [
+            "event"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "生产者不等待同步响应"
+            ]
+          }
+        },
+        {
+          "const": "webhook",
+          "title": "Webhook",
+          "description": "向外部回调地址发送 HTTP 通知",
+          "examples": [
+            "webhook"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "事件通过接收方端点回调"
+            ]
+          }
+        },
+        {
+          "const": "file",
+          "title": "文件交换",
+          "description": "具体文件的产生、传输或消费",
+          "examples": [
+            "file"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "关注文件命名和交付"
+            ]
+          }
+        },
+        {
+          "const": "file_format",
+          "title": "文件格式",
+          "description": "多个文件实例共享的结构与编码",
+          "examples": [
+            "file_format"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "关注可复用格式"
+            ]
+          }
+        },
+        {
+          "const": "function",
+          "title": "函数接口",
+          "description": "跨模块稳定函数或方法签名",
+          "examples": [
+            "function"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "调用方依赖代码级签名"
+            ]
+          }
+        },
+        {
+          "const": "cli",
+          "title": "命令行接口",
+          "description": "命令、参数、输入输出和退出码",
+          "examples": [
+            "cli"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "用户或自动化通过命令行调用"
+            ]
+          }
+        },
+        {
+          "const": "agent_operation",
+          "title": "Agent 操作",
+          "description": "Agent 调用的结构化输入输出操作",
+          "examples": [
+            "agent_operation"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "宿主依赖稳定操作契约"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "http",
+        "agent_operation"
+      ]
+    },
+    "visibility": {
+      "title": "可见性",
+      "description": "预期调用边界；内部接口仍需兼容治理。",
+      "oneOf": [
+        {
+          "const": "internal",
+          "title": "内部",
+          "description": "只供本项目受控组件调用",
+          "examples": [
+            "internal"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "调用者都在本项目变更控制内"
+            ]
+          }
+        },
+        {
+          "const": "external",
+          "title": "外部",
+          "description": "供项目边界外调用方使用",
+          "examples": [
+            "external"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "调用方具有独立发布或迁移节奏"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "internal",
+        "external"
+      ]
+    },
+    "sources": {
+      "title": "事实来源",
+      "description": "至少一个可定位来源，不得把 AI 推测伪装为仓库事实。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {},
+      "examples": [
+        [
+          {
+            "type": "repository_file",
+            "reference": "path/to/source"
+          }
+        ]
+      ]
+    },
+    "last_updated": {
+      "title": "最后更新时间",
+      "description": "知识最后正式变化日期，使用 YYYY-MM-DD。",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": [
+        "2026-09-15"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title",
+    "status",
+    "interface_kind",
+    "visibility",
+    "sources",
+    "last_updated"
+  ],
+  "examples": [
+    {
+      "id": "INTERFACE-技术基线-接口-知识库验证命令",
+      "type": "interface",
+      "title": "知识库验证命令",
+      "status": "proposed",
+      "interface_kind": "cli",
+      "visibility": "external",
+      "sources": [
+        {
+          "type": "repository_file",
+          "reference": "scripts/check_knowledge_base.py"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    },
+    {
+      "id": "INTERFACE-技术基线-接口-知识库查询命令",
+      "type": "interface",
+      "title": "知识库查询操作",
+      "status": "approved",
+      "interface_kind": "agent_operation",
+      "visibility": "external",
+      "sources": [
+        {
+          "type": "repository_file",
+          "reference": "scripts/project_kb/agent_kb_cli.py"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    }
+  ],
+  "enums": {
+    "type": [
+      "interface"
+    ],
+    "status": [
+      "missing",
+      "proposed",
+      "approved",
+      "conflicted",
+      "stale",
+      "superseded",
+      "archived"
+    ],
+    "interface_kind": [
+      "http",
+      "rpc",
+      "event",
+      "webhook",
+      "file",
+      "file_format",
+      "function",
+      "cli",
+      "agent_operation"
+    ],
+    "visibility": [
+      "internal",
+      "external"
+    ]
+  },
+  "patterns": {
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
+    "last_updated": "\\d{4}-\\d{2}-\\d{2}"
+  },
+  "non_empty_lists": [
+    "sources"
+  ],
+  "unique_lists": [
+    "sources",
+    "blocking_questions"
+  ]
+}

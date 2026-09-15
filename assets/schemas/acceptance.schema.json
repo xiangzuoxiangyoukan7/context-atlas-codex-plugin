@@ -1,9 +1,275 @@
 {
-  "required": ["id", "owner", "condition", "result", "evidence", "version"],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/acceptance.schema.json",
+  "title": "验收结果记录",
+  "description": "一个稳定验收场景在指定版本上的执行结果和证据引用。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "acceptance",
+    "purpose": "把验收条件、预期结果、实际状态、责任方和证据绑定到具体版本。",
+    "use_when": [
+      "需要记录功能或知识库验收场景的实际结果",
+      "结果必须与具体版本和证据绑定",
+      "需要区分未开始、部分通过、通过和不适用"
+    ],
+    "do_not_use_when": [
+      "只定义功能的验收意图而尚未执行",
+      "只记录测试命令成功",
+      "没有可定位版本或证据"
+    ],
+    "canonical_location": "功能正文内嵌验收场景，结果与证据保存于 03-变更与证据/验收证据/",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "condition",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 96,
+      "rename_policy": "语义未发生身份级变化时保持稳定 ID；身份级变化建立后继项并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "embedded_object",
+      "authoritative_for": [
+        "验收执行结果"
+      ],
+      "required_sections": [],
+      "forbidden_content": [
+        "用结构检查替代业务确认",
+        "passed 时使用空证据"
+      ]
+    },
+    "lifecycle": {
+      "field": "result",
+      "initial_states": [
+        "not_started"
+      ],
+      "terminal_states": [
+        "passed",
+        "not_applicable"
+      ],
+      "transitions": [
+        {
+          "from": "not_started",
+          "to": "partial",
+          "when": "已执行部分步骤并产生证据"
+        },
+        {
+          "from": "not_started",
+          "to": "passed",
+          "when": "一次执行满足全部条件且证据完整"
+        },
+        {
+          "from": "partial",
+          "to": "passed",
+          "when": "剩余断言完成并补齐证据"
+        }
+      ],
+      "invalid_inferences": [
+        "测试退出码为零不自动推出业务 passed",
+        "not_applicable 不等于跳过",
+        "partial 不得描述为完成"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-验收-通过结果必须关联版本与证据",
+        "enforcement": "human_review",
+        "description": "passed 必须关联对应版本和可定位证据。",
+        "remediation": "补充证据位置，或将结果保持 not_started/partial。"
+      },
+      {
+        "id": "RULE-SCHEMA-验收-结果状态必须受控",
+        "enforcement": "json_schema",
+        "description": "result 必须使用受控结果状态。",
+        "remediation": "选择 not_started、partial、passed 或 not_applicable。"
+      },
+      {
+        "id": "RULE-SCHEMA-验收-版本必须精确定位",
+        "enforcement": "human_review",
+        "description": "version 必须精确定位被验收实现或知识版本。",
+        "remediation": "登记发布版本、提交或等价稳定版本标识。"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "unknown_value_policy": "不得猜测；使用 missing 或保留待确认问题。"
+    },
+    "invalid_examples": [
+      {
+        "case": "通过但没有证据",
+        "value": {
+          "result": "passed",
+          "evidence": []
+        },
+        "expected_rule": "RULE-SCHEMA-验收-通过结果必须关联版本与证据",
+        "reason": "无法复核验收结论。"
+      },
+      {
+        "case": "未知结果状态",
+        "value": {
+          "result": "failed"
+        },
+        "expected_rule": "RULE-SCHEMA-验收-结果状态必须受控",
+        "reason": "失败应保留为未满足证据并按现行状态语义记录。"
+      }
+    ]
+  },
+  "properties": {
+    "id": {
+      "title": "验收场景编号",
+      "description": "关联功能或知识库治理场景的稳定编号。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "AC-功能-知识模型生成-生成知识模板"
+      ]
+    },
+    "owner": {
+      "title": "验收责任方",
+      "description": "负责判断业务结果是否满足的角色或团队。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "项目责任人"
+      ]
+    },
+    "condition": {
+      "title": "前置与触发条件",
+      "description": "执行场景所需环境、数据和触发动作。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "给定一个有效知识库并运行结构检查"
+      ]
+    },
+    "result": {
+      "title": "验收结果",
+      "description": "表示该场景在指定版本上的执行结论。",
+      "oneOf": [
+        {
+          "const": "not_started",
+          "title": "未开始",
+          "description": "尚未执行该验收场景",
+          "examples": [
+            "not_started"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "没有执行证据"
+            ]
+          }
+        },
+        {
+          "const": "partial",
+          "title": "部分通过",
+          "description": "只完成部分步骤或部分断言",
+          "examples": [
+            "partial"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "存在可定位证据但未满足全部条件"
+            ]
+          }
+        },
+        {
+          "const": "passed",
+          "title": "通过",
+          "description": "对应版本的条件和预期结果均有可定位证据",
+          "examples": [
+            "passed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "全部断言成立且证据可复核"
+            ]
+          }
+        },
+        {
+          "const": "not_applicable",
+          "title": "不适用",
+          "description": "经确认该场景不适用于对应版本或范围",
+          "examples": [
+            "not_applicable"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "有明确排除依据和责任人确认"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "not_started"
+      ]
+    },
+    "evidence": {
+      "title": "证据引用",
+      "description": "可定位的报告、日志、测试或操作记录；passed 时必须足以复核。",
+      "type": [
+        "string",
+        "array"
+      ],
+      "minLength": 1,
+      "examples": [
+        [
+          "03-变更与证据/验收证据/F04.md"
+        ]
+      ]
+    },
+    "version": {
+      "title": "被验收版本",
+      "description": "结果所对应的发布版本、提交或其他稳定版本标识。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "0.19.0"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "owner",
+    "condition",
+    "result",
+    "evidence",
+    "version"
+  ],
+  "examples": [
+    {
+      "id": "AC-功能-知识模型生成-生成知识模板",
+      "owner": "项目责任人",
+      "condition": "生成标准知识库",
+      "result": "not_started",
+      "evidence": "待执行",
+      "version": "0.19.0"
+    },
+    {
+      "id": "AC-知识治理-全量结构校验-检查全部正式知识",
+      "owner": "知识治理团队",
+      "condition": "数据库模板和反例验证完成",
+      "result": "passed",
+      "evidence": [
+        "03-变更与证据/验收证据/数据库知识治理.md"
+      ],
+      "version": "0.19.0"
+    }
+  ],
   "enums": {
-    "result": ["not_started", "partial", "passed", "not_applicable"]
+    "result": [
+      "not_started",
+      "partial",
+      "passed",
+      "not_applicable"
+    ]
   },
   "patterns": {
-    "id": "(?:F\\d{2}|KB)-AC-\\d{2}"
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*"
   }
 }

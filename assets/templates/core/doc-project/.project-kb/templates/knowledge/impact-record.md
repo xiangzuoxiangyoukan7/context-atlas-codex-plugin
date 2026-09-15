@@ -8,11 +8,11 @@ confirmed_by: missing
 evidence: []
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[03-变更与证据/README|IDX-CHANGES-EVIDENCE]]"
+  - "[[03-变更与证据/README|IDX-变更与证据]]"
 ---
 # IMPACT-000 影响记录
 
-<!-- context-atlas-rules: [[rules/知识治理规则#RULE-IMPACT-002|RULE-IMPACT-002]] -->
+<!-- context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-影响分析只提供三级人工决策输入|RULE-知识治理规则-影响分析只提供三级人工决策输入]] -->
 
 > 仅在破坏性变化、跨版本迁移或需要审计人工结论时创建；日常影响通过关系和反向索引动态查询。本记录不是开发任务执行许可。
 

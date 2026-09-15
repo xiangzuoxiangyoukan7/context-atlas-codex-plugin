@@ -1,16 +1,507 @@
 {
-  "required": ["id", "type", "title", "status", "physical_name", "owner", "sensitivity", "sources", "ddl_sources", "rel_belongs_to", "last_updated"],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/database-table.schema.json",
+  "title": "数据库表知识",
+  "description": "一张具体物理表的结构、字段语义、约束、来源和逻辑关系。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "database_table",
+    "purpose": "保存表级技术契约，并通过正文块锚点稳定引用字段。",
+    "use_when": [
+      "项目直接读取或写入一张物理表",
+      "需要记录字段、值域、索引或逻辑外键",
+      "表结构需要与数据源建立明确归属"
+    ],
+    "do_not_use_when": [
+      "只描述数据源公共连接信息",
+      "描述跨技术对象业务数据集合",
+      "只有临时查询结果而无稳定表契约"
+    ],
+    "canonical_location": "02-技术基线/数据库/DS-<领域>-<名称>/TABLE-技术基线-数据库-DS-<领域>-<名称>-<表名称>.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 96,
+      "rename_policy": "语义未发生身份级变化时保持稳定 ID；身份级变化建立后继项并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": [
+        "表用途",
+        "字段定义",
+        "物理约束",
+        "逻辑关系",
+        "读写边界"
+      ],
+      "required_sections": [
+        "表用途",
+        "字段定义"
+      ],
+      "forbidden_content": [
+        "复制真实生产数据",
+        "把推测字段标记为已批准"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "missing",
+        "proposed"
+      ],
+      "terminal_states": [
+        "archived"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "approved",
+          "when": "DDL、字段语义和归属得到确认"
+        },
+        {
+          "from": "approved",
+          "to": "stale",
+          "when": "DDL 或上游数据发生未核验变化"
+        },
+        {
+          "from": "approved",
+          "to": "superseded",
+          "when": "后继表及迁移关系建立"
+        },
+        {
+          "from": "superseded",
+          "to": "archived",
+          "when": "消费者迁移完成并确认归档"
+        }
+      ],
+      "invalid_inferences": [
+        "DDL 存在不推出字段业务语义已确认",
+        "approved 不证明数据质量达标",
+        "表名相似不推出逻辑外键"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-数据表-知识来源与DDL来源必须完整",
+        "enforcement": "deterministic",
+        "description": "sources 和 ddl_sources 均必须非空。",
+        "remediation": "登记知识来源和可定位 DDL 来源。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      },
+      {
+        "id": "RULE-SCHEMA-数据表-必须唯一隶属于所在数据源",
+        "enforcement": "deterministic",
+        "description": "表必须通过 rel_belongs_to 归属且只指向所在数据源。",
+        "remediation": "修正为所在 DS-*/README。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      },
+      {
+        "id": "RULE-SCHEMA-数据表-敏感级别必须受控",
+        "enforcement": "json_schema",
+        "description": "敏感级别必须使用受控枚举。",
+        "remediation": "按数据内容选择级别；无法判断时使用 missing。"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "unknown_value_policy": "不得猜测；使用 missing 或保留待确认问题。"
+    },
+    "invalid_examples": [
+      {
+        "case": "缺少 DDL 来源",
+        "value": {
+          "ddl_sources": []
+        },
+        "expected_rule": "RULE-SCHEMA-数据表-知识来源与DDL来源必须完整",
+        "reason": "结构无法追溯。"
+      },
+      {
+        "case": "非法敏感级别",
+        "value": {
+          "sensitivity": "secret"
+        },
+        "expected_rule": "RULE-SCHEMA-数据表-敏感级别必须受控",
+        "reason": "不属于受控分类。"
+      }
+    ]
+  },
+  "properties": {
+    "id": {
+      "title": "数据表稳定编号",
+      "description": "以 TABLE- 开头的语义身份，不直接复用可变物理表名。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "TABLE-技术基线-数据库-DS-ATLAS-METADATA-知识项"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识数据库表知识。",
+      "const": "database_table",
+      "examples": [
+        "database_table"
+      ]
+    },
+    "title": {
+      "title": "数据表名称",
+      "description": "表达表承载的数据用途。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "知识项表"
+      ]
+    },
+    "status": {
+      "title": "知识状态",
+      "description": "表示内容的确认与当前权威状态，不表示系统在线或数据正确。",
+      "oneOf": [
+        {
+          "const": "missing",
+          "title": "缺失",
+          "description": "已知对象存在但知识不足",
+          "examples": [
+            "missing"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "迁移时无法安全恢复内容"
+            ]
+          }
+        },
+        {
+          "const": "proposed",
+          "title": "待确认",
+          "description": "有来源的候选尚待确认",
+          "examples": [
+            "proposed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "新建或实质修订"
+            ]
+          }
+        },
+        {
+          "const": "approved",
+          "title": "已批准",
+          "description": "当前内容已被精确确认",
+          "examples": [
+            "approved"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "责任人确认当前 Proposal"
+            ]
+          }
+        },
+        {
+          "const": "conflicted",
+          "title": "存在冲突",
+          "description": "来源给出不能并存的值",
+          "examples": [
+            "conflicted"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "至少两个来源竞争"
+            ]
+          }
+        },
+        {
+          "const": "stale",
+          "title": "可能过时",
+          "description": "来源可能不再描述当前对象",
+          "examples": [
+            "stale"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实现或外部系统变化"
+            ]
+          }
+        },
+        {
+          "const": "superseded",
+          "title": "已被替代",
+          "description": "后继项已经承接当前权威",
+          "examples": [
+            "superseded"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "后继关系和引用已迁移"
+            ]
+          }
+        },
+        {
+          "const": "archived",
+          "title": "已归档",
+          "description": "仅保留历史追溯",
+          "examples": [
+            "archived"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "归档 Proposal 已确认"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "missing"
+      ]
+    },
+    "physical_name": {
+      "title": "物理表名",
+      "description": "数据库中可定位的实际表名，保留实际大小写约定。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "knowledge_item"
+      ]
+    },
+    "owner": {
+      "title": "责任方",
+      "description": "负责表结构和语义确认的团队或角色。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "知识平台团队"
+      ]
+    },
+    "sensitivity": {
+      "title": "敏感级别",
+      "description": "决定访问、展示和证据处理边界。",
+      "oneOf": [
+        {
+          "const": "public",
+          "title": "公开",
+          "description": "允许公开披露的数据",
+          "examples": [
+            "public"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "已明确允许公开"
+            ]
+          }
+        },
+        {
+          "const": "internal",
+          "title": "内部",
+          "description": "仅限组织内部使用",
+          "examples": [
+            "internal"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "不含敏感内容但不面向公众"
+            ]
+          }
+        },
+        {
+          "const": "sensitive",
+          "title": "敏感",
+          "description": "泄露会造成业务或个人风险",
+          "examples": [
+            "sensitive"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "含受保护业务或个人信息"
+            ]
+          }
+        },
+        {
+          "const": "restricted",
+          "title": "严格限制",
+          "description": "仅限明确授权主体访问",
+          "examples": [
+            "restricted"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "法律、安全或合同要求最小授权"
+            ]
+          }
+        },
+        {
+          "const": "missing",
+          "title": "待确认",
+          "description": "敏感级别尚不能安全判断",
+          "examples": [
+            "missing"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "迁移或调查时缺少分类依据"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "public"
+      ]
+    },
+    "sources": {
+      "title": "事实来源",
+      "description": "支撑当前描述的非空来源列表；连接密钥和未脱敏个人数据不得进入来源。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {},
+      "examples": [
+        [
+          {
+            "type": "repository_file",
+            "reference": "config/database.example.yaml"
+          }
+        ]
+      ]
+    },
+    "ddl_sources": {
+      "title": "DDL 来源",
+      "description": "支持字段和约束结构的非空可定位来源。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {},
+      "examples": [
+        [
+          "migrations/001_create_knowledge.sql"
+        ]
+      ]
+    },
+    "rel_belongs_to": {
+      "title": "数据源归属",
+      "description": "指向所在 DS-*/README 的唯一正向关系。",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        [
+          "[[02-技术基线/数据库/DS-知识库-核心数据/README|DS-知识库-核心数据]]"
+        ]
+      ]
+    },
+    "last_updated": {
+      "title": "最后更新时间",
+      "description": "知识内容最后正式变化的日期，使用 YYYY-MM-DD。",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": [
+        "2026-09-15"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title",
+    "status",
+    "physical_name",
+    "owner",
+    "sensitivity",
+    "sources",
+    "ddl_sources",
+    "rel_belongs_to",
+    "last_updated"
+  ],
+  "examples": [
+    {
+      "id": "TABLE-技术基线-数据库-DS-ATLAS-METADATA-知识项",
+      "type": "database_table",
+      "title": "知识项表",
+      "status": "proposed",
+      "physical_name": "knowledge_item",
+      "owner": "平台团队",
+      "sensitivity": "internal",
+      "sources": [
+        {
+          "type": "repository_file",
+          "reference": "migrations/001.sql"
+        }
+      ],
+      "ddl_sources": [
+        "migrations/001.sql"
+      ],
+      "rel_belongs_to": [
+        "[[02-技术基线/数据库/DS-知识库-核心数据/README|DS-知识库-核心数据]]"
+      ],
+      "last_updated": "2026-09-15"
+    },
+    {
+      "id": "TABLE-技术基线-数据库-DS-ATLAS-METADATA-知识审计",
+      "type": "database_table",
+      "title": "知识审计表",
+      "status": "approved",
+      "physical_name": "knowledge_audit",
+      "owner": "平台团队",
+      "sensitivity": "sensitive",
+      "sources": [
+        {
+          "type": "repository_file",
+          "reference": "migrations/002.sql"
+        }
+      ],
+      "ddl_sources": [
+        "migrations/002.sql"
+      ],
+      "rel_belongs_to": [
+        "[[02-技术基线/数据库/DS-知识库-核心数据/README|DS-知识库-核心数据]]"
+      ],
+      "last_updated": "2026-09-15"
+    }
+  ],
   "enums": {
-    "type": ["database_table"],
-    "status": ["missing", "proposed", "approved", "conflicted", "stale", "superseded", "archived"],
-    "sensitivity": ["public", "internal", "sensitive", "restricted", "missing"]
+    "type": [
+      "database_table"
+    ],
+    "status": [
+      "missing",
+      "proposed",
+      "approved",
+      "conflicted",
+      "stale",
+      "superseded",
+      "archived"
+    ],
+    "sensitivity": [
+      "public",
+      "internal",
+      "sensitive",
+      "restricted",
+      "missing"
+    ]
   },
   "patterns": {
-    "id": "TABLE-[A-Z0-9-]+",
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
     "version": "\\d+\\.\\d+\\.\\d+",
     "content_revision": "\\d+",
     "last_updated": "\\d{4}-\\d{2}-\\d{2}"
   },
-  "non_empty_lists": ["sources", "ddl_sources", "rel_belongs_to"],
-  "unique_lists": ["sources", "ddl_sources", "rel_belongs_to"]
+  "non_empty_lists": [
+    "sources",
+    "ddl_sources",
+    "rel_belongs_to"
+  ],
+  "unique_lists": [
+    "sources",
+    "ddl_sources",
+    "rel_belongs_to"
+  ]
 }

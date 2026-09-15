@@ -12,7 +12,7 @@ acceptance: []
 sources: []
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[03-变更与证据/变更/README|IDX-CHANGES]]"
+  - "[[03-变更与证据/变更/README|IDX-变更与证据-变更]]"
 ---
 
 # CHG-20000101-001：单一变更意图

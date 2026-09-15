@@ -30,7 +30,10 @@ def parse_format_version(value: object) -> FormatVersion:
 def format_generation(version: FormatVersion) -> int:
     """把 SemVer 当前格式映射到迁移规则代际，供遗留结构判断使用。"""
 
-    return version if isinstance(version, int) else 15
+    if isinstance(version, int):
+        return version
+    major, minor, patch = (int(part) for part in version.split("."))
+    return 16 if (major, minor, patch) >= (0, 19, 0) else 15
 
 
 @dataclass(frozen=True)
@@ -90,6 +93,9 @@ class CompatibilityPolicy:
         payload = json.loads(path.resolve().read_text(encoding="utf-8"))
         if not isinstance(payload, dict) or payload.get("manifest_version") != 1:
             raise ValueError("compatibility manifest_version must be 1")
+        for field in ("title", "description", "read_policy", "write_policy", "unknown_version_policy"):
+            if not isinstance(payload.get(field), str) or not payload[field].strip():
+                raise ValueError(f"compatibility {field} must be a non-empty string")
         raw_reads = payload.get("supported_format_versions")
         creates = payload.get("created_format_version")
         raw_conversions = payload.get("conversions")
@@ -107,6 +113,10 @@ class CompatibilityPolicy:
         for raw in raw_conversions:
             if not isinstance(raw, dict):
                 raise ValueError("conversion must be an object")
+            if not isinstance(raw.get("description"), str) or not raw["description"].strip():
+                raise ValueError("conversion description must be non-empty")
+            if raw.get("output_policy") != "convert_only_no_legacy_coexistence":
+                raise ValueError("conversion must forbid legacy coexistence")
             source = parse_format_version(raw.get("from"))
             target = parse_format_version(raw.get("to"))
             identifier = raw.get("id")

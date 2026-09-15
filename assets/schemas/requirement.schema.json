@@ -1,23 +1,185 @@
 {
-  "context_atlas_rules": ["[[rules/知识治理规则#RULE-SPEC-001|RULE-SPEC-001]]"],
-  "required": [
-    "id",
-    "type",
-    "title",
-    "status",
-    "readiness",
-    "priority",
-    "last_updated"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/requirement.schema.json",
+  "title": "需求知识",
+  "description": "约束稳定业务需求的机器元数据；问题价值、范围、业务规则、成功标准、约束、依赖、假设、阻塞问题及来源确认以 Markdown 正文为权威。",
+  "type": "object",
+  "additionalProperties": false,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "requirement",
+    "purpose": "保存为什么需要某项能力、其业务范围、稳定业务规则和可观察成功标准，不描述具体实现。",
+    "use_when": [
+      "存在需要长期追踪的业务问题、价值、范围或规则",
+      "多个功能可能共同满足同一个业务目标",
+      "需要在实现方式之外稳定表达业务成功标准"
+    ],
+    "do_not_use_when": [
+      "描述功能的规范行为或完整设计，此时使用 feature",
+      "描述一次性实施步骤，此时使用外部任务或 task",
+      "描述具体接口、模块、数据表或其他技术对象"
+    ],
+    "canonical_location": "01-功能基线/需求/REQ-<领域>-<YYYYMMDD>-<名称>.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": true,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "^REQ-[A-Z0-9]+-([0-9]{8})-",
+      "maximum_length": 120,
+      "rename_policy": "标题语义名称变化时，ID、文件名和全部引用必须通过同一已确认事务迁移。",
+      "collision_policy": "目标 ID 或文件已存在时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": ["问题与价值", "范围", "业务规则", "成功标准", "约束与依赖", "假设", "待澄清问题", "来源与确认"],
+      "required_sections": ["问题与价值", "范围", "业务规则", "成功标准", "约束与依赖", "假设", "待澄清问题", "来源与确认"],
+      "forbidden_content": ["具体代码实现步骤", "功能级完整设计", "把功能完成状态当作需求批准状态"]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": ["missing", "proposed"],
+      "terminal_states": ["archived"],
+      "transitions": [
+        {"from": "proposed", "to": "approved", "when": "项目责任人确认当前 Proposal 修订"},
+        {"from": "approved", "to": "stale", "when": "现有来源可能不再描述当前项目"},
+        {"from": "approved", "to": "superseded", "when": "存在已建立替代关系的后继需求"},
+        {"from": "superseded", "to": "archived", "when": "当前引用已迁移且归档 Proposal 已确认"}
+      ],
+      "invalid_inferences": [
+        "status=approved 不推出 readiness=ready",
+        "readiness=ready 不推出存在功能承接",
+        "功能实现或测试通过不自动改变需求状态"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-需求-正文必须包含稳定业务章节",
+        "enforcement": "deterministic",
+        "description": "需求正文必须包含规定的稳定章节，且不得用 Front Matter 重复保存正文业务内容。",
+        "diagnostic_code": "KB_SPEC_REQUIREMENT",
+        "remediation": "按需求模板补齐稳定章节，并将业务内容保存在正文。"
+      },
+      {
+        "id": "RULE-SCHEMA-需求-就绪状态必须满足下阶段条件",
+        "enforcement": "human_review",
+        "description": "只有范围、规则、成功标准和约束足以支持下一阶段，且不存在会改变行为或任务拆分的阻塞问题时，才能使用 ready。",
+        "remediation": "解决阻塞问题，或使用 draft、clarifying、blocked 中符合事实的值。"
+      },
+      {
+        "id": "RULE-SCHEMA-需求-必须唯一归入需求目录",
+        "enforcement": "deterministic",
+        "description": "需求必须通过唯一 rel_classified_under 关系归入需求目录 README。",
+        "diagnostic_code": "KB_CLASSIFICATION_REQUIRED",
+        "remediation": "添加或修正指向直接需求目录 README 的唯一分类关系。"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "unknown_value_policy": "不得猜测；影响规格行为的问题应保存在正文待澄清问题中，并将 readiness 设为 blocked。"
+    },
+    "invalid_examples": [
+      {
+        "case": "把批准状态等同于规格就绪",
+        "value": {"status": "approved", "readiness": "ready"},
+        "expected_rule": "RULE-SCHEMA-需求-就绪状态必须满足下阶段条件",
+        "reason": "仅凭批准状态不能证明范围、规则和阻塞问题已经完整。"
+      }
+    ]
+  },
+  "properties": {
+    "id": {
+      "title": "需求稳定编号",
+      "description": "需求在整个生命周期中的稳定机器身份；标题或文件移动时不得改变。",
+      "type": "string",
+      "pattern": "^REQ-[A-Z0-9]+-[0-9]{8}-[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": ["REQ-ATLAS-20260915-知识库README层级导航"],
+      "x-context-atlas": {"value_source": "由项目命名域、创建日期和见名知意的语义名称共同确定；ID 必须等于文件名主体", "do_not_use_when": ["不要复用 Issue、任务或功能编号", "名称不得包含空格、斜杠或其他路径字符"]}
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识该文档是需求知识。",
+      "const": "requirement",
+      "examples": ["requirement"]
+    },
+    "title": {
+      "title": "需求名称",
+      "description": "面向人类的简洁业务名称，应表达所需结果而非实现方案。",
+      "type": "string",
+      "minLength": 1,
+      "examples": ["知识库 README 层级导航"]
+    },
+    "status": {
+      "title": "需求知识状态",
+      "description": "表示需求内容的确认与当前权威状态，不代表规格完整度、实现状态或验收结果。",
+      "oneOf": [
+        {"const": "missing", "title": "缺失", "description": "已知需要该知识，但当前内容不足以形成候选。", "examples": ["missing"], "x-context-atlas": {"use_when": ["旧知识迁移时确认存在需求但无法安全恢复内容"]}},
+        {"const": "proposed", "title": "待确认", "description": "已经形成有来源的候选内容，但尚未得到项目责任人确认。", "examples": ["proposed"], "x-context-atlas": {"use_when": ["新需求首次形成候选", "实质变化等待 Proposal 确认"]}},
+        {"const": "approved", "title": "已批准", "description": "当前需求内容已通过精确 Proposal 修订确认。", "examples": ["approved"], "x-context-atlas": {"use_when": ["责任人明确确认当前 Proposal 修订"], "do_not_use_when": ["只有仓库观察、测试通过或 Agent 判断"]}},
+        {"const": "conflicted", "title": "存在冲突", "description": "至少两个可定位来源给出不能同时成立的值，等待责任人裁决。", "examples": ["conflicted"], "x-context-atlas": {"use_when": ["竞争来源不能由现有证据消解"], "do_not_use_when": ["仅缺少信息"]}},
+        {"const": "stale", "title": "可能过时", "description": "现有来源可能已经不能描述当前项目，需要重新核验。", "examples": ["stale"], "x-context-atlas": {"use_when": ["实现、政策或外部来源变化使现有需求可信度下降"]}},
+        {"const": "superseded", "title": "已被替代", "description": "需求由明确后继项替代，并保留可追溯关系。", "examples": ["superseded"], "x-context-atlas": {"use_when": ["后继需求已建立且当前引用完成迁移"]}},
+        {"const": "archived", "title": "已归档", "description": "需求仅保留历史背景，不再构成当前事实权威。", "examples": ["archived"], "x-context-atlas": {"use_when": ["归档 Proposal 已确认且当前引用已处理"], "do_not_use_when": ["只是暂缓实现"]}}
+      ],
+      "examples": ["proposed", "approved"]
+    },
+    "readiness": {
+      "title": "规格就绪度",
+      "description": "表示需求规格是否足以支持下一阶段，不等同于批准状态、功能覆盖或实现完成。",
+      "oneOf": [
+        {"const": "draft", "title": "草拟中", "description": "问题、范围或规则尚未形成稳定候选。", "examples": ["draft"], "x-context-atlas": {"use_when": ["核心章节仍以占位内容为主"]}},
+        {"const": "clarifying", "title": "澄清中", "description": "主要候选已经形成，正在收敛不会立即改变整体方向的问题。", "examples": ["clarifying"], "x-context-atlas": {"use_when": ["存在需要澄清但仍能形成候选的问题"], "do_not_use_when": ["未知项会改变规范行为、安全边界或任务拆分"]}},
+        {"const": "ready", "title": "可进入下一阶段", "description": "问题价值、范围、业务规则、成功标准和约束已经足够明确，且没有实质性阻塞问题。", "examples": ["ready"], "x-context-atlas": {"use_when": ["正文稳定章节完整且不存在实质性阻塞问题"], "entry_criteria": ["不存在会改变行为、设计或任务拆分的阻塞问题"], "do_not_use_when": ["仅因为 status=approved", "仅因为已有代码"]}},
+        {"const": "blocked", "title": "被阻塞", "description": "存在必须由责任人裁决且会实质改变范围、行为、风险或任务拆分的问题。", "examples": ["blocked"], "x-context-atlas": {"use_when": ["待澄清问题会改变范围、公开行为、失败行为、安全或验收标准"]}}
+      ],
+      "examples": ["draft", "ready"]
+    },
+    "priority": {
+      "title": "业务优先级",
+      "description": "表示需求相对于当前目标的业务优先顺序，不表示批准、实施进度或就绪度。",
+      "oneOf": [
+        {"const": "P0", "title": "阻断级", "description": "缺失该需求会阻断当前目标或造成不可接受风险。", "examples": ["P0"], "x-context-atlas": {"use_when": ["当前目标无法在没有该需求时成立", "存在必须立即处理的重大风险"], "do_not_use_when": ["仅因为已经开始实施"]}},
+        {"const": "P1", "title": "当前核心", "description": "应纳入当前主要交付范围，但不构成整体阻断。", "examples": ["P1"], "x-context-atlas": {"use_when": ["对当前主要业务结果有直接贡献"]}},
+        {"const": "P2", "title": "后续重要", "description": "具有明确价值，但可以安排在当前核心范围之后。", "examples": ["P2"], "x-context-atlas": {"use_when": ["延后不会破坏当前核心目标"]}},
+        {"const": "P3", "title": "低优先级", "description": "价值有限、机会性较强或仅在资源允许时考虑。", "examples": ["P3"], "x-context-atlas": {"use_when": ["不进入近期承诺范围"]}}
+      ],
+      "examples": ["P1"]
+    },
+    "rel_classified_under": {
+      "title": "直接分类关系",
+      "description": "指向需求所在目录的稳定 README 分类节点；只维护正向关系且只能有一个直接分类。",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^\\[\\[[^|]+\\|IDX-[0-9A-Za-z\\u4e00-\\u9fff-]+\\]\\]$"},
+      "examples": [["[[01-功能基线/需求/README|IDX-功能基线-需求]]"]],
+      "x-context-atlas": {"value_source": "当前文件所在需求目录的 README", "do_not_use_when": ["不要填写更高层分类或维护反向成员列表"]}
+    },
+    "last_updated": {
+      "title": "最后更新时间",
+      "description": "该需求知识内容最后发生正式变化的日期，使用 YYYY-MM-DD，不代表来源观察或验收时间。",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": ["2026-09-15"]
+    }
+  },
+  "required": ["id", "type", "title", "status", "readiness", "priority", "last_updated"],
+  "examples": [
+    {"id": "REQ-DOMAIN-20260915-需求名称", "type": "requirement", "title": "需求名称", "status": "proposed", "readiness": "draft", "priority": "P1", "last_updated": "2026-09-15", "rel_classified_under": ["[[01-功能基线/需求/README|IDX-功能基线-需求]]"]},
+    {"id": "REQ-ATLAS-20260915-知识库README层级导航", "type": "requirement", "title": "知识库 README 层级导航", "status": "approved", "readiness": "ready", "priority": "P1", "last_updated": "2026-09-15", "rel_classified_under": ["[[01-功能基线/需求/README|IDX-功能基线-需求]]"]}
   ],
+  "context_atlas_rules": ["[[rules/知识治理规则#RULE-知识治理规则-需求正文唯一权威且就绪度独立|RULE-知识治理规则-需求正文唯一权威且就绪度独立]]"],
   "enums": {
     "type": ["requirement"],
     "status": ["missing", "proposed", "approved", "conflicted", "stale", "superseded", "archived"],
     "priority": ["P0", "P1", "P2", "P3"],
     "readiness": ["draft", "clarifying", "ready", "blocked"]
   },
-  "patterns": {
-    "id": "REQ-[A-Z0-9]+-[0-9]{3}",
-    "last_updated": "\\d{4}-\\d{2}-\\d{2}"
-  },
+  "patterns": {"id": "REQ-[A-Z0-9]+-[0-9]{8}-[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*", "last_updated": "\\d{4}-\\d{2}-\\d{2}"},
   "unique_lists": ["rel_classified_under"]
 }

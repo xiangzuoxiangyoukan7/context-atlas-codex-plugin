@@ -1,11 +1,452 @@
 {
-  "required": ["id", "type", "title", "status", "change_id", "target_id", "operation", "base_version", "sources", "last_updated"],
-  "enums": {
-    "type": ["specification_delta"],
-    "status": ["proposed", "approved", "applied", "rejected", "superseded"],
-    "operation": ["added", "modified", "removed", "renamed", "superseded"]
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/specification-delta.schema.json",
+  "title": "规格增量",
+  "description": "一个变更对一个目标基线执行的一种原子变化。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "specification_delta",
+    "purpose": "明确目标、操作类型、基线版本和来源，使变化可审阅、可应用和可追溯。",
+    "use_when": [
+      "变更需要逐目标表达 added、modified、removed、renamed 或 superseded",
+      "外部 SDD Delta 需要映射到当前知识身份",
+      "需要验证应用基线是否发生漂移"
+    ],
+    "do_not_use_when": [
+      "多个目标或多种操作混在一个 Delta",
+      "没有所属 specification_change",
+      "把 applied 当作业务 accepted"
+    ],
+    "canonical_location": "03-变更与证据/变更/CHG-<领域>-<YYYYMMDD>-<名称>/DELTA-规格变更-<变更名称>-<增量名称>.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 128,
+      "rename_policy": "标题变化不改变稳定 ID；身份级变化建立后继项并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": [
+        "目标前态",
+        "目标后态",
+        "影响",
+        "迁移与回滚"
+      ],
+      "required_sections": [
+        "变化内容",
+        "影响"
+      ],
+      "forbidden_content": [
+        "省略破坏性变化的迁移说明"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "proposed"
+      ],
+      "terminal_states": [
+        "applied",
+        "rejected",
+        "superseded"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "approved",
+          "when": "责任人确认当前 Proposal"
+        },
+        {
+          "from": "approved",
+          "to": "applied",
+          "when": "基线未漂移且原子应用、验证成功"
+        },
+        {
+          "from": "proposed",
+          "to": "rejected",
+          "when": "候选被明确拒绝"
+        },
+        {
+          "from": "approved",
+          "to": "superseded",
+          "when": "新 Delta 替代当前方案"
+        }
+      ],
+      "invalid_inferences": [
+        "approved 不表示已经写入",
+        "applied 不推出实现完成或业务接受",
+        "base_version 匹配不替代内容摘要漂移检查"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-规格增量-必须只作用于一个目标和一种操作",
+        "enforcement": "human_review",
+        "description": "一个 Delta 只能描述一个 target_id 的一种操作。",
+        "remediation": "拆分多目标或多操作变化。"
+      },
+      {
+        "id": "RULE-SCHEMA-规格增量-必须包含来源",
+        "enforcement": "deterministic",
+        "description": "Delta 必须具有至少一个来源。",
+        "remediation": "登记变更依据。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      },
+      {
+        "id": "RULE-SCHEMA-规格增量-应用前必须校验目标基线",
+        "enforcement": "human_review",
+        "description": "应用前必须核对目标基线版本和内容未漂移。",
+        "remediation": "重新生成 Proposal 修订并重新确认。"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "authority_boundary": "记录知识变化及确认，不授予代码执行、部署或外部副作用权限。"
+    },
+    "invalid_examples": [
+      {
+        "case": "无来源 Delta",
+        "value": {
+          "sources": []
+        },
+        "expected_rule": "RULE-SCHEMA-规格增量-必须包含来源",
+        "reason": "无法解释为何变化。"
+      },
+      {
+        "case": "陈旧基线仍应用",
+        "value": {
+          "status": "applied",
+          "base_version": "0.1.0"
+        },
+        "expected_rule": "RULE-SCHEMA-规格增量-应用前必须校验目标基线",
+        "reason": "可能覆盖确认后的新变化。"
+      }
+    ]
   },
-  "patterns": {"id": "DELTA-CHG-[A-Z0-9_-]+", "base_version": "\\d+\\.\\d+\\.\\d+", "last_updated": "\\d{4}-\\d{2}-\\d{2}"},
-  "non_empty_lists": ["sources"],
-  "unique_lists": ["sources"]
+  "properties": {
+    "id": {
+      "title": "Delta 稳定编号",
+      "description": "使用 DELTA-、规格变更作用域、所属变更语义和增量名称组成身份，并与文件名主体一致。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "DELTA-规格变更-Schema语义身份-修订功能F04"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识规格增量。",
+      "const": "specification_delta",
+      "examples": [
+        "specification_delta"
+      ]
+    },
+    "title": {
+      "title": "Delta 名称",
+      "description": "表达目标和单一操作。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "修订 F04 Schema 契约"
+      ]
+    },
+    "status": {
+      "title": "状态",
+      "description": "表示该对象在治理流程中的阶段，不自动证明实现或业务结果。",
+      "oneOf": [
+        {
+          "const": "proposed",
+          "title": "待确认",
+          "description": "Delta 候选尚未确认",
+          "examples": [
+            "proposed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "内容及影响已可审阅"
+            ]
+          }
+        },
+        {
+          "const": "approved",
+          "title": "已批准",
+          "description": "当前 Delta 已精确确认",
+          "examples": [
+            "approved"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "责任人确认当前 Proposal"
+            ]
+          }
+        },
+        {
+          "const": "applied",
+          "title": "已应用",
+          "description": "Delta 已原子写入目标基线并验证",
+          "examples": [
+            "applied"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "确定性执行器成功且完整验证通过"
+            ]
+          }
+        },
+        {
+          "const": "rejected",
+          "title": "已拒绝",
+          "description": "责任人不接受当前 Delta",
+          "examples": [
+            "rejected"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "当前候选明确被拒绝"
+            ]
+          }
+        },
+        {
+          "const": "superseded",
+          "title": "已被替代",
+          "description": "后继 Delta 承接当前变化",
+          "examples": [
+            "superseded"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "替代关系已经建立"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "proposed"
+      ]
+    },
+    "change_id": {
+      "title": "所属变更",
+      "description": "承载该 Delta 的 specification_change 稳定 ID。",
+      "type": "string",
+      "pattern": "^CHG-[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "CHG-知识治理-20260915-Schema语义身份"
+      ]
+    },
+    "target_id": {
+      "title": "目标身份",
+      "description": "本 Delta 唯一作用的稳定知识 ID。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "FEATURE-功能基线-功能-从数据库模型生成知识模板"
+      ]
+    },
+    "operation": {
+      "title": "变化操作",
+      "description": "决定目标身份和历史应如何处理。",
+      "oneOf": [
+        {
+          "const": "added",
+          "title": "新增",
+          "description": "创建此前不存在的稳定知识身份",
+          "examples": [
+            "added"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "目标身份当前不存在"
+            ]
+          }
+        },
+        {
+          "const": "modified",
+          "title": "修订",
+          "description": "原身份不变，修改其当前内容",
+          "examples": [
+            "modified"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "变化不需要建立新身份"
+            ]
+          }
+        },
+        {
+          "const": "removed",
+          "title": "移除",
+          "description": "永久删除无审计价值的叶子知识",
+          "examples": [
+            "removed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "已确认无需保留历史"
+            ]
+          }
+        },
+        {
+          "const": "renamed",
+          "title": "重命名",
+          "description": "迁移稳定身份或物理路径并更新引用",
+          "examples": [
+            "renamed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "命名契约变化且语义身份需迁移"
+            ]
+          }
+        },
+        {
+          "const": "superseded",
+          "title": "替代",
+          "description": "建立后继项并保留旧项追溯",
+          "examples": [
+            "superseded"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "旧知识仍有审计价值"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "added"
+      ]
+    },
+    "base_version": {
+      "title": "基线版本",
+      "description": "生成 Delta 时目标知识的语义版本，用于发现漂移。",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": [
+        "1.2.0"
+      ]
+    },
+    "sources": {
+      "title": "事实来源",
+      "description": "支撑当前变化描述的非空内嵌来源列表。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "embedded-source.schema.json"
+      },
+      "examples": [
+        [
+          {
+            "type": "user_statement",
+            "reference": "当前会话",
+            "observed_at": "2026-09-15T00:00:00+08:00",
+            "confirmation_status": "confirmed",
+            "confirmed_at": "2026-09-15T00:00:00+08:00"
+          }
+        ]
+      ]
+    },
+    "last_updated": {
+      "title": "最后更新时间",
+      "description": "内容最后正式变化日期，使用 YYYY-MM-DD。",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": [
+        "2026-09-15"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title",
+    "status",
+    "change_id",
+    "target_id",
+    "operation",
+    "base_version",
+    "sources",
+    "last_updated"
+  ],
+  "examples": [
+    {
+      "id": "DELTA-规格变更-Schema语义身份-修订功能F04",
+      "type": "specification_delta",
+      "title": "修订 F04",
+      "status": "proposed",
+      "change_id": "CHG-知识治理-20260915-Schema语义身份",
+      "target_id": "FEATURE-功能基线-功能-从数据库模型生成知识模板",
+      "operation": "modified",
+      "base_version": "1.0.0",
+      "sources": [
+        {
+          "type": "repository_file",
+          "reference": "schemas/feature.schema.json",
+          "observed_at": "2026-09-15T00:00:00+08:00",
+          "confirmation_status": "observed"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    },
+    {
+      "id": "DELTA-规格变更-Schema语义身份-迁移需求命名",
+      "type": "specification_delta",
+      "title": "迁移需求身份",
+      "status": "approved",
+      "change_id": "CHG-知识治理-20260915-Schema语义身份",
+      "target_id": "REQ-ATLAS-20260915-知识库README层级导航",
+      "operation": "renamed",
+      "base_version": "1.0.0",
+      "sources": [
+        {
+          "type": "user_statement",
+          "reference": "当前会话",
+          "observed_at": "2026-09-15T00:00:00+08:00",
+          "confirmation_status": "confirmed",
+          "confirmed_at": "2026-09-15T00:00:00+08:00"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    }
+  ],
+  "enums": {
+    "type": [
+      "specification_delta"
+    ],
+    "status": [
+      "proposed",
+      "approved",
+      "applied",
+      "rejected",
+      "superseded"
+    ],
+    "operation": [
+      "added",
+      "modified",
+      "removed",
+      "renamed",
+      "superseded"
+    ]
+  },
+  "patterns": {
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
+    "base_version": "\\d+\\.\\d+\\.\\d+",
+    "last_updated": "\\d{4}-\\d{2}-\\d{2}"
+  },
+  "non_empty_lists": [
+    "sources"
+  ],
+  "unique_lists": [
+    "sources"
+  ]
 }

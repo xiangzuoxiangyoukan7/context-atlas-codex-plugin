@@ -12,7 +12,7 @@ sensitivity: missing
 retention: missing
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[02-技术基线/数据资产/README|IDX-DATA-ASSETS]]"
+  - "[[02-技术基线/数据资产/README|IDX-技术基线-数据资产]]"
 ---
 
 # 数据资产名称

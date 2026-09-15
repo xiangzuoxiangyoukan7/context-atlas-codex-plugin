@@ -1,16 +1,353 @@
 {
-  "x-context-atlas-rules": ["[[rules/知识治理规则#RULE-SRC-001|RULE-SRC-001]]"],
-  "required": ["id", "type", "title", "status", "sources", "last_updated"],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/knowledge-item.schema.json",
+  "title": "通用知识项",
+  "description": "无法安全归入更具体类型、但仍有长期追溯价值的知识。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "knowledge_item",
+    "purpose": "作为升级和采集的安全兜底，保留原始语义、来源和未知项，而不伪造具体归属。",
+    "use_when": [
+      "旧知识无法安全映射到当前具体类型",
+      "稳定事实具有长期价值但暂未建立专用类型",
+      "迁移必须保留内容且需要标记缺失或冲突"
+    ],
+    "do_not_use_when": [
+      "已经能够归入 requirement、feature、module、interface 或数据类型",
+      "只是一段临时日志或排查猜测",
+      "用通用类型绕过具体类型的必填规则"
+    ],
+    "canonical_location": "按内容归入最新分类目录并使用稳定知识 ID",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 96,
+      "rename_policy": "语义未发生身份级变化时保持稳定 ID；身份级变化建立后继项并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": [
+        "原始知识内容",
+        "迁移背景",
+        "未知项和冲突"
+      ],
+      "required_sections": [
+        "知识内容",
+        "来源"
+      ],
+      "forbidden_content": [
+        "把无法判断的内容自行解释为批准事实"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "missing",
+        "proposed"
+      ],
+      "terminal_states": [
+        "archived"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "approved",
+          "when": "内容及归属通过 Proposal 确认"
+        },
+        {
+          "from": "approved",
+          "to": "stale",
+          "when": "来源可能过时"
+        },
+        {
+          "from": "approved",
+          "to": "superseded",
+          "when": "更具体或更新的知识项承接权威"
+        },
+        {
+          "from": "superseded",
+          "to": "archived",
+          "when": "引用迁移且归档确认"
+        }
+      ],
+      "invalid_inferences": [
+        "兜底迁移不推出 approved",
+        "通用类型不表示永久无需分类",
+        "有来源不表示来源已确认"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-通用知识项-必须包含来源",
+        "enforcement": "deterministic",
+        "description": "通用知识项必须有至少一个来源。",
+        "remediation": "登记内嵌来源对象。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      },
+      {
+        "id": "RULE-SCHEMA-通用知识项-仅用于无法安全分类的知识",
+        "enforcement": "human_review",
+        "description": "仅在不能安全映射到具体类型时使用通用知识项。",
+        "remediation": "优先选择具体类型；无法判断时保留原因和待确认项。"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "unknown_value_policy": "不得猜测；缺失或竞争事实必须显式保留。"
+    },
+    "invalid_examples": [
+      {
+        "case": "无来源兜底项",
+        "value": {
+          "id": "LEGACY-NOTE",
+          "sources": []
+        },
+        "expected_rule": "RULE-SCHEMA-通用知识项-必须包含来源",
+        "reason": "无法追溯原始语义。"
+      },
+      {
+        "case": "已知是模块却使用通用项",
+        "value": {
+          "id": "MOD-QUERY",
+          "type": "knowledge_item"
+        },
+        "expected_rule": "RULE-SCHEMA-通用知识项-仅用于无法安全分类的知识",
+        "reason": "会丢失模块专属约束。"
+      }
+    ]
+  },
+  "properties": {
+    "id": {
+      "title": "稳定知识编号",
+      "description": "全库唯一的稳定身份；迁移时优先保留旧 ID。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "ITEM-技术基线-旧版设计说明"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识通用知识项。",
+      "const": "knowledge_item",
+      "examples": [
+        "knowledge_item"
+      ]
+    },
+    "title": {
+      "title": "知识名称",
+      "description": "忠实概括原始内容，不替缺失事实下结论。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "旧版部署约束"
+      ]
+    },
+    "status": {
+      "title": "知识状态",
+      "description": "知识内容的确认和当前权威状态。",
+      "oneOf": [
+        {
+          "const": "missing",
+          "title": "缺失",
+          "description": "已知需要该知识但内容不足",
+          "examples": [
+            "missing"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "迁移时无法安全恢复"
+            ]
+          }
+        },
+        {
+          "const": "proposed",
+          "title": "待确认",
+          "description": "有来源候选等待确认",
+          "examples": [
+            "proposed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "新建或实质修订"
+            ]
+          }
+        },
+        {
+          "const": "approved",
+          "title": "已批准",
+          "description": "内容通过当前 Proposal 确认",
+          "examples": [
+            "approved"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "责任人确认精确修订"
+            ]
+          }
+        },
+        {
+          "const": "conflicted",
+          "title": "存在冲突",
+          "description": "来源给出不能并存的值",
+          "examples": [
+            "conflicted"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "至少两个可定位来源竞争"
+            ]
+          }
+        },
+        {
+          "const": "stale",
+          "title": "可能过时",
+          "description": "来源可能不再描述当前项目",
+          "examples": [
+            "stale"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实现或外部事实变化"
+            ]
+          }
+        },
+        {
+          "const": "superseded",
+          "title": "已被替代",
+          "description": "后继项承接当前权威",
+          "examples": [
+            "superseded"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "替代关系和引用迁移完成"
+            ]
+          }
+        },
+        {
+          "const": "archived",
+          "title": "已归档",
+          "description": "仅保留历史背景",
+          "examples": [
+            "archived"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "归档 Proposal 已确认"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "missing"
+      ]
+    },
+    "sources": {
+      "title": "事实来源",
+      "description": "至少一个内嵌来源对象，用于区分陈述、观察、文档和推测。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "embedded-source.schema.json"
+      },
+      "examples": [
+        [
+          {
+            "type": "repository_file",
+            "reference": "README.md",
+            "observed_at": "2026-09-15T00:00:00+08:00",
+            "confirmation_status": "observed"
+          }
+        ]
+      ]
+    },
+    "last_updated": {
+      "title": "最后更新时间",
+      "description": "内容最后正式变化日期，使用 YYYY-MM-DD。",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": [
+        "2026-09-15"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title",
+    "status",
+    "sources",
+    "last_updated"
+  ],
+  "examples": [
+    {
+      "id": "ITEM-技术基线-旧版设计说明",
+      "type": "knowledge_item",
+      "title": "旧版设计说明",
+      "status": "missing",
+      "sources": [
+        {
+          "type": "existing_document",
+          "reference": "legacy/design.md",
+          "observed_at": "2026-09-15T00:00:00+08:00",
+          "confirmation_status": "observed"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    },
+    {
+      "id": "ITEM-技术基线-部署约束",
+      "type": "knowledge_item",
+      "title": "部署约束",
+      "status": "proposed",
+      "sources": [
+        {
+          "type": "user_statement",
+          "reference": "当前会话部署约束",
+          "observed_at": "2026-09-15T00:00:00+08:00",
+          "confirmation_status": "confirmed",
+          "confirmed_at": "2026-09-15T00:00:00+08:00"
+        }
+      ],
+      "last_updated": "2026-09-15"
+    }
+  ],
   "enums": {
-    "type": ["knowledge_item"],
-    "status": ["missing", "proposed", "approved", "conflicted", "stale", "superseded", "archived"]
+    "type": [
+      "knowledge_item"
+    ],
+    "status": [
+      "missing",
+      "proposed",
+      "approved",
+      "conflicted",
+      "stale",
+      "superseded",
+      "archived"
+    ]
   },
   "patterns": {
-    "id": "[A-Z][A-Z0-9_-]*",
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
     "version": "\\d+\\.\\d+\\.\\d+",
     "content_revision": "\\d+",
     "last_updated": "\\d{4}-\\d{2}-\\d{2}"
   },
-  "non_empty_lists": ["sources"],
-  "unique_lists": ["sources"]
+  "non_empty_lists": [
+    "sources"
+  ],
+  "unique_lists": [
+    "sources"
+  ]
 }

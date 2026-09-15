@@ -1,20 +1,675 @@
 {
-  "required": ["id", "type", "title", "status", "sources", "owner", "source_types", "independence_basis", "sensitivity", "retention", "last_updated"],
-  "enums": {
-    "type": ["data_asset"],
-    "status": ["missing", "proposed", "approved", "conflicted", "stale", "superseded", "archived"],
-    "sensitivity": ["public", "internal", "sensitive", "restricted", "missing"]
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/data-asset.schema.json",
+  "title": "数据资产知识",
+  "description": "跨功能或技术对象、具有独立治理价值的数据集合。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "data_asset",
+    "purpose": "保存业务含义、来源类型、独立建模依据、质量、安全和保存规则，不复制底层结构。",
+    "use_when": [
+      "数据集合跨功能或跨技术对象复用",
+      "具有独立所有者、质量、安全或保存策略",
+      "需要统一追踪多个来源形成的数据产品"
+    ],
+    "do_not_use_when": [
+      "只描述一张数据库表或接口载荷",
+      "没有任何独立治理依据",
+      "只记录一次性导出文件"
+    ],
+    "canonical_location": "02-技术基线/数据资产/DATA-技术基线-数据资产-<名称>.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 96,
+      "rename_policy": "语义未发生身份级变化时保持稳定 ID；身份级变化建立后继项并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": [
+        "业务含义",
+        "来源映射",
+        "质量策略",
+        "安全策略",
+        "保存与销毁"
+      ],
+      "required_sections": [
+        "业务含义",
+        "来源映射",
+        "治理策略"
+      ],
+      "forbidden_content": [
+        "复制数据库字段清单",
+        "保存样本中的敏感原始数据"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "missing",
+        "proposed"
+      ],
+      "terminal_states": [
+        "archived"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "approved",
+          "when": "业务语义和独立治理依据确认"
+        },
+        {
+          "from": "approved",
+          "to": "stale",
+          "when": "来源或治理策略发生未核验变化"
+        },
+        {
+          "from": "approved",
+          "to": "superseded",
+          "when": "后继资产承接消费者和策略"
+        },
+        {
+          "from": "superseded",
+          "to": "archived",
+          "when": "关系迁移完成并确认归档"
+        }
+      ],
+      "invalid_inferences": [
+        "来源多不自动证明需要独立资产",
+        "approved 不证明数据质量达标",
+        "retention 文本不代替实际销毁证据"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-数据资产-必须声明独立建模依据",
+        "enforcement": "deterministic",
+        "description": "至少登记一个受控独立建模依据。",
+        "remediation": "在 independence_basis 中登记真实依据。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      },
+      {
+        "id": "RULE-SCHEMA-数据资产-必须声明受控来源类型",
+        "enforcement": "deterministic",
+        "description": "至少登记一个受控来源类型。",
+        "remediation": "在 source_types 中选择真实来源机制。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      },
+      {
+        "id": "RULE-SCHEMA-数据资产-治理责任与敏感级别及保留策略必须明确",
+        "enforcement": "human_review",
+        "description": "owner、sensitivity 和 retention 必须足以指导治理。",
+        "remediation": "补充责任方、敏感分类和保存规则。"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "unknown_value_policy": "不得猜测；使用 missing 或保留待确认问题。"
+    },
+    "invalid_examples": [
+      {
+        "case": "没有独立依据",
+        "value": {
+          "independence_basis": []
+        },
+        "expected_rule": "RULE-SCHEMA-数据资产-必须声明独立建模依据",
+        "reason": "可能只是重复建模技术对象。"
+      },
+      {
+        "case": "没有来源类型",
+        "value": {
+          "source_types": []
+        },
+        "expected_rule": "RULE-SCHEMA-数据资产-必须声明受控来源类型",
+        "reason": "无法定位数据形成方式。"
+      }
+    ]
   },
-  "list_enums": {
-    "source_types": ["database", "api", "message", "file", "object_storage", "manual_input", "other"],
-    "independence_basis": ["cross_feature", "cross_technical_object", "independent_owner", "independent_quality_policy", "independent_security_policy", "independent_retention", "missing"]
+  "properties": {
+    "id": {
+      "title": "数据资产稳定编号",
+      "description": "使用 DATA- 加完整领域层级和名称的全库语义身份，并与文件名主体一致。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "DATA-技术基线-数据资产-知识图谱指标"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识数据资产知识。",
+      "const": "data_asset",
+      "examples": [
+        "data_asset"
+      ]
+    },
+    "title": {
+      "title": "数据资产名称",
+      "description": "表达业务可理解的数据集合。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "知识质量指标"
+      ]
+    },
+    "status": {
+      "title": "知识状态",
+      "description": "表示内容的确认与当前权威状态，不表示系统在线或数据正确。",
+      "oneOf": [
+        {
+          "const": "missing",
+          "title": "缺失",
+          "description": "已知对象存在但知识不足",
+          "examples": [
+            "missing"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "迁移时无法安全恢复内容"
+            ]
+          }
+        },
+        {
+          "const": "proposed",
+          "title": "待确认",
+          "description": "有来源的候选尚待确认",
+          "examples": [
+            "proposed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "新建或实质修订"
+            ]
+          }
+        },
+        {
+          "const": "approved",
+          "title": "已批准",
+          "description": "当前内容已被精确确认",
+          "examples": [
+            "approved"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "责任人确认当前 Proposal"
+            ]
+          }
+        },
+        {
+          "const": "conflicted",
+          "title": "存在冲突",
+          "description": "来源给出不能并存的值",
+          "examples": [
+            "conflicted"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "至少两个来源竞争"
+            ]
+          }
+        },
+        {
+          "const": "stale",
+          "title": "可能过时",
+          "description": "来源可能不再描述当前对象",
+          "examples": [
+            "stale"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "实现或外部系统变化"
+            ]
+          }
+        },
+        {
+          "const": "superseded",
+          "title": "已被替代",
+          "description": "后继项已经承接当前权威",
+          "examples": [
+            "superseded"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "后继关系和引用已迁移"
+            ]
+          }
+        },
+        {
+          "const": "archived",
+          "title": "已归档",
+          "description": "仅保留历史追溯",
+          "examples": [
+            "archived"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "归档 Proposal 已确认"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "missing"
+      ]
+    },
+    "sources": {
+      "title": "事实来源",
+      "description": "支撑当前描述的非空来源列表；连接密钥和未脱敏个人数据不得进入来源。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {},
+      "examples": [
+        [
+          {
+            "type": "repository_file",
+            "reference": "config/database.example.yaml"
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "title": "责任方",
+      "description": "负责数据语义、质量和治理决策的团队或角色。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "知识治理团队"
+      ]
+    },
+    "source_types": {
+      "title": "来源类型",
+      "description": "数据形成机制，可多选且不得重复。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "oneOf": [
+          {
+            "const": "database",
+            "title": "数据库",
+            "description": "来自数据库表或查询",
+            "x-context-atlas": {
+              "use_when": [
+                "稳定来源是数据库"
+              ]
+            }
+          },
+          {
+            "const": "api",
+            "title": "API",
+            "description": "来自同步接口调用",
+            "x-context-atlas": {
+              "use_when": [
+                "稳定来源是 API"
+              ]
+            }
+          },
+          {
+            "const": "message",
+            "title": "消息",
+            "description": "来自事件或消息系统",
+            "x-context-atlas": {
+              "use_when": [
+                "稳定来源是消息订阅"
+              ]
+            }
+          },
+          {
+            "const": "file",
+            "title": "文件",
+            "description": "来自文件交换",
+            "x-context-atlas": {
+              "use_when": [
+                "稳定来源是文件"
+              ]
+            }
+          },
+          {
+            "const": "object_storage",
+            "title": "对象存储",
+            "description": "来自对象存储中的对象集合",
+            "x-context-atlas": {
+              "use_when": [
+                "稳定来源是对象存储"
+              ]
+            }
+          },
+          {
+            "const": "manual_input",
+            "title": "人工录入",
+            "description": "由人员通过受控流程输入",
+            "x-context-atlas": {
+              "use_when": [
+                "来源依赖人工录入"
+              ]
+            }
+          },
+          {
+            "const": "other",
+            "title": "其他",
+            "description": "来源机制不在当前枚举中",
+            "x-context-atlas": {
+              "use_when": [
+                "需在正文说明实际机制"
+              ]
+            }
+          }
+        ]
+      },
+      "examples": [
+        [
+          "database",
+          "api"
+        ]
+      ]
+    },
+    "independence_basis": {
+      "title": "独立建模依据",
+      "description": "说明为何不只依附单一技术对象，可多选。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "oneOf": [
+          {
+            "const": "cross_feature",
+            "title": "跨功能",
+            "description": "被多个功能共同使用",
+            "x-context-atlas": {
+              "use_when": [
+                "至少两个功能依赖"
+              ]
+            }
+          },
+          {
+            "const": "cross_technical_object",
+            "title": "跨技术对象",
+            "description": "跨接口、模块或表形成统一语义",
+            "x-context-atlas": {
+              "use_when": [
+                "多个技术对象共同使用"
+              ]
+            }
+          },
+          {
+            "const": "independent_owner",
+            "title": "独立责任方",
+            "description": "具有独立治理责任方",
+            "x-context-atlas": {
+              "use_when": [
+                "责任边界不同于单一技术对象"
+              ]
+            }
+          },
+          {
+            "const": "independent_quality_policy",
+            "title": "独立质量策略",
+            "description": "具有独立质量指标和处置规则",
+            "x-context-atlas": {
+              "use_when": [
+                "质量治理需单独追踪"
+              ]
+            }
+          },
+          {
+            "const": "independent_security_policy",
+            "title": "独立安全策略",
+            "description": "具有独立访问或脱敏边界",
+            "x-context-atlas": {
+              "use_when": [
+                "安全策略需单独治理"
+              ]
+            }
+          },
+          {
+            "const": "independent_retention",
+            "title": "独立保存周期",
+            "description": "具有独立保留和销毁规则",
+            "x-context-atlas": {
+              "use_when": [
+                "生命周期不同于来源对象"
+              ]
+            }
+          },
+          {
+            "const": "missing",
+            "title": "待确认",
+            "description": "尚不能证明独立建模依据",
+            "x-context-atlas": {
+              "use_when": [
+                "迁移时依据缺失"
+              ]
+            }
+          }
+        ]
+      },
+      "examples": [
+        [
+          "cross_feature",
+          "independent_quality_policy"
+        ]
+      ]
+    },
+    "sensitivity": {
+      "title": "敏感级别",
+      "description": "决定访问、展示和证据处理边界。",
+      "oneOf": [
+        {
+          "const": "public",
+          "title": "公开",
+          "description": "允许公开披露的数据",
+          "examples": [
+            "public"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "已明确允许公开"
+            ]
+          }
+        },
+        {
+          "const": "internal",
+          "title": "内部",
+          "description": "仅限组织内部使用",
+          "examples": [
+            "internal"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "不含敏感内容但不面向公众"
+            ]
+          }
+        },
+        {
+          "const": "sensitive",
+          "title": "敏感",
+          "description": "泄露会造成业务或个人风险",
+          "examples": [
+            "sensitive"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "含受保护业务或个人信息"
+            ]
+          }
+        },
+        {
+          "const": "restricted",
+          "title": "严格限制",
+          "description": "仅限明确授权主体访问",
+          "examples": [
+            "restricted"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "法律、安全或合同要求最小授权"
+            ]
+          }
+        },
+        {
+          "const": "missing",
+          "title": "待确认",
+          "description": "敏感级别尚不能安全判断",
+          "examples": [
+            "missing"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "迁移或调查时缺少分类依据"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "public"
+      ]
+    },
+    "retention": {
+      "title": "保存策略",
+      "description": "可执行的保留期限、触发条件或销毁规则；未知时明确写 missing。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "批准版本保留三年，历史证据按审计策略归档"
+      ]
+    },
+    "last_updated": {
+      "title": "最后更新时间",
+      "description": "知识内容最后正式变化的日期，使用 YYYY-MM-DD。",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": [
+        "2026-09-15"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "title",
+    "status",
+    "sources",
+    "owner",
+    "source_types",
+    "independence_basis",
+    "sensitivity",
+    "retention",
+    "last_updated"
+  ],
+  "examples": [
+    {
+      "id": "DATA-技术基线-数据资产-知识图谱指标",
+      "type": "data_asset",
+      "title": "知识质量指标",
+      "status": "proposed",
+      "sources": [
+        {
+          "type": "repository_file",
+          "reference": "reports/quality.json"
+        }
+      ],
+      "owner": "治理团队",
+      "source_types": [
+        "file"
+      ],
+      "independence_basis": [
+        "cross_feature"
+      ],
+      "sensitivity": "internal",
+      "retention": "保留三年",
+      "last_updated": "2026-09-15"
+    },
+    {
+      "id": "DATA-技术基线-数据资产-知识审计轨迹",
+      "type": "data_asset",
+      "title": "知识审计轨迹",
+      "status": "approved",
+      "sources": [
+        {
+          "type": "repository_file",
+          "reference": "audit/README.md"
+        }
+      ],
+      "owner": "安全团队",
+      "source_types": [
+        "database",
+        "api"
+      ],
+      "independence_basis": [
+        "independent_security_policy",
+        "independent_retention"
+      ],
+      "sensitivity": "sensitive",
+      "retention": "按审计政策保留七年",
+      "last_updated": "2026-09-15"
+    }
+  ],
+  "enums": {
+    "type": [
+      "data_asset"
+    ],
+    "status": [
+      "missing",
+      "proposed",
+      "approved",
+      "conflicted",
+      "stale",
+      "superseded",
+      "archived"
+    ],
+    "sensitivity": [
+      "public",
+      "internal",
+      "sensitive",
+      "restricted",
+      "missing"
+    ]
   },
   "patterns": {
-    "id": "DATA-\\d{3}",
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
     "version": "\\d+\\.\\d+\\.\\d+",
     "content_revision": "\\d+",
     "last_updated": "\\d{4}-\\d{2}-\\d{2}"
   },
-  "non_empty_lists": ["sources", "source_types", "independence_basis"],
-  "unique_lists": ["sources", "source_types", "independence_basis"]
+  "list_enums": {
+    "source_types": [
+      "database",
+      "api",
+      "message",
+      "file",
+      "object_storage",
+      "manual_input",
+      "other"
+    ],
+    "independence_basis": [
+      "cross_feature",
+      "cross_technical_object",
+      "independent_owner",
+      "independent_quality_policy",
+      "independent_security_policy",
+      "independent_retention",
+      "missing"
+    ]
+  },
+  "non_empty_lists": [
+    "sources",
+    "source_types",
+    "independence_basis"
+  ],
+  "unique_lists": [
+    "sources",
+    "source_types",
+    "independence_basis"
+  ]
 }

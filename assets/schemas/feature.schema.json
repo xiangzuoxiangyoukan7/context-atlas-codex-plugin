@@ -1,4 +1,482 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-atlas.dev/schemas/feature.schema.json",
+  "title": "功能知识",
+  "description": "约束可被用户或系统观察的完整功能、功能内设计、规范行为及验收场景。",
+  "type": "object",
+  "additionalProperties": true,
+  "x-context-atlas": {
+    "profile": "self_describing/v1",
+    "schema_version": "1.0.0",
+    "knowledge_type": "feature",
+    "purpose": "保存功能如何满足需求、应表现出的行为、设计约束、失败边界和可验证验收场景。",
+    "use_when": [
+      "存在可独立说明和验收的用户或系统能力",
+      "需要把需求映射为规范行为和完整设计",
+      "需要长期追踪功能切片与验收状态"
+    ],
+    "do_not_use_when": [
+      "只表达业务问题和价值，此时使用 requirement",
+      "只描述代码边界，此时使用 module",
+      "只记录一次性实施步骤"
+    ],
+    "canonical_location": "01-功能基线/功能/FEATURE-功能基线-功能-<名称>.md",
+    "identity_contract": {
+      "id_field": "id",
+      "filename_stem_equals_id": false,
+      "semantic_name_field": "title",
+      "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
+      "semantic_identity": "type_and_file_or_scope",
+      "date_capture_pattern": "(?!)",
+      "maximum_length": 64,
+      "rename_policy": "标题变化不改变稳定功能 ID；文件名可在已确认事务中调整并迁移引用。",
+      "collision_policy": "目标 ID 或路径冲突时阻塞，不追加隐式序号。"
+    },
+    "body_contract": {
+      "format": "markdown",
+      "authoritative_for": [
+        "目标与范围",
+        "规范行为",
+        "完整设计",
+        "失败与安全边界",
+        "验收场景",
+        "决策依据"
+      ],
+      "required_sections": [
+        "目标与范围",
+        "规范行为",
+        "验收场景"
+      ],
+      "forbidden_content": [
+        "用任务完成代替功能验收",
+        "建立独立 ADR 作为当前决策权威"
+      ]
+    },
+    "lifecycle": {
+      "field": "status",
+      "initial_states": [
+        "candidate"
+      ],
+      "terminal_states": [
+        "deprecated"
+      ],
+      "transitions": [
+        {
+          "from": "candidate",
+          "to": "baselined",
+          "when": "功能范围和验收意图得到确认"
+        },
+        {
+          "from": "baselined",
+          "to": "scheduled",
+          "when": "进入已承诺实施范围"
+        },
+        {
+          "from": "scheduled",
+          "to": "in_progress",
+          "when": "出现可定位实施活动"
+        },
+        {
+          "from": "in_progress",
+          "to": "acceptance",
+          "when": "实现验证完成"
+        },
+        {
+          "from": "acceptance",
+          "to": "completed",
+          "when": "证据可定位且业务责任人确认"
+        },
+        {
+          "from": "completed",
+          "to": "deprecated",
+          "when": "后继能力生效且退役影响确认"
+        }
+      ],
+      "invalid_inferences": [
+        "测试通过不自动推出 completed",
+        "status=baselined 不推出 spec_readiness=ready",
+        "current_slice=excluded 不等于 deprecated"
+      ]
+    },
+    "rules": [
+      {
+        "id": "RULE-SCHEMA-功能-必须登记稳定验收场景",
+        "enforcement": "deterministic",
+        "description": "必须登记至少一个稳定验收场景 ID。",
+        "remediation": "在 acceptance 中登记正文内存在的验收场景。",
+        "diagnostic_code": "KB_SCHEMA_LIST"
+      },
+      {
+        "id": "RULE-SCHEMA-功能-就绪状态必须满足实施条件",
+        "enforcement": "human_review",
+        "description": "只有行为、设计、失败边界和验收足以指导实施时才能标记 ready。",
+        "remediation": "补齐阻塞内容或使用 draft、clarifying、blocked。"
+      },
+      {
+        "id": "RULE-SCHEMA-功能-设计决策不得形成第二权威",
+        "enforcement": "deterministic",
+        "description": "功能决策保存在正文，不允许 adr 字段形成第二权威。",
+        "remediation": "合并有效决策到正文并移除 adr。",
+        "diagnostic_code": "KB_SCHEMA_FORBIDDEN"
+      }
+    ],
+    "compatibility": {
+      "front_matter_validator": "legacy_lightweight_keys",
+      "standard_schema_status": "descriptive_until_standard_validator_is_integrated",
+      "unknown_value_policy": "不得猜测；影响契约的未知项必须保留并进入人工复核。"
+    },
+    "invalid_examples": [
+      {
+        "case": "没有验收场景",
+        "value": {
+          "id": "FEATURE-功能基线-功能-从数据库模型生成知识模板",
+          "acceptance": []
+        },
+        "expected_rule": "RULE-SCHEMA-功能-必须登记稳定验收场景",
+        "reason": "无法定位如何验证规范行为。"
+      },
+      {
+        "case": "独立 ADR 字段",
+        "value": {
+          "id": "FEATURE-功能基线-功能-从数据库模型生成知识模板",
+          "adr": [
+            "ADR-001"
+          ]
+        },
+        "expected_rule": "RULE-SCHEMA-功能-设计决策不得形成第二权威",
+        "reason": "会形成竞争权威。"
+      }
+    ]
+  },
+  "properties": {
+    "id": {
+      "title": "功能稳定编号",
+      "description": "功能的全库稳定身份；标题变化时通常保持不变。",
+      "type": "string",
+      "pattern": "^[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*$",
+      "examples": [
+        "FEATURE-功能基线-功能-从数据库模型生成知识模板"
+      ]
+    },
+    "type": {
+      "title": "知识类型",
+      "description": "固定标识功能知识。",
+      "const": "feature",
+      "examples": [
+        "feature"
+      ]
+    },
+    "title": {
+      "title": "功能名称",
+      "description": "表达可观察结果的阅读名称。",
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "完整核心模板与知识模型"
+      ]
+    },
+    "status": {
+      "title": "交付状态",
+      "description": "功能从候选到完成或退出的交付阶段；不等于知识批准状态。",
+      "oneOf": [
+        {
+          "const": "candidate",
+          "title": "候选",
+          "description": "能力已提出但尚未形成批准基线",
+          "examples": [
+            "candidate"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "首次形成候选能力"
+            ]
+          }
+        },
+        {
+          "const": "baselined",
+          "title": "已建立基线",
+          "description": "范围和验收意图已经确认",
+          "examples": [
+            "baselined"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "当前 Proposal 已确认功能基线"
+            ]
+          }
+        },
+        {
+          "const": "scheduled",
+          "title": "已排期",
+          "description": "已进入明确实施安排",
+          "examples": [
+            "scheduled"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "存在可定位的实施承诺"
+            ]
+          }
+        },
+        {
+          "const": "in_progress",
+          "title": "实施中",
+          "description": "功能正在实现或调整",
+          "examples": [
+            "in_progress"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "存在实际实施活动"
+            ]
+          }
+        },
+        {
+          "const": "acceptance",
+          "title": "验收中",
+          "description": "实现验证完成并进入业务确认",
+          "examples": [
+            "acceptance"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "已有实现证据并进入业务验收"
+            ]
+          }
+        },
+        {
+          "const": "completed",
+          "title": "已完成",
+          "description": "对应版本的实现证据和业务确认均已登记",
+          "examples": [
+            "completed"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "验收证据可定位且责任人确认"
+            ]
+          }
+        },
+        {
+          "const": "deferred",
+          "title": "已延后",
+          "description": "本轮不实施但仍保留有效基线",
+          "examples": [
+            "deferred"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "责任人明确延后当前交付"
+            ]
+          }
+        },
+        {
+          "const": "deprecated",
+          "title": "已弃用",
+          "description": "不再作为当前推荐能力",
+          "examples": [
+            "deprecated"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "替代和退役影响已经确认"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "candidate",
+        "deprecated"
+      ]
+    },
+    "phase": {
+      "title": "产品阶段",
+      "description": "计划归属阶段，不表示实际进度。",
+      "oneOf": [
+        {
+          "const": "mvp",
+          "title": "最小可用",
+          "description": "构成首个可用闭环",
+          "examples": [
+            "mvp"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "缺失会破坏最小闭环"
+            ]
+          }
+        },
+        {
+          "const": "phase2",
+          "title": "第二阶段",
+          "description": "在最小闭环后扩展主要能力",
+          "examples": [
+            "phase2"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "依赖 MVP 稳定后实施"
+            ]
+          }
+        },
+        {
+          "const": "phase3",
+          "title": "第三阶段",
+          "description": "长期优化或扩展能力",
+          "examples": [
+            "phase3"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "不影响前两阶段核心结果"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "mvp",
+        "phase3"
+      ]
+    },
+    "priority": {
+      "title": "功能优先级",
+      "description": "相对于当前产品目标的交付优先顺序。",
+      "oneOf": [
+        {
+          "const": "P0",
+          "title": "阻断级",
+          "description": "缺失会阻断当前目标",
+          "examples": [
+            "P0"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "当前目标没有该功能无法成立"
+            ]
+          }
+        },
+        {
+          "const": "P1",
+          "title": "当前核心",
+          "description": "直接贡献当前主要交付",
+          "examples": [
+            "P1"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "属于当前核心范围"
+            ]
+          }
+        },
+        {
+          "const": "P2",
+          "title": "后续重要",
+          "description": "价值明确但可延后",
+          "examples": [
+            "P2"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "延后不破坏核心目标"
+            ]
+          }
+        },
+        {
+          "const": "P3",
+          "title": "机会项",
+          "description": "资源允许时考虑",
+          "examples": [
+            "P3"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "近期没有交付承诺"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "P0",
+        "P3"
+      ]
+    },
+    "current_slice": {
+      "title": "当前切片",
+      "description": "是否纳入当前交付边界，不改变长期有效性。",
+      "oneOf": [
+        {
+          "const": "included",
+          "title": "已纳入",
+          "description": "属于当前交付边界",
+          "examples": [
+            "included"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "当前迭代明确承担"
+            ]
+          }
+        },
+        {
+          "const": "excluded",
+          "title": "未纳入",
+          "description": "本轮不承担但功能仍有效",
+          "examples": [
+            "excluded"
+          ],
+          "x-context-atlas": {
+            "use_when": [
+              "不属于当前迭代"
+            ]
+          }
+        }
+      ],
+      "examples": [
+        "included",
+        "excluded"
+      ]
+    },
+    "depends_on": {
+      "title": "功能依赖",
+      "description": "成立前需要具备的稳定知识 ID；无依赖时为空数组。",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        [
+          "FEATURE-功能基线-功能-知识库初始化"
+        ]
+      ]
+    },
+    "acceptance": {
+      "title": "验收场景",
+      "description": "正文中稳定验收场景 ID 的非空列表。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "examples": [
+        [
+          "AC-功能-知识模型生成-生成知识模板"
+        ]
+      ]
+    },
+    "last_updated": {
+      "title": "最后更新时间",
+      "description": "知识最后正式变化日期，使用 YYYY-MM-DD。",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": [
+        "2026-09-15"
+      ]
+    }
+  },
   "required": [
     "id",
     "type",
@@ -11,21 +489,82 @@
     "acceptance",
     "last_updated"
   ],
+  "examples": [
+    {
+      "id": "FEATURE-功能基线-功能-从数据库模型生成知识模板",
+      "type": "feature",
+      "title": "完整核心模板与知识模型",
+      "status": "baselined",
+      "phase": "mvp",
+      "priority": "P1",
+      "current_slice": "included",
+      "depends_on": [],
+      "acceptance": [
+        "AC-功能-知识模型生成-生成知识模板"
+      ],
+      "last_updated": "2026-09-15"
+    },
+    {
+      "id": "FEATURE-功能基线-功能-知识校验",
+      "type": "feature",
+      "title": "知识验证",
+      "status": "completed",
+      "phase": "mvp",
+      "priority": "P0",
+      "current_slice": "included",
+      "depends_on": [
+        "FEATURE-功能基线-功能-从数据库模型生成知识模板"
+      ],
+      "acceptance": [
+        "F05-AC-01"
+      ],
+      "last_updated": "2026-09-15"
+    }
+  ],
   "enums": {
-    "type": ["feature"],
-    "status": ["candidate", "baselined", "scheduled", "in_progress", "acceptance", "completed", "deferred", "deprecated"],
-    "phase": ["mvp", "phase2", "phase3"],
-    "priority": ["P0", "P1", "P2", "P3"],
-    "current_slice": ["included", "excluded"],
-    "approval_status": ["proposed", "approved", "rejected"],
-    "lifecycle_status": ["candidate", "active", "deprecated", "retired"],
-    "spec_readiness": ["draft", "clarifying", "ready", "blocked"]
+    "type": [
+      "feature"
+    ],
+    "status": [
+      "candidate",
+      "baselined",
+      "scheduled",
+      "in_progress",
+      "acceptance",
+      "completed",
+      "deferred",
+      "deprecated"
+    ],
+    "phase": [
+      "mvp",
+      "phase2",
+      "phase3"
+    ],
+    "priority": [
+      "P0",
+      "P1",
+      "P2",
+      "P3"
+    ],
+    "current_slice": [
+      "included",
+      "excluded"
+    ]
   },
   "patterns": {
-    "id": "(?:F\\d{2}|F-[A-Z0-9]+-[0-9]{3})",
+    "id": "[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
     "last_updated": "\\d{4}-\\d{2}-\\d{2}"
   },
-  "non_empty_lists": ["acceptance"],
-  "unique_lists": ["depends_on", "acceptance", "sources", "blocking_questions"],
-  "forbidden": ["adr"]
+  "non_empty_lists": [
+    "acceptance"
+  ],
+  "unique_lists": [
+    "depends_on",
+    "acceptance",
+    "sources",
+    "blocking_questions"
+  ],
+  "forbidden": [
+    "adr"
+  ]
 }

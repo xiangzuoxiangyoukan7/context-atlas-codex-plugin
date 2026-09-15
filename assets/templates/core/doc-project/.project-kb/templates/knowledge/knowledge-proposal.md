@@ -15,7 +15,7 @@ git_commit: pending
 project_version: 0.1.0
 captured_at: 2000-01-01T00:00:00+00:00
 rel_classified_under:
-  - "[[03-变更与证据/待确认知识/README|IDX-PROPOSALS]]"
+  - "[[03-变更与证据/待确认知识/README|IDX-变更与证据-待确认知识]]"
 ---
 # PROP-20000101-00000000 待确认知识候选
 

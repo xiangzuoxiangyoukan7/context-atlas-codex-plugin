@@ -14,8 +14,6 @@ TYPE_COLORS: dict[str, int] = {
     "architecture": 14048348,
     "module": 39423,
     "interface": 16753920,
-    "database_namespace": 3447003,
-    "database_unit": 3447003,
     "database_table": 3447003,
     "data_source": 3447003,
     "data_asset": 16766720,
@@ -26,11 +24,21 @@ TYPE_COLORS: dict[str, int] = {
     "knowledge_proposal": 10040012,
     "knowledge_item": 10027212,
     "managed_source": 11392604,
-    "source": 11392604,
     "governance_document": 6073814,
     "governance_task": 6073814,
     "task": 6073814,
 }
+
+# README 分类节点统一使用蓝色系，并按目录深度由深到浅排列，便于在图谱中
+# 快速识别根节点及其下级分类。Obsidian 按首个匹配颜色组着色，因此这些
+# 查询必须位于通用的 type 查询之前。
+README_LEVEL_COLORS: tuple[tuple[str, int], ...] = (
+    (r"path:/^README\.md$/", 0x1E3A5F),
+    (r"path:/^[^/]+\/README\.md$/", 0x2F5D8C),
+    (r"path:/^(?:[^/]+\/){2}README\.md$/", 0x4A79A8),
+    (r"path:/^(?:[^/]+\/){3}README\.md$/", 0x6D98BF),
+    (r"path:/^(?:[^/]+\/){4,}README\.md$/", 0x93B7D5),
+)
 
 
 def type_query(document_type: str) -> str:
@@ -40,12 +48,17 @@ def type_query(document_type: str) -> str:
 
 
 def managed_color_groups() -> list[dict[str, object]]:
-    """按稳定类型顺序返回 Context Atlas 管理的颜色组。"""
+    """先返回 README 层级色，再按稳定类型顺序返回其余受管颜色组。"""
 
-    return [
+    readme_groups = [
+        {"query": query, "color": {"a": 1, "rgb": rgb}}
+        for query, rgb in README_LEVEL_COLORS
+    ]
+    type_groups = [
         {"query": type_query(document_type), "color": {"a": 1, "rgb": rgb}}
         for document_type, rgb in TYPE_COLORS.items()
     ]
+    return [*readme_groups, *type_groups]
 
 
 def default_graph_settings() -> dict[str, object]:
@@ -53,12 +66,12 @@ def default_graph_settings() -> dict[str, object]:
 
     return {
         "collapse-filter": False,
-        "search": '-path:"90-历史归档"',
-        "showTags": False,
-        "showAttachments": False,
-        "hideUnresolved": False,
+        "search": "",
+        "showTags": True,
+        "showAttachments": True,
+        "hideUnresolved": True,
         "showOrphans": True,
-        "collapse-color-groups": False,
+        "collapse-color-groups": True,
         "colorGroups": managed_color_groups(),
         "collapse-display": True,
         "showArrow": True,
@@ -71,14 +84,17 @@ def default_graph_settings() -> dict[str, object]:
         "linkStrength": 1,
         "linkDistance": 250,
         "scale": 1,
-        "close": False,
+        "close": True,
     }
 
 
 def merge_graph_settings(current: dict[str, object]) -> dict[str, object]:
     """更新受管类型颜色，保留用户颜色组和其他 Obsidian 设置。"""
 
-    managed_queries = {type_query(document_type) for document_type in TYPE_COLORS}
+    managed_queries = {
+        *(type_query(document_type) for document_type in TYPE_COLORS),
+        *(query for query, _ in README_LEVEL_COLORS),
+    }
     raw_groups = current.get("colorGroups", [])
     custom_groups = [
         group for group in raw_groups

@@ -1,9 +1,9 @@
 ---
-id: OVERVIEW-PROJECT
+id: OVERVIEW-项目总览-项目概述
 type: overview_document
 title: 项目概述
 rel_classified_under:
-  - "[[00-项目总览/README|IDX-OVERVIEW]]"
+  - "[[00-项目总览/README|IDX-项目总览]]"
 ---
 # {{PROJECT_NAME}} 项目概述
 

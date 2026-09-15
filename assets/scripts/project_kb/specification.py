@@ -1,6 +1,6 @@
 """验证规格就绪度、内嵌验收场景、接口粒度和变更增量。"""
 
-# context-atlas-rules: [[rules/知识治理规则#RULE-SPEC-001|RULE-SPEC-001]]
+# context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-需求正文唯一权威且就绪度独立|RULE-知识治理规则-需求正文唯一权威且就绪度独立]]
 
 from __future__ import annotations
 
@@ -203,9 +203,9 @@ def validate_specifications(
         if kind == "interface":
             identifier = str(metadata.get("id", ""))
             title = str(metadata.get("title", ""))
-            if title == identifier or record.path.stem == identifier or not record.path.stem.startswith(identifier + "-"):
+            if title == identifier:
                 issues.append(
-                    Issue("KB_INTERFACE_NAME", record.path, "interface filename and title require a human-readable business name")
+                    Issue("KB_INTERFACE_NAME", record.path, "interface title requires a human-readable business name")
                 )
             endpoint_rows = re.findall(r"^\|\s*(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s*\|", record.body, re.MULTILINE | re.IGNORECASE)
             if len(endpoint_rows) > 1:

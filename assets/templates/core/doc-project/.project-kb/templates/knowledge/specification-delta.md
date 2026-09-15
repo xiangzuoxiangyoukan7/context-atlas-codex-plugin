@@ -14,7 +14,7 @@ rollback: 待确认
 sources: []
 last_updated: {{INITIALIZED_AT}}
 rel_classified_under:
-  - "[[03-变更与证据/变更/README|IDX-CHANGES]]"
+  - "[[03-变更与证据/变更/README|IDX-变更与证据-变更]]"
 ---
 
 # 规格增量
