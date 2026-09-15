@@ -44,6 +44,12 @@ README_LEVEL_COLORS: tuple[tuple[str, int], ...] = (
 def type_query(document_type: str) -> str:
     """返回一个知识类型的稳定 Obsidian 属性查询。"""
 
+    return f'["type":{document_type}]'
+
+
+def _legacy_type_query(document_type: str) -> str:
+    """返回升级前未引用属性名的受管查询，仅用于清理旧配置。"""
+
     return f"[type:{document_type}]"
 
 
@@ -93,6 +99,7 @@ def merge_graph_settings(current: dict[str, object]) -> dict[str, object]:
 
     managed_queries = {
         *(type_query(document_type) for document_type in TYPE_COLORS),
+        *(_legacy_type_query(document_type) for document_type in TYPE_COLORS),
         *(query for query, _ in README_LEVEL_COLORS),
     }
     raw_groups = current.get("colorGroups", [])
