@@ -126,6 +126,27 @@
       "human_review_boundary": "确定性检查只验证可计算条件；业务含义、批准和接受仍由责任人判断。"
     },
     {
+      "id": "RULE-知识治理规则-每次发布必须升版且版本身份一致",
+      "name_zh": "每次发布必须升版且版本身份一致",
+      "authority": "[[rules/知识治理规则#RULE-知识治理规则-每次发布必须升版且版本身份一致|RULE-知识治理规则-每次发布必须升版且版本身份一致]]",
+      "enforced_by": [
+        "acceptance",
+        "validator"
+      ],
+      "description": "每次发布必须升版且版本身份一致",
+      "use_when": [
+        "准备发布、创建 Git tag、修改插件清单或知识库格式版本"
+      ],
+      "enforcement_layers": [
+        "acceptance",
+        "validator"
+      ],
+      "diagnostic_codes": [
+        "RELEASE_VERSION_MISMATCH"
+      ],
+      "human_review_boundary": "确定性检查验证版本一致性与递增关系；是否构成破坏性变化并需要提升 minor 由项目责任人复核。"
+    },
+    {
       "id": "RULE-知识治理规则-规则使用方主动引用并接受覆盖检查",
       "name_zh": "规则使用方主动引用并接受覆盖检查",
       "authority": "[[rules/知识治理规则#RULE-知识治理规则-规则使用方主动引用并接受覆盖检查|RULE-知识治理规则-规则使用方主动引用并接受覆盖检查]]",

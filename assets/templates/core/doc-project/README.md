@@ -69,7 +69,7 @@ rel_classified_under: []
 
 ## 格式要求
 
-本知识库当前磁盘格式为 `format_version: 0.20.0`，与 Context Atlas 发布版本一致，并由 `knowledge-base.yaml` 声明。正式知识项采用 Markdown 正文和 YAML Front Matter，字段以 `.project-kb/schemas/` 中当前 Schema 为机器权威。需求的业务内容以正文为唯一权威，决策依据归入所属需求、功能、技术或治理文档。`knowledge_revision` 由执行器在正式知识事务成功后递增；新知识库不再生成容易与知识修订混淆的全局 `project_version`。
+本知识库当前磁盘格式为 `format_version: 0.20.2`，与 Context Atlas 发布版本一致，并由 `knowledge-base.yaml` 声明。正式知识项采用 Markdown 正文和 YAML Front Matter，字段以 `.project-kb/schemas/` 中当前 Schema 为机器权威。需求的业务内容以正文为唯一权威，决策依据归入所属需求、功能、技术或治理文档。`knowledge_revision` 由执行器在正式知识事务成功后递增；新知识库不再生成容易与知识修订混淆的全局 `project_version`。
 
 通用格式示例：
 

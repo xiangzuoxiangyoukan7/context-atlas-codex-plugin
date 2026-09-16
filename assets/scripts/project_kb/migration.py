@@ -1578,7 +1578,10 @@ def build_migration_proposal(
         if graph_path.is_file():
             normalized_graph = graph_text(read_graph(graph_path))
             if normalized_graph != graph_path.read_text(encoding="utf-8"):
-                rewrites += (MigrationRewrite(graph_path.resolve(), _digest(graph_path.read_bytes()), normalized_graph),)
+                # Obsidian 会持续保存缩放、位置等个人工作区状态。图谱规范化只管理
+                # colorGroups，必须在 apply 时基于最新文件动态合并；否则这些无关变化会
+                # 不断改变 proposal_revision，使精确确认永远无法通过。
+                rewrites += (MigrationRewrite(graph_path.resolve(), "dynamic", None),)
         else:
             content = graph_text()
             creations += (MigrationCreation(graph_path.resolve(), content, _digest(content.encode("utf-8"))),)
@@ -1800,7 +1803,10 @@ def apply_migration(
         if _digest(removal.path.read_bytes()) != removal.original_digest:
             raise ValueError(f"migration target changed after proposal: {removal.path.name}")
     for rewrite in proposal.rewrites:
-        if _digest(rewrite.path.read_bytes()) != rewrite.original_digest:
+        if (
+            rewrite.original_digest != "dynamic"
+            and _digest(rewrite.path.read_bytes()) != rewrite.original_digest
+        ):
             raise ValueError(f"migration target changed after proposal: {rewrite.path.name}")
     for creation in proposal.creations:
         if creation.path.exists():
@@ -1903,12 +1909,17 @@ def apply_migration(
                 continue
             if rewrite.path.resolve() in {removal.path.resolve() for removal in proposal.removals}:
                 continue
-            _atomic_write(
-                rewrite.path,
-                rewrite.content
-                if rewrite.content is not None
-                else _rewrite_governance_paths(rewrite.path.read_text(encoding="utf-8")),
-            )
+            if rewrite.original_digest == "dynamic":
+                if rewrite.path.resolve() != (resolved_root / ".obsidian" / "graph.json").resolve():
+                    raise ValueError(f"unsupported dynamic migration rewrite: {rewrite.path}")
+                content = graph_text(read_graph(rewrite.path))
+            else:
+                content = (
+                    rewrite.content
+                    if rewrite.content is not None
+                    else _rewrite_governance_paths(rewrite.path.read_text(encoding="utf-8"))
+                )
+            _atomic_write(rewrite.path, content)
         for creation in proposal.creations:
             creation.path.parent.mkdir(parents=True, exist_ok=True)
             _atomic_write(creation.path, creation.content)

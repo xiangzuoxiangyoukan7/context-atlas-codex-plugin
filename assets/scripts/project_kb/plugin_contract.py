@@ -1,9 +1,12 @@
 """验证 Codex 与 Claude Code 插件清单的一致性。"""
 
+# context-atlas-rules: [[rules/知识治理规则#RULE-知识治理规则-每次发布必须升版且版本身份一致|RULE-知识治理规则-每次发布必须升版且版本身份一致]]
+
 from __future__ import annotations
 
 import json
 import re
+import subprocess
 from pathlib import Path
 
 
@@ -179,6 +182,77 @@ def _validate_release_boundary(root: Path) -> list[str]:
     return errors
 
 
+def _template_format_version(root: Path) -> str | None:
+    """读取新建知识库模板声明的格式版本。"""
+
+    manifest = root / "templates" / "core" / "doc-project" / "knowledge-base.yaml"
+    if not manifest.is_file():
+        return None
+    for line in manifest.read_text(encoding="utf-8").splitlines():
+        if line.startswith("format_version:"):
+            return line.split(":", 1)[1].strip()
+    return None
+
+
+def _validate_version_increment(version: str, tags: list[str]) -> list[str]:
+    """验证当前版本相对最近旧 tag 只前进一步：patch +1 或 minor +1。"""
+
+    current = tuple(int(part) for part in version.split("."))
+    released = sorted(
+        tuple(int(part) for part in tag[1:].split("."))
+        for tag in tags
+        if re.fullmatch(r"v\d+\.\d+\.\d+", tag) and tag != f"v{version}"
+    )
+    previous = next((item for item in reversed(released) if item < current), None)
+    if previous is None:
+        return []
+    patch_step = current == (previous[0], previous[1], previous[2] + 1)
+    minor_step = current == (previous[0], previous[1] + 1, 0)
+    if patch_step or minor_step:
+        return []
+    return [
+        "发布版本必须相对最近 tag 提升一个 patch，或为破坏性修改提升一个 minor 并将 patch 归零"
+    ]
+
+
+def _validate_release_version_alignment(root: Path, plugin_version: object) -> list[str]:
+    """保证插件、知识格式、模板及已创建发布 tag 使用同一个版本号。"""
+
+    errors: list[str] = []
+    compatibility_path = root / "compatibility.json"
+    try:
+        compatibility = _load_object(compatibility_path)
+    except (FileNotFoundError, UnicodeDecodeError, ValueError) as error:
+        return [str(error)]
+    created_format = compatibility.get("created_format_version")
+    if created_format != plugin_version:
+        errors.append("插件 version 必须与 compatibility.json 的 created_format_version 一致")
+    template_format = _template_format_version(root)
+    if template_format != plugin_version:
+        errors.append("插件 version 必须与知识库模板 format_version 一致")
+
+    # 发布前工作区允许尚未创建 tag；一旦干净 HEAD 已存在精确 tag，就必须匹配。
+    if (root / ".git").exists():
+        status = subprocess.run(
+            ["git", "status", "--porcelain"], cwd=root, capture_output=True, text=True, check=False
+        )
+        if status.returncode == 0 and not status.stdout.strip():
+            exact = subprocess.run(
+                ["git", "describe", "--tags", "--exact-match", "HEAD"],
+                cwd=root, capture_output=True, text=True, check=False,
+            )
+            if exact.returncode == 0 and exact.stdout.strip() != f"v{plugin_version}":
+                errors.append("当前提交的 Git tag 必须为 v<插件 version>")
+            if exact.returncode == 0:
+                tags = subprocess.run(
+                    ["git", "tag", "--list", "v*"],
+                    cwd=root, capture_output=True, text=True, check=False,
+                )
+                if tags.returncode == 0:
+                    errors.extend(_validate_version_increment(plugin_version, tags.stdout.splitlines()))
+    return errors
+
+
 def validate_plugin_contract(root: Path) -> list[str]:
     """返回双平台身份、字段和 Skill 唯一性错误。"""
 
@@ -249,6 +323,8 @@ def validate_plugin_contract(root: Path) -> list[str]:
     version = claude.get("version")
     if not isinstance(version, str) or not SEMVER_RE.fullmatch(version):
         errors.append("插件版本必须使用严格三段语义版本")
+    else:
+        errors.extend(_validate_release_version_alignment(root, version))
     if set(claude) - CLAUDE_FIELDS:
         errors.append(f"Claude 清单含不支持字段：{sorted(set(claude) - CLAUDE_FIELDS)}")
     for platform, manifest in (("Claude", claude), ("Codex", codex)):
