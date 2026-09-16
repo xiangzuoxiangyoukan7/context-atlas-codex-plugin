@@ -31,7 +31,13 @@ def _identifier_family(identifier: str) -> str:
         return "F" if family.startswith("F") else family
     if re.fullmatch(r"F\d+", identifier):
         return "F"
-    return identifier.split("-", 1)[0]
+    family = identifier.split("-", 1)[0]
+    # 格式 0.20.0 收敛了知识身份前缀，但关系目录仍以历史端点族表达
+    # 类型约束。这里统一映射，避免改名后同一条合法关系被误判为换向。
+    return {
+        "FEAT": "FEATURE",
+        "IFACE": "INTERFACE",
+    }.get(family, family)
 
 
 def _prefix_allowed(identifier: str, prefixes: frozenset[str]) -> bool:

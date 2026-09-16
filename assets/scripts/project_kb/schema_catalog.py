@@ -276,6 +276,7 @@ class SchemaCatalog:
                 if (
                     identity.get("semantic_identity") == "type_date_and_semantic_name"
                     and match is not None
+                    and re.match(r"^[A-Z]+-\d{8}-", identifier) is not None
                     and "identity_created_at" not in metadata
                 ):
                     issues.append(Issue(

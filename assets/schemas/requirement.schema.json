@@ -27,7 +27,7 @@
       "semantic_name_field": "title",
       "semantic_name_normalization": "remove_non_alphanumeric_or_hyphen",
       "semantic_identity": "type_date_and_semantic_name",
-      "date_capture_pattern": "^REQ-([0-9]{8})-",
+      "date_capture_pattern": "^REQ-(?:[A-Z0-9]+-)?([0-9]{8})-",
       "maximum_length": 120,
       "rename_policy": "身份建立日期不可变；普通标题或内容修订保持 ID；身份级改名必须通过已确认事务迁移全部引用。",
       "collision_policy": "目标 ID 或文件已存在时阻塞，不追加隐式序号。"
@@ -533,7 +533,7 @@
     ]
   },
   "patterns": {
-    "id": "REQ-[A-Z0-9]+-[0-9]{8}-[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
+    "id": "REQ-(?:[A-Z0-9]+-)?[0-9]{8}-[0-9A-Za-z\\u4e00-\\u9fff]+(?:-[0-9A-Za-z\\u4e00-\\u9fff]+)*",
     "last_updated": "\\d{4}-\\d{2}-\\d{2}"
   },
   "unique_lists": [

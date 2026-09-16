@@ -211,6 +211,10 @@ def _migration_proposal(
         raise ValueError(f"knowledge discovery failed: {messages}")
     policy = CompatibilityPolicy.load(compatibility)
     proposal = build_migration_proposal(root, records, policy)
+    if agent_plan is not None:
+        proposal = preflight_migration(
+            root.resolve(), proposal, _default_assets_root() / "schemas"
+        )
     proposal = merge_agent_migration_plan(root.resolve(), proposal, agent_plan)
     return preflight_migration(
         root.resolve(), proposal, _default_assets_root() / "schemas"

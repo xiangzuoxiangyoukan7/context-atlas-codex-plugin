@@ -390,7 +390,34 @@ def preflight_migration(
         issues = validate(staging, ValidationConfig(schema_root=schema_root))
         health = inspect_health(staging)
         blocking = tuple(item for item in health.findings if item.severity != "warning")
-        return replace(
+        projected_sources = {
+            item.target.resolve(): item.source.resolve() for item in proposal.moves
+        }
+        diagnostics: list[MigrationUnresolved] = []
+        for item in issues:
+            projected = root.resolve() / item.path.resolve().relative_to(staging.resolve())
+            source = projected_sources.get(projected.resolve(), projected.resolve())
+            if not source.is_file():
+                source = (root.resolve() / "knowledge-base.yaml").resolve()
+            diagnostics.append(MigrationUnresolved(
+                source, item.code, f"{item.code}: {item.message}"
+            ))
+        for item in blocking:
+            projected = (root.resolve() / item.path).resolve()
+            source = projected_sources.get(projected, projected)
+            if not source.is_file():
+                source = (root.resolve() / "knowledge-base.yaml").resolve()
+            diagnostics.append(MigrationUnresolved(
+                source, item.identifier or item.code, f"{item.code}: {item.message}"
+            ))
+        unresolved = tuple(sorted(
+            (
+                replace(item, issue_id=_unresolved_id(root.resolve(), item))
+                for item in diagnostics
+            ),
+            key=lambda item: item.issue_id,
+        ))
+        updated = replace(
             proposal,
             preflight_status="passed" if not issues and not blocking else "failed",
             preflight_validation_issues=tuple(
@@ -400,7 +427,15 @@ def preflight_migration(
             preflight_health_findings=tuple(
                 f"{item.code} {item.path}: {item.message}" for item in blocking
             ),
+            unresolved=unresolved,
         )
+        if not unresolved:
+            return updated
+        return replace(updated, proposal_revision=_revision(
+            updated.source_version, updated.target_version, updated.changes,
+            updated.moves, updated.removals, updated.rewrites, updated.creations,
+            updated.assets, updated.unresolved, updated.agent_decisions,
+        ))
 
 
 def _current_format_creations(root: Path) -> tuple[MigrationCreation, ...]:
